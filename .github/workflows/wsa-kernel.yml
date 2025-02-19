@@ -36,23 +36,29 @@ jobs:
     runs-on: ${{ inputs.runner }}
 
     steps:
-      - name: Maximize build space
-        if: ${{ inputs.runner == 'ubuntu-22.04' }}
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 8192
-          temp-reserve-mb: 2048
-          swap-size-mb: 8192
-          remove-dotnet: "true"
-          remove-android: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
-
       - name: Clean up workspace
         run: rm -rf ${{ github.workspace }}/*
 
-      - name: Get Deps
-        run: sudo apt install bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip clang lld llvm
+      - name: Install Build Tools
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip ccache
+          version: 1.0 
+
+      - name: Cache LLVM
+        id: cache-llvm
+        uses: actions/cache@v4
+        with:
+          path: ./llvm
+          key: llvm-12.0.1
+
+      - name: Setup LLVM
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "12.0.1"
+          force-version: true
+          ubuntu-version: "16.04"
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Setup kernel source
         uses: actions/checkout@v4
