@@ -9,9 +9,6 @@ on:
       runner:
         required: true
         type: string
-      lto_type:
-        required: true
-        type: string
       kernelsu_variant:
         required: true
         type: string
@@ -36,7 +33,6 @@ jobs:
       kernel_version: "5.15"
       wsa_branch: ${{ matrix.wsa_branch }}
       runner: ${{ inputs.runner }}
-      lto_type: ${{ inputs.lto_type }}
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
