@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/wsa-kernel.yml
     secrets: inherit
     with:
-      android_version: "android14"
+      android_version: "android13"
       kernel_version: "5.15"
       wsa_branch: ${{ matrix.wsa_branch }}
       runner: ${{ inputs.runner }}
