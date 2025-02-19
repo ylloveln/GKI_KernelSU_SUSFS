@@ -15,6 +15,9 @@ on:
       wsa_branch:
         required: true
         type: string
+      wsa_arch:
+        required: true
+        type: string
       runner:
         required: true
         type: string
@@ -56,12 +59,12 @@ jobs:
         with:
           repository: microsoft/WSA-Linux-Kernel
           ref: android-lts/latte-2/${{ inputs.wsa_branch }}
-          path: WSA-Linux-Kernel
+          path: WSA-Linux-Kernel-${{ inputs.wsa_arch }}
         
       - name: Set CONFIG Environment Variable
         run: |
           # Set CONFIG dynamically based on inputs values
-          CONFIG="WSA-Linux-Kernel"
+          CONFIG="WSA-Linux-Kernel-${{ inputs.wsa_branch }}"
 
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
@@ -180,12 +183,17 @@ jobs:
           sed -i 's/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-Wild+"/' ./scripts/setlocalversion
           
           cp ../kernel_patches/config-wsa .config
+          declare -A ARCH_MAP=(["x86_64"]="x64" ["arm64"]="arm64")
+          cp configs/wsa/config-wsa-${ARCH_MAP[${{ inputs.wsa_arch }}]} .config
           make olddefconfig
-          make -j$(nproc) LLVM=1 ARCH=x86_64 bzImage
+          declare -A FILE_NAME=(["x86_64"]="bzImage" ["arm64"]="Image")
+          make -j`nproc` LLVM=1 ARCH=${{ inputs.wsa_arch }} $(if [ "${{ inputs.wsa_arch }}" == "arm64" ]; then echo CROSS_COMPILE=aarch64-linux-gnu; fi) ${FILE_NAME[${{ inputs.wsa_arch }}]}
+          declare -A ARCH_MAP_FILE=(["x86_64"]="x86" ["arm64"]="arm64")
+          echo "file_path=WSA-Linux-Kernel/arch/${ARCH_MAP_FILE[${{ inputs.wsa_arch }}]}/boot/${FILE_NAME[${{ inputs.arch }}]}" >> $GITHUB_ENV
+          
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kernel-${{ env.CONFIG }}
-          path: |
-            $CONFIG/arch/x86/boot/bzImage
+          path: "${{ env.file_path }}"
