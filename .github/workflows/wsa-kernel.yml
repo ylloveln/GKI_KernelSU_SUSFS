@@ -18,9 +18,6 @@ on:
       runner:
         required: true
         type: string
-      lto_type:
-        required: true
-        type: string
       kernelsu_variant:
         required: true
         type: string
