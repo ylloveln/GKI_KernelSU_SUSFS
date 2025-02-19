@@ -52,11 +52,11 @@ jobs:
         run: sudo apt install bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip
 
       - name: Setup kernel source
-        run: |
-          git clone https://github.com/microsoft/WSA-Linux-Kernel.git
-          echo "KERNEL_ROOT=~/WSA-Linux-Kernel/" >> $GITHUB_ENV
-          cd WSA-Linux-Kernel
-          git checkout android-lts/latte-2/${{ inputs.wsa_branch }}
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/WSA-Linux-Kernel
+          ref: android-lts/latte-2/${{ inputs.version }}
+          path: WSA-Linux-Kernel
         
       - name: Set CONFIG Environment Variable
         run: |
@@ -165,12 +165,6 @@ jobs:
           # Change to common directory and apply common SUSFS patch
           cd ../
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
-            
-      - name: Install Build Tools
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip
-          version: 1.0
 
       - name: Cache LLVM
         id: cache-llvm
@@ -186,19 +180,6 @@ jobs:
           force-version: true
           ubuntu-version: "16.04"
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
-
-      - name: Checkout KernelSU
-        uses: actions/checkout@v4
-        with:
-          path: KernelSU
-          fetch-depth: 0
-
-      - name: Setup kernel source
-        uses: actions/checkout@v4
-        with:
-          repository: microsoft/WSA-Linux-Kernel
-          ref: android-lts/latte-2/${{ inputs.version }}
-          path: WSA-Linux-Kernel
           
       - name: Build the Kernel
         run: |
