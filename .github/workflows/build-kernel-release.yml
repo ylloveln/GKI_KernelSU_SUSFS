@@ -119,7 +119,6 @@ jobs:
     secrets: inherit
     with:
       runner: ${{ inputs.runner }}
-      lto_type: ${{ inputs.lto_type }}
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
@@ -133,6 +132,7 @@ jobs:
         - build-kernel-a14-5-15
         - build-kernel-a14-6-1
         - build-kernel-a15-6-6
+        - build-kernel-wsa
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: WildPlusKernel
