@@ -226,7 +226,7 @@ jobs:
           sed -i 's/-dirty//' ./scripts/setlocalversion
           sed -i 's/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-Wild+"/' ./scripts/setlocalversion
 
-          ls -b ./configs/wsa/
+          mv "./configs/wsa/config-wsa-x64"* "./configs/wsa/config-wsa-x64"
           
           mv ./configs/wsa/config-wsa-x64* ./.config
           make olddefconfig
