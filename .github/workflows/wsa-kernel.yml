@@ -49,7 +49,7 @@ jobs:
         run: rm -rf ${{ github.workspace }}/*
 
       - name: Get Deps
-        run: sudo apt install build-essential flex bison dwarves libssl-dev libelf-dev cpio qemu-utils
+        run: sudo apt install bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip
 
       - name: Setup kernel source
         run: |
@@ -166,22 +166,39 @@ jobs:
           cd ../
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
             
-      - name: Install and Configure LLVM
-        run: |
-          echo "LLVM_VERSION=12" >> $GITHUB_ENV
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh $LLVM_VERSION
-          rm ./llvm.sh
-          sudo ln -s --force /usr/bin/clang-$LLVM_VERSION /usr/bin/clang
-          sudo ln -s --force /usr/bin/ld.lld-$LLVM_VERSION /usr/bin/ld.lld
-          sudo ln -s --force /usr/bin/llvm-objdump-$LLVM_VERSION /usr/bin/llvm-objdump
-          sudo ln -s --force /usr/bin/llvm-ar-$LLVM_VERSION /usr/bin/llvm-ar
-          sudo ln -s --force /usr/bin/llvm-nm-$LLVM_VERSION /usr/bin/llvm-nm
-          sudo ln -s --force /usr/bin/llvm-strip-$LLVM_VERSION /usr/bin/llvm-strip
-          sudo ln -s --force /usr/bin/llvm-objcopy-$LLVM_VERSION /usr/bin/llvm-objcopy
-          sudo ln -s --force /usr/bin/llvm-readelf-$LLVM_VERSION /usr/bin/llvm-readelf
-          sudo ln -s --force /usr/bin/clang++-$LLVM_VERSION /usr/bin/clang++
+      - name: Install Build Tools
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip
+          version: 1.0
+
+      - name: Cache LLVM
+        id: cache-llvm
+        uses: actions/cache@v4
+        with:
+          path: ./llvm
+          key: llvm-12.0.1
+
+      - name: Setup LLVM
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "12.0.1"
+          force-version: true
+          ubuntu-version: "16.04"
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
+
+      - name: Checkout KernelSU
+        uses: actions/checkout@v4
+        with:
+          path: KernelSU
+          fetch-depth: 0
+
+      - name: Setup kernel source
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/WSA-Linux-Kernel
+          ref: android-lts/latte-2/${{ inputs.version }}
+          path: WSA-Linux-Kernel
           
       - name: Build the Kernel
         run: |
