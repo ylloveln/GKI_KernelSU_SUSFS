@@ -49,7 +49,7 @@ jobs:
         run: rm -rf ${{ github.workspace }}/*
 
       - name: Get Deps
-        run: sudo apt install bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip clang
+        run: sudo apt install bc bison build-essential flex libelf-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gzip clang lld
 
       - name: Setup kernel source
         uses: actions/checkout@v4
