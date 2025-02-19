@@ -12,10 +12,7 @@ on:
       kernel_version:
         required: true
         type: string
-      sub_level:
-        required: true
-        type: string
-      os_patch_level:
+      wsa_branch:
         required: true
         type: string
       runner:
