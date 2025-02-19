@@ -52,12 +52,12 @@ jobs:
         run: sudo apt install build-essential flex bison dwarves libssl-dev libelf-dev cpio qemu-utils
 
       - name: Setup kernel source
-        uses: actions/checkout@v4
-        with:
-          repository: microsoft/WSA-Linux-Kernel
-          ref: android-lts/latte-2/${{ inputs.wsa_branch }}
-          path: WSA-Linux-Kernel
-
+        run: |
+          git clone https://github.com/microsoft/WSA-Linux-Kernel.git
+          echo "KERNEL_ROOT=~/WSA-Linux-Kernel/" >> $GITHUB_ENV
+          cd WSA-Linux-Kernel
+          git checkout android-lts/latte-2/${{ inputs.wsa_branch }}
+        
       - name: Set CONFIG Environment Variable
         run: |
           # Set CONFIG dynamically based on inputs values
