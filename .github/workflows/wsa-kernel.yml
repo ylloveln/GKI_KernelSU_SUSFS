@@ -207,6 +207,8 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> .config
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> .config
+
+          echo "CONFIG_FANOTIFY=n" >> .config
           
       - name: Build the Kernel
         run: |
