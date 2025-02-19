@@ -26,12 +26,16 @@ jobs:
       matrix:
         include:
           - wsa_branch: "5.15.104.4"
+            wsa_arch: "x86_64"
+          - wsa_branch: "5.15.104.4"
+            wsa_arch: "arm64"
     uses: ./.github/workflows/wsa-kernel.yml
     secrets: inherit
     with:
       android_version: "android13"
       kernel_version: "5.15"
       wsa_branch: ${{ matrix.wsa_branch }}
+      wsa_arch: ${{ matrix.wsa_arch }}
       runner: ${{ inputs.runner }}
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
