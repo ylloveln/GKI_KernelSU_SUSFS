@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/WSA-Linux-Kernel
-          ref: android-lts/latte-2/${{ inputs.version }}
+          ref: android-lts/latte-2/${{ inputs.wsa_branch }}
           path: WSA-Linux-Kernel
         
       - name: Set CONFIG Environment Variable
