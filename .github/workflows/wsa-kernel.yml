@@ -64,7 +64,7 @@ jobs:
       - name: Set CONFIG Environment Variable
         run: |
           # Set CONFIG dynamically based on inputs values
-          CONFIG="WSA-Linux-Kernel-${{ inputs.wsa_branch }}"
+          CONFIG="WSA-Linux-Kernel-${{ inputs.wsa_arch }}"
 
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
