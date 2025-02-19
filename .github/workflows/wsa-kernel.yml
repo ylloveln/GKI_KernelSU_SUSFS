@@ -185,6 +185,8 @@ jobs:
           declare -A ARCH_MAP=(["x86_64"]="x64" ["arm64"]="arm64")
           cp configs/wsa/config-wsa-${ARCH_MAP[${{ inputs.wsa_arch }}]} .config
 
+          echo "startofsus" >> .config
+
           # Add SUSFS configuration settings
           echo "CONFIG_KSU=y" >> .config
           echo "CONFIG_KSU_SUSFS=y" >> .config
@@ -209,6 +211,7 @@ jobs:
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> .config
 
           echo "CONFIG_FANOTIFY=n" >> .config
+          echo "endofsus" >> .config
           
       - name: Build the Kernel
         run: |
