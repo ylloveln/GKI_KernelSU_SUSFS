@@ -166,36 +166,6 @@ jobs:
           cd ../
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
             
-      - name: Add SUSFS Configuration Settings
-        run: |
-          echo "Changing to configuration directory: $CONFIG..."
-          cd "$CONFIG"
-
-          echo "Adding configuration settings to gki_defconfig..."
-
-          # Add SUSFS configuration settings
-          echo "CONFIG_KSU=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./configs/wsa/config-wsa-x64
-
-          # Add additional tmpfs config setting
-          echo "CONFIG_TMPFS_XATTR=y" >> ./configs/wsa/config-wsa-x64
-          echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./configs/wsa/config-wsa-x64
-
       - name: Install and Configure LLVM
         run: |
           echo "LLVM_VERSION=12" >> $GITHUB_ENV
@@ -226,7 +196,7 @@ jobs:
           sed -i 's/-dirty//' ./scripts/setlocalversion
           sed -i 's/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-Wild+"/' ./scripts/setlocalversion
           
-          mv "./configs/wsa/config-wsa-x64"* .config
+          cp ../../kernel_patches/config-wsa .config
           make olddefconfig
           make -j`nproc` LLVM=1 bzImage
 
