@@ -363,6 +363,8 @@ jobs:
 
       - name: Config Docker
         run: |
+          cd "$CONFIG"
+          
           #Generally Necessary
           echo "CONFIG_CGROUP_HIERARCHY=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_NAMESPACES=y" >> ./common/arch/arm64/configs/gki_defconfig
