@@ -459,8 +459,9 @@ jobs:
           #overlayfs
           echo "CONFIG_OVERLAY_FS=y" >> ./common/arch/arm64/configs/gki_defconfig
 
-          #Limits
-          echo "CONFIG_KEYS_ROOT_MAXKEYS=1000000" >> ./common/arch/arm64/configs/gki_defconfig
+          cd common
+          cp ../../kernel_patches/docker.util.c.patch ./
+          patch -p1 -F 3 < docker.util.c.patch
 
       - name: Config Kernel Name
         run: |
