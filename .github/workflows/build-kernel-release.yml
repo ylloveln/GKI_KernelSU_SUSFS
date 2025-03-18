@@ -112,15 +112,16 @@ jobs:
         -> KernelSU-${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
         -> SUSFS ඞ v1.5.5 
         -> Manual Hooks for Better Hiding
-        -> Wireguard Support
         -> Simple Maphide for LineageOS Detections
         -> Futile Maphide for jit-zygote-cache Detections
         -> Magic Mount Support
+        -> Wireguard Support
         -> BBR Support
+        -> Docker Support - [More Info Here](https://gist.github.com/FreddieOliveira/efe850df7ff3951cb62d74bd770dce27#file-docker-md)
 
         Notes:
         -> SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
-        -> Kernel Flasher is broken with latest susfs, try https://github.com/libxzr/HorizonKernelFlasher!
+        -> [Kernel Flasher App](https://github.com/capntrips/KernelFlasher/releases/tag/v1.0.0-alpha20%2Ballow-errors) is broken with latest susfs, try [Horizon Kernel Flasher](https://github.com/libxzr/HorizonKernelFlasher)!
 
         Module: 
         -> https://github.com/sidex15/ksu_module_susfs
