@@ -261,9 +261,9 @@ jobs:
           cd "$CONFIG/common"
           
           #if [ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "ALL"  ]; then
-          #  echo "Applying hooks for Official KernelSU..."
-          #  cp ../../kernel_patches/hooks/ksu_hooks.patch ./
-          #  patch -p1 -F 3 < ksu_hooks.patch
+             echo "Applying hooks for Official KernelSU..."
+             cp ../../kernel_patches/next/syscall_hooks.patch ./
+             patch -p1 -F 3 < syscall_hooks.patch
           if [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
             echo "Applying hooks for KernelSU-Next..."
             cp ../../kernel_patches/next/syscall_hooks.patch ./
@@ -513,7 +513,6 @@ jobs:
             gzip -vnf9 "$image"
           done
   
-
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
