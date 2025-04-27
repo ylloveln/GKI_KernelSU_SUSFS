@@ -260,11 +260,11 @@ jobs:
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/common"
           
-          #if [ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "ALL"  ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "ALL"  ]; then
              echo "Applying hooks for Official KernelSU..."
              cp ../../kernel_patches/next/syscall_hooks.patch ./
              patch -p1 -F 3 < syscall_hooks.patch
-          if [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
+          elif [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
             echo "Applying hooks for KernelSU-Next..."
             cp ../../kernel_patches/next/syscall_hooks.patch ./
             patch -p1 -F 3 < syscall_hooks.patch
