@@ -96,6 +96,7 @@ jobs:
     uses: ./.github/workflows/kernel-a13.yml
     secrets: inherit
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
       make_release: ${{ inputs.make_release }}
@@ -109,6 +110,7 @@ jobs:
     uses: ./.github/workflows/kernel-a14.yml
     secrets: inherit
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
       make_release: ${{ inputs.make_release }}
@@ -122,6 +124,7 @@ jobs:
     uses: ./.github/workflows/kernel-a15.yml
     secrets: inherit
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
       make_release: ${{ inputs.make_release }}
