@@ -220,8 +220,8 @@ jobs:
           elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
             echo "Applying SUSFS patches for KernelSU-Next..."
             cd ./KernelSU-Next
-            cp ../../kernel_patches/next/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
-            patch -p1 --forward --fuzz=3 < 0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch || true
+            cp ../../kernel_patches/next/kernel-implement-susfs-v1.5.7-gki.patch ./
+            patch -p1 --forward --fuzz=3 < kernel-implement-susfs-v1.5.7-gki.patch || true
           elif [[ "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
             echo "Applying SUSFS patches for MKSU..."
             cd ./KernelSU
