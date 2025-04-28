@@ -21,7 +21,7 @@ on:
         description: 'Release on telegram?'
         required: true
         type: boolean
-        default: false
+        default: true
       include_susfs:
         description: 'Include SUSFS?'
         required: true
