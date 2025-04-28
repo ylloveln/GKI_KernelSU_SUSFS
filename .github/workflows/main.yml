@@ -82,6 +82,7 @@ jobs:
     uses: ./.github/workflows/kernel-a12.yml
     secrets: inherit
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
       make_release: ${{ inputs.make_release }}
