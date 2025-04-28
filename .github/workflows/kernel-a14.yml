@@ -27,7 +27,7 @@ on:
 jobs:
   build-kernels-a14-5-15:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           - sub_level: "137"
@@ -65,7 +65,7 @@ jobs:
 
   build-kernels-a14-6-1:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           #- sub_level: "25"
