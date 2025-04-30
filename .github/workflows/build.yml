@@ -264,10 +264,6 @@ jobs:
               cp ../../kernel_patches/mksu/fix.patch ./
               patch -p1 --fuzz=3 < fix.patch
               ;;
-            *)
-              echo "Error: Invalid KernelSU variant '${{ inputs.kernelsu_variant }}'" >&2
-              exit 1
-              ;;
           esac
           
           cd ../common
