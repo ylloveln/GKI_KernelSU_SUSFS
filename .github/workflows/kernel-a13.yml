@@ -47,7 +47,6 @@ jobs:
     uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
-      make_release: ${{ inputs.make_release }}
       android_version: "android13"
       kernel_version: "5.10"
       sub_level: ${{ matrix.sub_level }}
@@ -82,7 +81,6 @@ jobs:
     uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
-      make_release: ${{ inputs.make_release }}
       android_version: "android13"
       kernel_version: "5.15"
       sub_level: ${{ matrix.sub_level }}
