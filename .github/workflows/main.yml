@@ -42,11 +42,6 @@ on:
         required: true
         type: boolean
         default: true
-      include_all:
-        description: 'Include ALL?'
-        required: true
-        type: boolean
-        default: true
       kernelsu_branch:
         description: "Choose ksu branch"
         required: true
@@ -74,7 +69,6 @@ jobs:
           [[ "${{ inputs.include_ksu }}" == "true" ]] && VARIANTS+=("\"KSU\"")
           [[ "${{ inputs.include_ksu_next }}" == "true" ]] && VARIANTS+=("\"KSU_NEXT\"")
           [[ "${{ inputs.include_mksu }}" == "true" ]] && VARIANTS+=("\"MKSU\"")
-          [[ "${{ inputs.include_all }}" == "true" ]] && VARIANTS+=("\"ALL\"")
           echo "matrix={\"kernelsu_variant\": [$(IFS=,; echo "${VARIANTS[*]}")]}" >> $GITHUB_OUTPUT
 
   build-kernels-a12:
