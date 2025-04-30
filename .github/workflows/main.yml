@@ -17,16 +17,6 @@ on:
         required: true
         type: boolean
         default: true
-      tg_release:
-        description: 'Release on telegram?'
-        required: true
-        type: boolean
-        default: true
-      include_susfs:
-        description: 'Include SUSFS?'
-        required: true
-        type: boolean
-        default: true
       include_ksu:
         description: 'Include KSU?'
         required: true
@@ -84,7 +74,6 @@ jobs:
       kernelsu_variant: ${{ matrix.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      include_susfs: ${{ inputs.include_susfs }}
 
   build-kernels-a13:
     needs: set-matrix
@@ -98,7 +87,6 @@ jobs:
       kernelsu_variant: ${{ matrix.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      include_susfs: ${{ inputs.include_susfs }}
 
   build-kernels-a14:
     needs: set-matrix
@@ -112,7 +100,6 @@ jobs:
       kernelsu_variant: ${{ matrix.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      include_susfs: ${{ inputs.include_susfs }}
 
   build-kernels-a15:
     needs: set-matrix
@@ -126,7 +113,6 @@ jobs:
       kernelsu_variant: ${{ matrix.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      include_susfs: ${{ inputs.include_susfs }}
 
   release:
     runs-on: ubuntu-latest
@@ -220,10 +206,9 @@ jobs:
       - name: Set release body
         run: |
           cat << 'EOF' > release_body.md
-      
-          **SUSFS Present: ${{ inputs.include_susfs }}**
+          
           Branch type for KSU: ${{ inputs.kernelsu_branch }}
-          Wild+ Current Kernel Tag (Not Important): ${{ env.NEW_TAG }}
+          Wild+ Current Kernel Tag : ${{ env.NEW_TAG }}
       
           Features:
           -> KernelSU/MKSU/KernelSU-Next Kernels
@@ -267,7 +252,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ inputs.release_type }}
+          prerelease: true
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
@@ -292,7 +277,6 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
-        if: ${{ inputs.tg_release }}
         run: |
           curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
             -d "chat_id=$TELEGRAM_CHAT_ID" \
