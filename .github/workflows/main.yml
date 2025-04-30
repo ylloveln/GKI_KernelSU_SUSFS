@@ -227,7 +227,7 @@ jobs:
       
           Features:
           -> KernelSU/MKSU/KernelSU-Next Kernels
-          -> Multi Manager Support
+          -> Multi Manager Support (Not Recommended)
           -> SUSFS ඞ v1.5.7
           -> Manual Hooks for Better Hiding
           -> Magic Mount Support
@@ -244,9 +244,9 @@ jobs:
           -> https://github.com/sidex15/ksu_module_susfs
       
           Managers:
-          -> KernelSU: https://github.com/tiann/KernelSU / https://t.me/KernelSU_group/3234
+          -> KernelSU: https://github.com/tiann/KernelSU / https://t.me/KernelSU_group
           -> 5ec1cff's KernelSU: https://github.com/5ec1cff/KernelSU / https://t.me/mksu_ci
-          -> KernelSU-Next: https://github.com/rifsxd/KernelSU-Next / https://t.me/ksunext_group/24847
+          -> KernelSU-Next: https://github.com/rifsxd/KernelSU-Next / https://t.me/ksunext_group
           -> rsuntk: https://github.com/rsuntk/KernelSU / https://t.me/rsukrnlsu
           -> backslashxx: https://github.com/backslashxx/KernelSU
       
