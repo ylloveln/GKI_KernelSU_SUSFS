@@ -217,9 +217,8 @@ jobs:
         if: steps.cache-kernel.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-source-unmodified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
+          name: kernel-source-unmodified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}-${{ inputs.kernelsu_variant }}
           path: ${{ github.workspace }}/${{ env.CONFIG }}
-          retention-days: 3
 
       - name: Determine the branch for KernelSU
         run: |
@@ -426,9 +425,8 @@ jobs:
       - name: Upload Modified Kernel Source Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-source-modified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
+          name: kernel-source-modified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}-${{ inputs.kernelsu_variant }}
           path: ${{ github.workspace }}/${{ env.CONFIG }}
-          retention-days: 3
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
