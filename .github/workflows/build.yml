@@ -179,7 +179,7 @@ jobs:
               fi
               ;;
             "Dev")
-              if [[ "${{ inputs.kernelsu_variant }}" =~ ^(KSU|MKSU|ALL)$ ]]; then
+              if [[ "${{ inputs.kernelsu_variant }}" =~ ^(KSU|MKSU)$ ]]; then
                 echo "BRANCH=-s main" >> $GITHUB_ENV
               elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
                 if [[ "${{ inputs.include_susfs }}" == true ]]; then
@@ -212,7 +212,7 @@ jobs:
           cd "$CONFIG"
       
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU"|"ALL")
+            "KSU")
               echo "Adding KernelSU Official..."
               curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
@@ -248,7 +248,7 @@ jobs:
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
           
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU"|"ALL")
+            "KSU")
               echo "Applying SUSFS patches for Official KernelSU..."
               cd ./KernelSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
@@ -273,24 +273,12 @@ jobs:
           cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
-      - name: Add All Managers
-        if: ${{ inputs.kernelsu_variant == 'ALL' }}
-        run: |
-          cd "$CONFIG"
-          if [ "${{ inputs.include_susfs }}" = "true" ]; then
-            cp ../kernel_patches/apk_sign.c_fix.patch ./
-            patch -p1 --fuzz=3 < apk_sign.c_fix.patch
-          else
-            cp ../kernel_patches/no-susfs_apk_sign.c_fix.patch ./
-            patch -p1 --fuzz=3 < no-susfs_apk_sign.c_fix.patch
-          fi
-
       - name: Apply New Hooks Patches
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/common"
           
-          if [ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "ALL"  ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "KSU" ]; then
              echo "Applying hooks for Official KernelSU..."
              cp ../../kernel_patches/next/syscall_hooks.patch ./
              patch -p1 -F 3 < syscall_hooks.patch
