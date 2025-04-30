@@ -182,7 +182,7 @@ jobs:
         id: cache-kernel
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/${{ inputs.config }}
+          path: ${{ github.workspace }}/${{ env.CONFIG }}
           key: kernel-source-${{ github.run_id }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
           restore-keys: |
             kernel-source-${{ github.run_id }}-
@@ -218,7 +218,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kernel-source-unmodified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
-          path: ${{ github.workspace }}/${{ inputs.config }}
+          path: ${{ github.workspace }}/${{ env.CONFIG }}
           retention-days: 3
 
       - name: Determine the branch for KernelSU
@@ -427,7 +427,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kernel-source-modified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
-          path: ${{ github.workspace }}/${{ inputs.config }}
+          path: ${{ github.workspace }}/${{ env.CONFIG }}
           retention-days: 3
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
