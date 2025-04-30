@@ -10,9 +10,6 @@ on:
       make_release:
         required: true
         type: boolean
-      include_susfs:
-        required: true
-        type: boolean
       kernelsu_variant:
         required: true
         type: string
@@ -66,4 +63,3 @@ jobs:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other || '' }}
-      include_susfs: ${{ inputs.include_susfs }}
