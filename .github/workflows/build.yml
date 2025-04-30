@@ -122,52 +122,104 @@ jobs:
             exit 1
           fi
 
+      - name: Cache Repo Tool
+        id: cache-repo
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/git-repo
+          key: repo-tool-${{ github.run_id }}-${{ hashFiles('git-repo/repo') }}
+          restore-keys: |
+            repo-tool-${{ github.run_id }}-
+
       - name: Install Repo
         run: |
           mkdir -p ./git-repo
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ./git-repo/repo
-          chmod a+rx ./git-repo/repo
+          if [ ! -f ./git-repo/repo ]; then
+            echo "Downloading repo tool..."
+            curl https://storage.googleapis.com/git-repo-downloads/repo > ./git-repo/repo
+            chmod a+rx ./git-repo/repo
+          else
+            echo "Using cached repo tool"
+          fi
           echo "REPO=$GITHUB_WORKSPACE/./git-repo/repo" >> $GITHUB_ENV
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/AnyKernel3
+            ${{ github.workspace }}/susfs4ksu
+            ${{ github.workspace }}/kernel_patches
+          key: dependencies-${{ github.run_id }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}
+          restore-keys: |
+            dependencies-${{ github.run_id }}-
 
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
           echo "Cloning AnyKernel3 and other dependencies..."
-
           ANYKERNEL_BRANCH="gki-2.0"
           SUSFS_BRANCH="gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}"
-
-          # Debug print the branches
           echo "Using branch for AnyKernel3: $ANYKERNEL_BRANCH"
           echo "Using branch for SUSFS: $SUSFS_BRANCH"
+          if [ ! -d "AnyKernel3" ]; then
+            git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
+          else
+            echo "Using cached AnyKernel3"
+          fi
+          if [ ! -d "susfs4ksu" ]; then
+            git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
+          else
+            echo "Using cached susfs4ksu"
+          fi
+          if [ ! -d "kernel_patches" ]; then
+            git clone https://github.com/WildPlusKernel/kernel_patches.git
+          else
+            echo "Using cached kernel_patches"
+          fi
 
-          # Clone repositories using the branch names
-          git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
-          git clone https://github.com/WildPlusKernel/kernel_patches.git
+      - name: Cache Kernel Source
+        id: cache-kernel
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/${{ inputs.config }}
+          key: kernel-source-${{ github.run_id }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
+          restore-keys: |
+            kernel-source-${{ github.run_id }}-
+
+      - name: Check Disk Space Before Sync
+        run: |
+          echo "Disk space before kernel source sync:"
+          df -h
 
       - name: Initialize and Sync Kernel Source
         run: |
           echo "Creating folder for configuration: $CONFIG..."
           mkdir -p "$CONFIG"
           cd "$CONFIG"
-
-          # Initialize and sync kernel source
-          echo "Initializing and syncing kernel source..."
-          FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
-          $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} --repo-rev=v2.16
-
-          REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common ${FORMATTED_BRANCH})
-          DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
-
-          # Check if branch is deprecated
-          if grep -q deprecated <<< $REMOTE_BRANCH; then
-            echo "Found deprecated branch: $FORMATTED_BRANCH"
-            sed -i "s/\"${FORMATTED_BRANCH}\"/\"deprecated\/${FORMATTED_BRANCH}\"/g" $DEFAULT_MANIFEST_PATH
+          if [ ! -d ".repo" ]; then
+            echo "Initializing and syncing kernel source..."
+            FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
+            $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} --repo-rev=v2.16
+            REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common ${FORMATTED_BRANCH})
+            DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
+            if grep -q deprecated <<< $REMOTE_BRANCH; then
+              echo "Found deprecated branch: $FORMATTED_BRANCH"
+              sed -i "s/\"${FORMATTED_BRANCH}\"/\"deprecated\/${FORMATTED_BRANCH}\"/g" $DEFAULT_MANIFEST_PATH
+            fi
+            $REPO --version
+            $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+          else
+            echo "Using cached kernel source"
           fi
 
-          # Sync repo and apply patches
-          $REPO --version
-          $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+      - name: Upload Unmodified Kernel Source Artifact
+        if: steps.cache-kernel.outputs.cache-hit != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-source-unmodified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
+          path: ${{ github.workspace }}/${{ inputs.config }}
+          retention-days: 3
 
       - name: Determine the branch for KernelSU
         run: |
@@ -370,6 +422,13 @@ jobs:
             tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
           ccache --show-stats
+
+      - name: Upload Modified Kernel Source Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-source-modified-${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}
+          path: ${{ github.workspace }}/${{ inputs.config }}
+          retention-days: 3
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
