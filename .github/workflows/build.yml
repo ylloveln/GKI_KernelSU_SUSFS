@@ -305,15 +305,15 @@ jobs:
           cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
-      - name: Apply New Hooks Patches
+      - name: Apply Hooks Patches
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/common"
           
           if [ "${{ inputs.kernelsu_variant }}" == "KSU" ]; then
              echo "Applying hooks for Official KernelSU..."
-             cp ../../kernel_patches/next/syscall_hooks.patch ./
-             patch -p1 -F 3 < syscall_hooks.patch
+             cp ../../kernel_patches/hooks/ksu_hooks.patch ./
+             patch -p1 -F 3 < ksu_hooks.patch
           elif [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
             echo "Applying hooks for KernelSU-Next..."
             cp ../../kernel_patches/next/syscall_hooks.patch ./
