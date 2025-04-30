@@ -248,12 +248,8 @@ jobs:
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
               cd ./KernelSU
-              cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
-              patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-              cp ../../kernel_patches/mksu/mksu_susfs.patch ./
-              patch -p1 --fuzz=3 < mksu_susfs.patch
-              cp ../../kernel_patches/mksu/fix.patch ./
-              patch -p1 --fuzz=3 < fix.patch
+              cp ../../kernel_patches/next/kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch ./
+              patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch
               ;;
           esac
 
