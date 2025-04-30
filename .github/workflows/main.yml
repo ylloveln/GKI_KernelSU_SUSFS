@@ -220,14 +220,14 @@ jobs:
       - name: Set release body
         run: |
           cat << 'EOF' > release_body.md
-          These kernels are prebuilt with Offical KernelSU/MKSU/KernelSU-Next and with SUSFS.
       
           **SUSFS Present: ${{ inputs.include_susfs }}**
           Branch type for KSU: ${{ inputs.kernelsu_branch }}
           Wild+ Current Kernel Tag (Not Important): ${{ env.NEW_TAG }}
       
           Features:
-          -> KernelSU/MKSU/KernelSU-Next
+          -> KernelSU/MKSU/KernelSU-Next Kernels
+          -> Multi Manager Support
           -> SUSFS ඞ v1.5.7
           -> Manual Hooks for Better Hiding
           -> Magic Mount Support
@@ -237,23 +237,23 @@ jobs:
           -> BBR Support
       
           Notes:
-          -> SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
+          -> KernelSU Next, SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
           -> Kernel Flasher is broken with latest susfs, try https://github.com/libxzr/HorizonKernelFlasher!
       
           Module: 
           -> https://github.com/sidex15/ksu_module_susfs
       
           Managers:
-          -> KernelSU (`KSU`, `ALL`): https://github.com/tiann/KernelSU / https://t.me/KernelSU_group/3234
-          -> 5ec1cff's KernelSU (`MKSU`, `ALL`): https://github.com/5ec1cff/KernelSU / https://t.me/mksu_ci
-          -> KernelSU-Next (`KSU_NEXT`, `ALL`): https://github.com/rifsxd/KernelSU-Next / https://t.me/ksunext_group/24847
-          -> rsuntk's KernelSU (`ALL`): https://github.com/rsuntk/KernelSU / https://t.me/rsukrnlsu
-          -> backslashxx's KernelSU (`ALL`): https://github.com/backslashxx/KernelSU
+          -> KernelSU: https://github.com/tiann/KernelSU / https://t.me/KernelSU_group/3234
+          -> 5ec1cff's KernelSU: https://github.com/5ec1cff/KernelSU / https://t.me/mksu_ci
+          -> KernelSU-Next: https://github.com/rifsxd/KernelSU-Next / https://t.me/ksunext_group/24847
+          -> rsuntk: https://github.com/rsuntk/KernelSU / https://t.me/rsukrnlsu
+          -> backslashxx: https://github.com/backslashxx/KernelSU
       
           Commit Hashes (at the time of release):
-          -> KernelSU Official (`KSU`, `ALL`): [${{ env.KSU_REF }}](${{ env.KSU_URL }})
-          -> 5ec1cff's KernelSU (`MKSU`): [${{ env.MKSU_REF }}](${{ env.MKSU_URL }})
-          -> KernelSU Next (`KSU_NEXT`): [${{ env.KSU_NEXT_REF }}](${{ env.KSU_NEXT_URL }})
+          -> KernelSU: [${{ env.KSU_REF }}](${{ env.KSU_URL }})
+          -> 5ec1cff: [${{ env.MKSU_REF }}](${{ env.MKSU_URL }})
+          -> KernelSU Next: [${{ env.KSU_NEXT_REF }}](${{ env.KSU_NEXT_URL }})
           -> SUSFS4KSU: 
             -> gki-android12-5.10: [${{ env.COMMIT_HASH_gki_android12_5_10 }}](${{ env.COMMIT_URL_gki_android12_5_10 }})
             -> gki-android13-5.10: [${{ env.COMMIT_HASH_gki_android13_5_10 }}](${{ env.COMMIT_URL_gki_android13_5_10 }})
