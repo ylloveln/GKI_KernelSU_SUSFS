@@ -7,9 +7,6 @@ permissions:
 on:
   workflow_call:
     inputs:
-      make_release:
-        required: true
-        type: boolean
       kernelsu_variant:
         required: true
         type: string
