@@ -228,8 +228,8 @@ jobs:
       
           Features:
           -> KernelSU/MKSU/KernelSU-Next
-          -> SUSFS ඞ v1.5.6
-          -> Manual Syscall Hooks for Better Hiding
+          -> SUSFS ඞ v1.5.7
+          -> Manual Hooks for Better Hiding
           -> Magic Mount Support
           -> Simple Maphide for LineageOS Detections
           -> Futile Maphide for jit-zygote-cache Detections
