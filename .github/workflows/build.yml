@@ -201,7 +201,6 @@ jobs:
           esac
           
       - name: Apply SUSFS Patches for KernelSU Variants
-        if: ${{ inputs.include_susfs == true }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
@@ -322,7 +321,6 @@ jobs:
           sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: Add SUSFS Configuration Settings
-        if: ${{ inputs.include_susfs == false }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
