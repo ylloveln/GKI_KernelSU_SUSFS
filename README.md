@@ -1,4 +1,4 @@
-# Wild Plus Kernels for Android GKI 2.0 Devices and Others
+# Wild Kernels for Android
 
 ## Your warranty is no longer valid!
 
