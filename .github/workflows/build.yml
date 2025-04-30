@@ -253,6 +253,7 @@ jobs:
               cd ./KernelSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
+              cd ../common
               ;;
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
@@ -263,10 +264,10 @@ jobs:
               patch -p1 --fuzz=3 < mksu_susfs.patch
               cp ../../kernel_patches/mksu/fix.patch ./
               patch -p1 --fuzz=3 < fix.patch
+              cd ../common
               ;;
           esac
           
-          cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
       - name: Apply New Hooks Patches
