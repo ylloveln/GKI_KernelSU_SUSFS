@@ -170,38 +170,70 @@ jobs:
 
       - name: Determine the branch for KernelSU
         run: |
-          if [[ "${{ inputs.kernelsu_branch }}" == "Stable" ]]; then
-              echo "BRANCH=-" >> $GITHUB_ENV
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev" && ( "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "MKSU" || "${{ inputs.kernelsu_variant }}" == "ALL" ) ]]; then
-              echo "BRANCH=-s main" >> $GITHUB_ENV
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev" && "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-              echo "BRANCH=-s next" >> $GITHUB_ENV
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Other" && -n "${{ inputs.kernelsu_branch_other }}" ]]; then
-            echo "BRANCH=-s ${{ inputs.kernelsu_branch_other }}" >> $GITHUB_ENV
-          else
-            echo "Error: Custom branch not provided for 'Other'" >&2
-            exit 1
-          fi
+          case "${{ inputs.kernelsu_branch }}" in
+            "Stable")
+              if [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" && "${{ inputs.include_susfs }}" == true ]]; then
+                echo "BRANCH=-s next-susfs" >> $GITHUB_ENV
+              else
+                echo "BRANCH=-" >> $GITHUB_ENV
+              fi
+              ;;
+            "Dev")
+              if [[ "${{ inputs.kernelsu_variant }}" =~ ^(KSU|MKSU|ALL)$ ]]; then
+                echo "BRANCH=-s main" >> $GITHUB_ENV
+              elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
+                if [[ "${{ inputs.include_susfs }}" == true ]]; then
+                  echo "BRANCH=-s next-susfs-dev" >> $GITHUB_ENV
+                else
+                  echo "BRANCH=-s next" >> $GITHUB_ENV
+                fi
+              else
+                echo "Error: Invalid variant '${{ inputs.kernelsu_variant }}' for Dev branch" >&2
+                exit 1
+              fi
+              ;;
+            "Other")
+              if [[ -n "${{ inputs.kernelsu_branch_other }}" ]]; then
+                echo "BRANCH=-s ${{ inputs.kernelsu_branch_other }}" >> $GITHUB_ENV
+              else
+                echo "Error: Custom branch not provided for 'Other'" >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Error: Invalid kernelsu_branch value '${{ inputs.kernelsu_branch }}'" >&2
+              exit 1
+              ;;
+          esac
       
       - name: Add KernelSU
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
-
-          if [[ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "ALL" ]]; then
-            echo "Adding KernelSU Official..."
-            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" && "${{ inputs.include_susfs }}" == true ]]; then
-            echo "Adding KernelSU Next..."
-            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-            echo "Adding KernelSU Next..."
-            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          elif [[ "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
-            echo "Adding KernelSU MKSU..."
-            curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          fi
-
+      
+          case "${{ inputs.kernelsu_variant }}" in
+            "KSU"|"ALL")
+              echo "Adding KernelSU Official..."
+              curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
+              ;;
+            "KSU_NEXT")
+              echo "Adding KernelSU Next..."
+              if [[ "${{ inputs.include_susfs }}" == true ]]; then
+                curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash ${{ env.BRANCH }}
+              else
+                curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
+              fi
+              ;;
+            "MKSU")
+              echo "Adding KernelSU MKSU..."
+              curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
+              ;;
+            *)
+              echo "Error: Invalid kernelsu_variant '${{ inputs.kernelsu_variant }}'" >&2
+              exit 1
+              ;;
+          esac
+          
       - name: Apply SUSFS Patches for KernelSU Variants
         if: ${{ inputs.include_susfs == true }}
         run: |
@@ -215,33 +247,28 @@ jobs:
           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
           
-          if [[ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "ALL" ]]; then
-            echo "Applying SUSFS patches for Official KernelSU..."
-            cd ./KernelSU
-            cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
-            patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
-          elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-            echo "Applying SUSFS patches for KernelSU-Next..."
-            cd ./KernelSU-Next
-            cp ../../kernel_patches/next/kernel-implement-susfs-v1.5.7-gki.patch ./
-            patch -p1 --forward --fuzz=3 < kernel-implement-susfs-v1.5.7-gki.patch || true
-          elif [[ "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
-            echo "Applying SUSFS patches for MKSU..."
-            cd ./KernelSU
-            cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
-            patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-            
-            if [ "${{ inputs.include_susfs }}" = "true" ]; then
-              echo "Applying MKSU specific SUSFS patch..."
-              cp ../../kernel_patches/mksu/mksu_susfs.patch ../KernelSU/
+          case "${{ inputs.kernelsu_variant }}" in
+            "KSU"|"ALL")
+              echo "Applying SUSFS patches for Official KernelSU..."
+              cd ./KernelSU
+              cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
+              patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
+              ;;
+            "MKSU")
+              echo "Applying SUSFS patches for MKSU..."
+              cd ./KernelSU
+              cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
+              patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
+              cp ../../kernel_patches/mksu/mksu_susfs.patch ./
               patch -p1 --fuzz=3 < mksu_susfs.patch
-              cp ../../kernel_patches/mksu/fix.patch ../KernelSU/
+              cp ../../kernel_patches/mksu/fix.patch ./
               patch -p1 --fuzz=3 < fix.patch
-            fi
-          else
-            echo "Invalid KernelSU variant selected!"
-            exit 1
-          fi
+              ;;
+            *)
+              echo "Error: Invalid KernelSU variant '${{ inputs.kernelsu_variant }}'" >&2
+              exit 1
+              ;;
+          esac
           
           cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
@@ -250,7 +277,7 @@ jobs:
         if: ${{ inputs.kernelsu_variant == 'ALL' }}
         run: |
           cd "$CONFIG"
-            if [ "${{ inputs.include_susfs }}" = "true" ]; then
+          if [ "${{ inputs.include_susfs }}" = "true" ]; then
             cp ../kernel_patches/apk_sign.c_fix.patch ./
             patch -p1 --fuzz=3 < apk_sign.c_fix.patch
           else
