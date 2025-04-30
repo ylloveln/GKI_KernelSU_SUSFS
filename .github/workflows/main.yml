@@ -60,6 +60,7 @@ on:
 jobs:
   set-matrix:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
