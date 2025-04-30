@@ -173,24 +173,13 @@ jobs:
         run: |
           case "${{ inputs.kernelsu_branch }}" in
             "Stable")
-              if [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" && "${{ inputs.include_susfs }}" == true ]]; then
-                echo "BRANCH=-s next-susfs" >> $GITHUB_ENV
-              else
-                echo "BRANCH=-" >> $GITHUB_ENV
-              fi
+              echo "BRANCH=-" >> $GITHUB_ENV
               ;;
             "Dev")
               if [[ "${{ inputs.kernelsu_variant }}" =~ ^(KSU|MKSU)$ ]]; then
                 echo "BRANCH=-s main" >> $GITHUB_ENV
               elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-                if [[ "${{ inputs.include_susfs }}" == true ]]; then
-                  echo "BRANCH=-s next-susfs-dev" >> $GITHUB_ENV
-                else
-                  echo "BRANCH=-s next" >> $GITHUB_ENV
-                fi
-              else
-                echo "Error: Invalid variant '${{ inputs.kernelsu_variant }}' for Dev branch" >&2
-                exit 1
+                echo "BRANCH=-s next" >> $GITHUB_ENV
               fi
               ;;
             "Other")
@@ -200,10 +189,6 @@ jobs:
                 echo "Error: Custom branch not provided for 'Other'" >&2
                 exit 1
               fi
-              ;;
-            *)
-              echo "Error: Invalid kernelsu_branch value '${{ inputs.kernelsu_branch }}'" >&2
-              exit 1
               ;;
           esac
       
@@ -219,19 +204,11 @@ jobs:
               ;;
             "KSU_NEXT")
               echo "Adding KernelSU Next..."
-              if [[ "${{ inputs.include_susfs }}" == true ]]; then
-                curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash ${{ env.BRANCH }}
-              else
-                curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
-              fi
+              curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
             "MKSU")
               echo "Adding KernelSU MKSU..."
               curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
-              ;;
-            *)
-              echo "Error: Invalid kernelsu_variant '${{ inputs.kernelsu_variant }}'" >&2
-              exit 1
               ;;
           esac
           
@@ -254,7 +231,12 @@ jobs:
               cd ./KernelSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
-              cd ../common
+              ;;
+            "KSU_NEXT")
+              echo "Applying SUSFS patches for KernelSU Next..."
+              cd ./KernelSU-Next
+              cp ../../kernel_patches/next/kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch ./
+              patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch
               ;;
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
@@ -265,10 +247,10 @@ jobs:
               patch -p1 --fuzz=3 < mksu_susfs.patch
               cp ../../kernel_patches/mksu/fix.patch ./
               patch -p1 --fuzz=3 < fix.patch
-              cd ../common
               ;;
           esac
-          
+
+          cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
       - name: Apply New Hooks Patches
