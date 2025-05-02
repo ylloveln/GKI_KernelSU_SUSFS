@@ -265,6 +265,4 @@ jobs:
             -d "chat_id=$TELEGRAM_CHAT_ID" \
             -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
             -d "text=Latest release: 
-            https://github.com/WildKernels/GKI_KernelSU_SUSFS/releases/tag/${{ env.NEW_TAG }}
-            
-            cat release_body.md"
+            https://github.com/WildKernels/GKI_KernelSU_SUSFS/releases/tag/${{ env.NEW_TAG }}"
