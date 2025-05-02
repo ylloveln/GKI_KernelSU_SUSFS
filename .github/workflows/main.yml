@@ -109,7 +109,7 @@ jobs:
       - build-kernels-a15
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_NAME: "GKI Prebuilt Release"
+      RELEASE_NAME: "*TEST BUILD* GKI Kernels With KSU & SUSFS v1.5.7 *TEST BUILD*"
       RELEASE_BODY:
     steps:
       - name: Checkout code
@@ -191,7 +191,7 @@ jobs:
           cat << 'EOF' > release_body.md
           
           Branch type for KSU: ${{ inputs.kernelsu_branch }}
-          Wild+ Current Kernel Tag : ${{ env.NEW_TAG }}
+          Wild+ Current Kernel Tag: ${{ env.NEW_TAG }}
       
           Features:
           -> KernelSU/MKSU/KernelSU-Next Kernels
