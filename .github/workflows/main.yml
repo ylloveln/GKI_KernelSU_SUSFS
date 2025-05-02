@@ -181,12 +181,10 @@ jobs:
             git tag $NEW_TAG
             git push origin $NEW_TAG
 
-      - name: Download Build Artifacts Only
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./downloaded-artifacts
-          pattern: '*_kernel-*'
-          merge-multiple: true
 
       - name: Set release body
         run: |
