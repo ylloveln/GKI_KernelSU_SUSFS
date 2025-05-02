@@ -277,15 +277,6 @@ jobs:
               ;;
           esac
           patch -p1 --fuzz=3 < manager.patch
-            
-            
-            if [ "${{ inputs.include_susfs }}" = "true" ]; then
-              cp ../kernel_patches/next/apk_sign.c_fix.patch ./
-              patch -p1 --fuzz=3 < apk_sign.c_fix.patch
-            else
-              cp ../kernel_patches/no-susfs_apk_sign.c_fix.patch ./
-              patch -p1 --fuzz=3 < no-susfs_apk_sign.c_fix.patch
-            fi
 
       - name: Add Configuration Settings
         run: |
@@ -503,11 +494,6 @@ jobs:
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../${{ inputs.kernelsu_variant }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4.img
           
-          echo "Transfering kernel files"
-          cp ./Image ../${{ inputs.kernelsu_variant }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-Image
-          cp ./Image.gz ../${{ inputs.kernelsu_variant }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-Image.gz
-          cp ./Image.lz4 ../${{ inputs.kernelsu_variant }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-Image.lz4
-
       - name: Compress all img files with gzip
         run: |
           for image in *.img; do
