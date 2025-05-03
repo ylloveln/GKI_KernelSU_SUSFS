@@ -195,7 +195,7 @@ jobs:
       
           Features:
           -> KernelSU/MKSU/KernelSU-Next Kernels
-          -> Multi Manager Support (Not Recommended)
+          -> Multi Manager Support for Next Kernels (Not Recommended)
           -> SUSFS ඞ v1.5.7
           -> Manual Hooks for Better Hiding
           -> Magic Mount Support
