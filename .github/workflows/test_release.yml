@@ -117,19 +117,20 @@ jobs:
       REPO_OWNER: zzh20188
       REPO_NAME: GKI_KernelSU_SUSFS
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
-      RELEASE_NAME: "*测试构建* GKI 内核 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} & SUSFS v1.5.5 *测试构建*"
+      RELEASE_NAME: "*测试构建* GKI 内核 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} & SUSFS v1.5.7 *测试构建*"
       RELEASE_NOTES: |
-        此发布包含 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} 和 SUSFS v1.5.5
+        此发布包含 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} 、SUSFS v1.5.7 、 LZ4KD
         
         功能:
         -> KernelSU-${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
-        -> SUSFS ඞ v1.5.5 
+        -> SUSFS ඞ v1.5.7
         -> 手动Syscall Hooks,实现更好的隐藏效果
         -> Magic Mount 支持
         -> 简单隐藏 LineageOS 检测
         -> 徒劳隐藏 jit-zygote-cache 检测
         -> Wireguard 支持
         -> BBR 支持
+        -> **LZ4KD** 支持
 
         备注:
         -> 在SUS SU 模式 2 下, 将显示为禁用或不兼容, 原因是(编译内核时)使用了非kprobe钩子 ,并且不再需要(非kprobe钩子)!
@@ -221,7 +222,7 @@ jobs:
             ["gki_android13_5_15"]="gki-android13-5.15"
             ["gki_android14_5_15"]="gki-android14-5.15"
             ["gki_android14_6_1"]="gki-android14-6.1"
-            ["gki_android15_6_1"]="gki-android15-6.6"
+            ["gki_android15_6_6"]="gki-android15-6.6"
           )
 
           for var_name in "${!BRANCH_MAP[@]}"; do
