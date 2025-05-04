@@ -616,5 +616,5 @@ jobs:
         with:
           name: ${{ inputs.kernelsu_variant }}_kernel-${{ env.CONFIG }}
           path: |
-            *.zip
+            *AnyKernel3.zip
             *.img
