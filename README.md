@@ -28,4 +28,6 @@
 
 > [!TIP]
 > 在MT管理器的终端输入 `uname -r`获取内核版本号，然后在Action面板编译时输入这个版本号，可以伪装内核
+>
+>
 > 在[workflow文件夹](https://github.com/zzh20188/GKI_KernelSU_SUSFS/tree/dev/.github/workflows)中，修改例如**kernel-a12-5.10.yml**文件，可以减少你不需要的GKI版本，增加编译速度；或者添加指定的GKI版本，可参考[修改为指定GKI版本](https://www.coolapk.com/feed/62820671?shareKey=OGMxYmZmNTk0YzIxNjgxNzM1MzI~&shareUid=11253396&shareFrom=com.coolapk.market_15.2.2)
