@@ -259,7 +259,6 @@ jobs:
           patch -p1 -F 3 < 69_hide_stuff.patch
 
       - name: Add All Managers
-        if: ${{ inputs.kernelsu_variant == 'ALL' }}
         run: |
           cd "$CONFIG"
           case "${{ inputs.kernelsu_variant }}" in
