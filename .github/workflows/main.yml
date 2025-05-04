@@ -16,7 +16,7 @@ on:
         description: 'Include MKSU?'
         required: true
         type: boolean
-        default: true
+        default: false
       include_next:
         description: 'Include NEXT?'
         required: true
