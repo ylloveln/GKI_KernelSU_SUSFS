@@ -289,6 +289,7 @@ jobs:
           echo "gki-android13-5.15: [$COMMIT_HASH_gki_android13_5_15]($COMMIT_URL_gki_android13_5_15)" >> $GITHUB_ENV
           echo "gki-android14-5.15: [$COMMIT_HASH_gki_android14_5_15]($COMMIT_URL_gki_android14_5_15)" >> $GITHUB_ENV
           echo "gki-android14-6.1: [$COMMIT_HASH_gki_android14_6_1]($COMMIT_URL_gki_android14_6_1)" >> $GITHUB_ENV
+          echo "gki-android15-6.6: [$COMMIT_HASH_gki_android15_6_6]($COMMIT_URL_gki_android15_6_6)" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           

@@ -1,107 +1,31 @@
-# Wild Plus Kernels for Android GKI 2.0 Devices and Others
+### 这是一个自动构建GKI内核的仓库
 
-## Your warranty is no longer valid!(您的保修不再有效！)
+> 本仓库仅支持GKI设备，[在此](https://source.android.com/docs/core/architecture/kernel/gki-release-builds?hl=zh-cn)查看您的设备是否支持
 
-I am **not responsible** for bricked devices, damaged hardware, or any issues that arise from using this kernel.
+### 下载
+可以[在此](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases)下载您的资源
+1. 关于Anykernel3.zip，下载不带**gz**、**lz4**后缀的。
+- 然后使用刷入软件，例如[HorizonKernelFlasher](https://github.com/libxzr/HorizonKernelFlasher/releases)进行刷写内核
+2. 关于boot.img，下载与你内核格式相匹配的（无压缩、gz、lz4），[参考](https://kernelsu.org/zh_CN/guide/installation.html#install-by-kernelsu-boot-image) **找到合适的 boot.img** 一节
+- 使用[FASTBOOT](https://magiskcn.com/)刷入，或者使用刷写软件刷写到ROOT所在插槽的boot分区(例如爱玩机、Kernelfalsher)
 
-(对于因使用该内核而导致的设备损坏、硬件损坏或任何问题，我**概不负责**。)
+### 支持
+| 功能 | 说明 |
+| --- | --- |
+| [KernelSU](https://kernelsu.org/zh_CN/) | 包括**原版、MKSU、SUKISU、MKSU** |
+| [SUSFS4](https://gitlab.com/simonpunk/susfs4ksu) | 在内核层面辅助KSU隐藏的功能补丁 |
+| [BBR](https://blog.thinkin.top/archives/ke-pu-bbrdao-di-shi-shi-me) | TCP拥塞控制算法，使网络更快？ |
+| [Wireguard](https://zh.wikipedia.org/wiki/WireGuard) | 参考左侧wiki链接 |
+| [LZ4KD](https://github.com/ShirkNeko/SukiSU_patch/tree/main/other) | 听说是来自HUAWEI source的ZRAM算法，补丁由[云彩之枫](http://www.coolapk.com/u/24963680)移植 |
 
-**Please** do thorough research and fully understand the features included in this kernel before flashing it!
+<details>
 
-\(**在刷入内核之前，请**深入研究并完全理解内核中包含的功能！\)
+<summary>还支持这几种算法，可在scene的ZRAM切换</summary>
 
-By flashing this kernel, **YOU** are choosing to make these modifications. If something goes wrong, **do not blame me**!
+### LZ4K、LZ4HC、deflate、842、zstd
 
-\(刷入此内核即表示**你**选择进行这些修改。如果出了问题，**不要责怪我**！)
+</details>
 
----
-
-### Proceed at your own risk!（请自行承担风险！）
-
----
-
-# Kernels(内核):
- 
-[GKI](https://github.com/WildPlusKernel/GKI_KernelSU_SUSFS)  
-[Sultan](https://github.com/WildPlusKernel/Sultan_KernelSU_SUSFS)  
-[OnePlus](https://github.com/WildPlusKernel/OnePlus_KernelSU_SUSFS)  
-[Legacy Pixels](https://github.com/WildPlusKernel/Pixel_KernelSU_SUSFS)  
-
----
-
-# Other Links（其他链接）:
-
-[Kernel Patches](https://github.com/WildPlusKernel/kernel_patches)  
-[Old Build Scripts](https://github.com/TheWildJames/kernel_build_scripts)  
-[Kernel Flasher](https://github.com/capntrips/KernelFlasher/releases)  
-
----
-
-# Installation instructions（安装说明）: 
-
-Follow the steps for GKI:  
-[Installation](https://kernelsu.org/guide/installation.html)
-
-To get boot.img format:  
-[Telegram Bot](https://t.me/wildpluskernel/22076)  
-[Get My Kernel Format](https://github.com/TheWildJames/Get_My_Kernel_Format)
-
----
-
-# Features（功能）
-
-- **KernelSU**: KernelSU 是安卓 GKI 设备的 root 解决方案，它在内核模式下工作，可直接在内核空间为用户空间应用程序授予 root 权限。
-- **SUSFS**: KernelSU 的附加 root 隐藏内核补丁和用户空间模块。
-
----
-
-# Credits
-
-- **KernelSU**: Developed by [tiann](https://github.com/tiann).
-- **KernelSU-Next**: Developed by [rifsxd](https://github.com/rifsxd/KernelSU-Next).
-- **Magic-KSU**: Developed by [5ec1cff](https://github.com/5ec1cff/KernelSU).  
-- **SUSFS**: Developed by [simonpunk](https://gitlab.com/simonpunk/susfs4ksu.git).
-- **SUSFS Module**: Developed by [sidex15](https://github.com/sidex15).
-- **Sultan Kernels**: Developed by [kerneltoast](https://github.com/kerneltoast).
-
-Special thanks to the open-source community for their contributions!
-（特别感谢开源社区的贡献！）
----
-
-# Support(支援)
-
-If you encounter any issues or need help, feel free to open an issue in this repository or reach out to me.
-（如果您遇到任何问题或需要帮助，请随时在此资源库中打开问题或联系我。）
----
-
-# Disclaimer（免责声明）
-
-Flashing this kernel will void your warranty, and there is always a risk of bricking your device. Please make sure to back up your data and ensure you understand the risks before proceeding.
-（刷入此内核将导致保修失效，并且始终存在变砖设备的风险。请务必备份数据，并确保了解风险后再进行操作。）
-**Proceed at your own risk!（请自行承担风险！）**
-
----
-
-# To-DO
-
-- [X] Get Stoned & Build kernels!
-
----
-
-### If you need your kernel version added please let me know and I will build it!
-### （如果您需要添加您的内核版本，请告诉我，我将制作它！）
-
-[Telegram](https://t.me/TheWildJames) NO DMS PLEASE! Ask in chat below!  
-[Telegram Group](https://t.me/wildpluskernel)  
-
-# Special thanks to the following people for their contributions!（特别感谢以下人员做出的贡献！）
-This helps me alot!<3
-
-[simonpunk](https://gitlab.com/simonpunk/susfs4ksu.git) - Created SUSFS!  
-[sidex15](https://github.com/sidex15) - Created module!  
-[backslashxx](https://github.com/backslashxx) - Helped with patches!  
-[Teemo](https://github.com/liqideqq) - Helped with patches!  
-[幕落](https://github.com/MuLuo688) - Donation!
-
-If you have contributed and are not here please remind me!
-（如果您已经做出了贡献，但却不在这里，请提醒我！）
+> [!TIP]
+> 在MT管理器的终端输入 `uname -r`获取内核版本号，然后在Action面板编译时输入这个版本号，可以伪装内核
+> 在[workflow文件夹](https://github.com/zzh20188/GKI_KernelSU_SUSFS/tree/dev/.github/workflows)中，修改例如**kernel-a12-5.10.yml**文件，可以减少你不需要的GKI版本，增加编译速度；或者添加指定的GKI版本，可参考[修改为指定GKI版本](https://www.coolapk.com/feed/62820671?shareKey=OGMxYmZmNTk0YzIxNjgxNzM1MzI~&shareUid=11253396&shareFrom=com.coolapk.market_15.2.2)
