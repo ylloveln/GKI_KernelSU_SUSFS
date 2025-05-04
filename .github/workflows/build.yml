@@ -268,7 +268,8 @@ jobs:
               ;;
             "NEXT")
               echo "Applying Manager patch for KernelSU Next..."
-              cp ../kernel_patches/next/manager.patch ./
+              cd KernelSU-Next
+              cp ../../kernel_patches/next/manager.patch ./
               ;;
             "MKSU")
               echo "Applying Manager patch for MKSU..."
