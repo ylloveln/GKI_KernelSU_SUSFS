@@ -7,7 +7,7 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      release:
+      release_type:
         description: "Choose Release Type"
         required: true
         type: choice
@@ -47,6 +47,29 @@ on:
         default: ""
 
 jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send telegram msg
+        if: inputs.releas_type == 'Actions'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
+        run: |
+          MESSAGE="🚀 Build started for ${{ github.repository }}!\n"
+          MESSAGE+="Workflow: ${{ github.workflow }}\n"
+          MESSAGE+="Event: ${{ github.event_name }}\n"
+          MESSAGE+="Branch: ${{ github.ref_name }}\n"
+          MESSAGE+="Commit: ${{ github.sha }}\n"
+          MESSAGE+="Triggered by: ${{ github.actor }}\n"
+          MESSAGE+="Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            -d "chat_id=$TELEGRAM_CHAT_ID" \
+            -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
+            -d "text=$MESSAGE"
+            
   set-matrix:
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -118,11 +141,11 @@ jobs:
       - build-kernels-a15
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_NAME: "*TEST BUILD* GKI Kernels With KSU & SUSFS v1.5.7 *TEST BUILD*"
+      RELEASE_NAME: "GKI Kernels With KernelSU or KernelSU-Next & SUSFS v1.5.7"
       RELEASE_BODY:
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get commit hashes and generate commit URLs
         run: |
@@ -244,7 +267,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: true
+          prerelease: ${{ inputs.release_type == 'Pre-Release' }}
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
@@ -264,14 +287,21 @@ jobs:
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
 
-      - name: Send telegram msg
+      - name: Send Telegram Release Notification
+        if: inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release')
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
         run: |
+          MESSAGE="*🎉 New Release: ${{ github.repository }}*\\n"
+          MESSAGE+="*Type*: ${{ inputs.release_type }}\\n"
+          MESSAGE+="*Tag*: ${{ env.NEW_TAG }}\\n"
+          MESSAGE+="*Name*: ${{ env.RELEASE_NAME }}\\n"
+          MESSAGE+="*Published by*: ${{ github.actor }}\\n"
+          MESSAGE+="*Link*: https://github.com/WildKernels/GKI_KernelSU_SUSFS/releases/tag/${{ env.NEW_TAG }}"
           curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
             -d "chat_id=$TELEGRAM_CHAT_ID" \
             -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
-            -d "text=Latest release: 
-            https://github.com/WildKernels/GKI_KernelSU_SUSFS/releases/tag/${{ env.NEW_TAG }}"
+            -d "parse_mode=MarkdownV2" \
+            -d "text=$MESSAGE"
