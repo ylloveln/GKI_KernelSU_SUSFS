@@ -276,7 +276,7 @@ jobs:
               #cp ../kernel_patches/mksu/manager.patch .//
               ;;
           esac
-          patch -p1 --fuzz=3 < manager.patch
+          patch -p1 --fuzz=3 < manager.patch || echo "No Manager Patch"
 
       - name: Add Configuration Settings
         run: |
