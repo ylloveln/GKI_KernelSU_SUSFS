@@ -107,17 +107,17 @@ jobs:
       actions: write
     needs:
         - build-kernel-a12-5-10
-        - build-kernel-a13-5-10
-        - build-kernel-a13-5-15
-        - build-kernel-a14-5-15
-        - build-kernel-a14-6-1
-        - build-kernel-a15-6-6
+        # - build-kernel-a13-5-10
+        # - build-kernel-a13-5-15
+        # - build-kernel-a14-5-15
+        # - build-kernel-a14-6-1
+        # - build-kernel-a15-6-6
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: zzh20188
       REPO_NAME: GKI_KernelSU_SUSFS
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
-      RELEASE_NAME: "*测试构建* GKI 内核 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} & SUSFS v1.5.7 *测试构建*"
+      RELEASE_NAME: "only 5.10.209 内核 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} & SUSFS v1.5.7"
       RELEASE_NOTES: |
         此发布包含 KernelSU-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }} 、SUSFS v1.5.7 、 LZ4KD
         
@@ -286,11 +286,6 @@ jobs:
           echo "KernelSU为${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }},提交: [$KSU_REF]($KSU_URL)" >> $GITHUB_ENV
           echo "SUSFS4KSU(提交):" >> $GITHUB_ENV
           echo "gki-android12-5.10: [$COMMIT_HASH_gki_android12_5_10]($COMMIT_URL_gki_android12_5_10)" >> $GITHUB_ENV
-          echo "gki-android13-5.10: [$COMMIT_HASH_gki_android13_5_10]($COMMIT_URL_gki_android13_5_10)" >> $GITHUB_ENV
-          echo "gki-android13-5.15: [$COMMIT_HASH_gki_android13_5_15]($COMMIT_URL_gki_android13_5_15)" >> $GITHUB_ENV
-          echo "gki-android14-5.15: [$COMMIT_HASH_gki_android14_5_15]($COMMIT_URL_gki_android14_5_15)" >> $GITHUB_ENV
-          echo "gki-android14-6.1: [$COMMIT_HASH_gki_android14_6_1]($COMMIT_URL_gki_android14_6_1)" >> $GITHUB_ENV
-          echo "gki-android15-6.6: [$COMMIT_HASH_gki_android15_6_6]($COMMIT_URL_gki_android15_6_6)" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           

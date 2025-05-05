@@ -366,7 +366,7 @@ jobs:
           fi
           
       
-      - name: 添加所有管理器
+      - name: 添加
         run: |
           cd "$CONFIG"
           case "${{ inputs.kernelsu_variant }}" in
