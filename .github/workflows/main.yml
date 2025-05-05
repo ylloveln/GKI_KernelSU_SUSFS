@@ -7,6 +7,20 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
+      release:
+        description: "Choose Release Type"
+        required: true
+        type: choice
+        options:
+          - Actions
+          - Pre-Release
+          - Release
+        default: Actions
+      include_next:
+        description: 'Include NEXT?'
+        required: true
+        type: boolean
+        default: true
       include_ksu:
         description: 'Include KSU?'
         required: true
@@ -17,11 +31,6 @@ on:
         required: true
         type: boolean
         default: false
-      include_next:
-        description: 'Include NEXT?'
-        required: true
-        type: boolean
-        default: true
       kernelsu_branch:
         description: "Choose ksu branch"
         required: true
@@ -255,7 +264,7 @@ jobs:
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
 
-      - name: Send telegram message on push
+      - name: Send telegram msg
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
