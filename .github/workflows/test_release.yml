@@ -40,6 +40,16 @@ on:
         description: '自定义版本名(如5.10.198后面的字符/留空则使用默认版本号)'
         required: false
         type: string
+      use_zram:
+        description: '是否开启增加更多ZRAM算法?'
+        required: true
+        type: boolean
+        default: true
+      use_kpm:
+        description: '是否开启KPM功能?'
+        required: true
+        type: boolean
+        default: true
 jobs:
   build-kernel-a12-5-10:
     uses: ./.github/workflows/kernel-a12-5.10.yml
@@ -50,6 +60,8 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       # # kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       version: ${{ inputs.version }}
+      use_zram: ${{ inputs.use_zram }}
+      use_kpm: ${{ inputs.use_kpm }}
   build-kernel-a13-5-10:
     uses: ./.github/workflows/kernel-a13-5.10.yml
     secrets: inherit
@@ -59,6 +71,8 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       # kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       version: ${{ inputs.version }}
+      use_zram: ${{ inputs.use_zram }}
+      use_kpm: ${{ inputs.use_kpm }}
 
   build-kernel-a13-5-15:
     uses: ./.github/workflows/kernel-a13-5.15.yml
@@ -69,6 +83,8 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       # kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       version: ${{ inputs.version }}
+      use_zram: ${{ inputs.use_zram }}
+      use_kpm: ${{ inputs.use_kpm }}
 
   build-kernel-a14-5-15:
     uses: ./.github/workflows/kernel-a14-5.15.yml
@@ -79,6 +95,8 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       # kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       version: ${{ inputs.version }}
+      use_zram: ${{ inputs.use_zram }}
+      use_kpm: ${{ inputs.use_kpm }}
 
   build-kernel-a14-6-1:
     uses: ./.github/workflows/kernel-a14-6.1.yml
@@ -89,6 +107,8 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       # kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       version: ${{ inputs.version }}
+      use_zram: ${{ inputs.use_zram }}
+      use_kpm: ${{ inputs.use_kpm }}
 
   build-kernel-a15-6-6:
     uses: ./.github/workflows/kernel-a15-6.6.yml
@@ -99,6 +119,8 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       # kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       version: ${{ inputs.version }}
+      use_zram: ${{ inputs.use_zram }}
+      use_kpm: ${{ inputs.use_kpm }}
 
   trigger-release:
     runs-on: ubuntu-latest
@@ -130,9 +152,9 @@ jobs:
         -> 徒劳隐藏 jit-zygote-cache 检测
         -> Wireguard 支持
         -> BBR 支持
-        -> **LZ4KD** 支持
-        -> **ZSTDN&ONEPLUS_LZ4K** 支持
-
+        -> KPM ${{ inputs.use_kpm == 'true' && '支持' || '不支持' }}
+        -> **LZ4KD&NEPLUS_LZ4K**  ${{ inputs.use_zram == 'true' && '支持' || '不支持' }}
+        
         备注:
         -> 在SUS SU 模式 2 下, 将显示为禁用或不兼容, 原因是(编译内核时)使用了非kprobe钩子 ,并且不再需要(非kprobe钩子)!
         -> 在最新版的susfs, 使用Kernel Flasher刷入AK3压缩包会变砖, 尝试 https://github.com/libxzr/HorizonKernelFlasher!
