@@ -16,18 +16,18 @@ By flashing this kernel, **YOU** are choosing to make these modifications. If so
 
 # Kernels:
  
-[GKI](https://github.com/WildPlusKernel/GKI_KernelSU_SUSFS)  
-[Sultan](https://github.com/WildPlusKernel/Sultan_KernelSU_SUSFS)  
-[OnePlus](https://github.com/WildPlusKernel/OnePlus_KernelSU_SUSFS)  
-[Legacy Pixels](https://github.com/WildPlusKernel/Pixel_KernelSU_SUSFS)  
+[GKI](https://github.com/WildKernels/GKI_KernelSU_SUSFS)  
+[Sultan](https://github.com/WildKernels/Sultan_KernelSU_SUSFS)  
+[OnePlus](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS)  
+[Legacy Pixels](https://github.com/WildKernels/Pixel_KernelSU_SUSFS)  
 
 ---
 
 # Other Links:
 
-[Kernel Patches](https://github.com/WildPlusKernel/kernel_patches)  
+[Kernel Patches](https://github.com/WildKernels/kernel_patches)  
 [Old Build Scripts](https://github.com/TheWildJames/kernel_build_scripts)  
-[Kernel Flasher](https://github.com/capntrips/KernelFlasher/releases)  
+[Horizon Kernel Flasher](https://github.com/libxzr/HorizonKernelFlasher)  
 
 ---
 
@@ -37,7 +37,6 @@ Follow the steps for GKI:
 [Installation](https://kernelsu.org/guide/installation.html)
 
 To get boot.img format:  
-[Telegram Bot](https://t.me/wildpluskernel/22076)  
 [Get My Kernel Format](https://github.com/TheWildJames/Get_My_Kernel_Format)
 
 ---
@@ -51,8 +50,8 @@ To get boot.img format:
 
 # Credits
 
-- **KernelSU**: Developed by [tiann](https://github.com/tiann).
-- **KernelSU-Next**: Developed by [rifsxd](https://github.com/rifsxd/KernelSU-Next).
+- **KernelSU**: Developed by [tiann](https://github.com/tiann/KernelSU).
+- **KernelSU-Next**: Developed by [rifsxd](https://github.com/KernelSU-Next/KernelSU-Next).
 - **Magic-KSU**: Developed by [5ec1cff](https://github.com/5ec1cff/KernelSU).  
 - **SUSFS**: Developed by [simonpunk](https://gitlab.com/simonpunk/susfs4ksu.git).
 - **SUSFS Module**: Developed by [sidex15](https://github.com/sidex15).
@@ -82,10 +81,8 @@ Flashing this kernel will void your warranty, and there is always a risk of bric
 
 ---
 
-### If you need your kernel version added please let me know and I will build it!
-
-[Telegram](https://t.me/TheWildJames) NO DMS PLEASE! Ask in chat below!  
-[Telegram Group](https://t.me/wildpluskernel)  
+[Telegram](https://t.me/TheWildJames)
+[Telegram Group](https://t.me/WildKernels)  
 
 # Special thanks to the following people for their contributions!
 This helps me alot! <3
