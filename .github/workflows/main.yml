@@ -16,16 +16,16 @@ on:
           - Pre-Release
           - Release
         default: Actions
-      include_next:
-        description: 'Include NEXT?'
-        required: true
-        type: boolean
-        default: true
       include_ksu:
         description: 'Include KSU?'
         required: true
         type: boolean
         default: true
+      include_next:
+        description: 'Include NEXT?'
+        required: true
+        type: boolean
+        default: false
       include_mksu:
         description: 'Include MKSU?'
         required: true
