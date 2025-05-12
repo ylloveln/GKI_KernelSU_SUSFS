@@ -16,11 +16,16 @@ on:
           - Pre-Release
           - Release
         default: Actions
+      include_wild:
+        description: 'Include WILD?'
+        required: true
+        type: boolean
+        default: true
       include_ksu:
         description: 'Include KSU?'
         required: true
         type: boolean
-        default: true
+        default: false
       include_next:
         description: 'Include NEXT?'
         required: true
@@ -79,6 +84,7 @@ jobs:
       - id: set-matrix
         run: |
           VARIANTS=()
+          [[ "${{ inputs.include_wild }}" == "true" ]] && VARIANTS+=("\"WILD\"")
           [[ "${{ inputs.include_ksu }}" == "true" ]] && VARIANTS+=("\"KSU\"")
           [[ "${{ inputs.include_next }}" == "true" ]] && VARIANTS+=("\"NEXT\"")
           [[ "${{ inputs.include_mksu }}" == "true" ]] && VARIANTS+=("\"MKSU\"")
@@ -194,7 +200,8 @@ jobs:
           }
       
           [[ "$BRANCH" == "Stable" ]] && MODE="tag" || MODE="commit"
-      
+
+          get_ref "WILD" "https://github.com/WildKernels/Wild_KSU.git" "WildKernels/Wild_KSU" "$MODE"
           get_ref "KSU" "https://github.com/tiann/KernelSU.git" "tiann/KernelSU" "$MODE"
           get_ref "NEXT" "https://github.com/KernelSU-Next/KernelSU-Next.git" "KernelSU-Next/KernelSU-Next" "$MODE"
           get_ref "MKSU" "https://github.com/5ec1cff/KernelSU.git" "5ec1cff/KernelSU" "commit"
@@ -227,8 +234,8 @@ jobs:
           Wild+ Current Kernel Tag: ${{ env.NEW_TAG }}
       
           Features:
-          -> KernelSU/MKSU/KernelSU-Next Kernels
-          -> Multi Manager Support for Next Kernels (Not Recommended)
+          -> Wild KSU Kernels
+          -> Multi Manager Support for Wild Kern (Not Recommended)
           -> SUSFS ඞ v1.5.7
           -> Manual Hooks for Better Hiding
           -> Magic Mount Support
@@ -245,6 +252,7 @@ jobs:
           -> https://github.com/sidex15/ksu_module_susfs
       
           Managers:
+          -> Wild KSU: https://github.com/WildKernels/Wild_KSU / https://t.me/WildKernels
           -> KernelSU: https://github.com/tiann/KernelSU / https://t.me/KernelSU_group
           -> 5ec1cff's KernelSU: https://github.com/5ec1cff/KernelSU / https://t.me/mksu_ci
           -> KernelSU-Next: https://github.com/rifsxd/KernelSU-Next / https://t.me/ksunext_group
@@ -252,6 +260,7 @@ jobs:
           -> backslashxx: https://github.com/backslashxx/KernelSU
       
           Commit Hashes (at the time of release):
+          -> Wild KSU: [${{ env.WILD_REF }}](${{ env.WILD_URL }})
           -> KernelSU: [${{ env.KSU_REF }}](${{ env.KSU_URL }})
           -> 5ec1cff: [${{ env.MKSU_REF }}](${{ env.MKSU_URL }})
           -> KernelSU Next: [${{ env.NEXT_REF }}](${{ env.NEXT_URL }})
