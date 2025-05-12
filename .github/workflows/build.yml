@@ -186,7 +186,7 @@ jobs:
           cd "$CONFIG"
       
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU")
+            "KSU" | "WILD")
               echo "Adding KernelSU Official..."
               curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
@@ -213,7 +213,7 @@ jobs:
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
           
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU")
+            "KSU" | "WILD")
               echo "Applying SUSFS patches for Official KernelSU..."
               cd ./KernelSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
@@ -245,10 +245,10 @@ jobs:
             echo "Applying hooks for KernelSU-Next..."
             cp ../../kernel_patches/next/syscall_hooks.patch ./
             patch -p1 -F 3 < syscall_hooks.patch
-          #elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-          #  echo "Applying hooks for MKSU..."
-          #  cp ../../kernel_patches/hooks/ksu_hooks.patch ./
-          #  patch -p1 -F 3 < ksu_hooks.patch
+          elif [ "${{ inputs.kernelsu_variant }}" == "NEXT" ]; then
+            echo "Applying hooks for KernelSU-Next..."
+            cp ../../kernel_patches/wild/syscall_hooks.patch ./
+            patch -p1 -F 3 < syscall_hooks.patch
           fi
 
       - name: Apply Hide Stuff Patches
@@ -262,9 +262,10 @@ jobs:
         run: |
           cd "$CONFIG"
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU")
+            "KSU" | "WILD")
               echo "Applying Manager patch for Official KernelSU..."
-              #cp ../kernel_patches/ksu/manager.patch ./
+              cd KernelSU
+              cp ../kernel_patches/wild/manager.patch ./
               ;;
             "NEXT")
               echo "Applying Manager patch for KernelSU Next..."
