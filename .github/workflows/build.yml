@@ -157,6 +157,8 @@ jobs:
                 echo "BRANCH=-s main" >> $GITHUB_ENV
               elif [[ "${{ inputs.kernelsu_variant }}" == "NEXT" ]]; then
                 echo "BRANCH=-s next" >> $GITHUB_ENV
+              elif [[ "${{ inputs.kernelsu_variant }}" == "WILD" ]]; then
+                echo "BRANCH=-s wild" >> $GITHUB_ENV
               fi
               ;;
             "Other")
@@ -175,7 +177,11 @@ jobs:
           cd "$CONFIG"
       
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU" | "WILD")
+            "WILD")
+              echo "Adding KernelSU Official..."
+              curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/refs/heads/wild/kernel/setup.sh" | bash ${{ env.BRANCH }}
+              ;;
+            "KSU")
               echo "Adding KernelSU Official..."
               curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
