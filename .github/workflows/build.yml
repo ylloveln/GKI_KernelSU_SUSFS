@@ -178,7 +178,7 @@ jobs:
       
           case "${{ inputs.kernelsu_variant }}" in
             "WILD")
-              echo "Adding KernelSU Official..."
+              echo "Adding Wild KSU Official..."
               curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/refs/heads/wild/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
             "KSU")
@@ -208,7 +208,19 @@ jobs:
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
           
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU" | "WILD")
+            "WILD")
+              echo "Applying SUSFS patches for Official KernelSU..."
+              cd ./KernelSU
+              cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
+              patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
+              cp ../../kernel_patches/wild/fix.corehook.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix.corehook.c.patch
+              cp ../../kernel_patches/wild/fix.selinux.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix.selinux.c.patch
+              cp ../../kernel_patches/wild/fix.sucompat.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix.sucompat.c.patch
+              ;;
+            "KSU")
               echo "Applying SUSFS patches for Official KernelSU..."
               cd ./KernelSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
@@ -240,8 +252,8 @@ jobs:
             echo "Applying hooks for KernelSU-Next..."
             cp ../../kernel_patches/next/syscall_hooks.patch ./
             patch -p1 -F 3 < syscall_hooks.patch
-          elif [ "${{ inputs.kernelsu_variant }}" == "NEXT" ]; then
-            echo "Applying hooks for KernelSU-Next..."
+          elif [ "${{ inputs.kernelsu_variant }}" == "WILD" ]; then
+            echo "Applying hooks for Wild KSU..."
             cp ../../kernel_patches/wild/syscall_hooks.patch ./
             patch -p1 -F 3 < syscall_hooks.patch
           fi
@@ -283,7 +295,7 @@ jobs:
           # Add KSU configuration settings
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           
-          if [ "${{ inputs.kernelsu_variant }}" == "NEXT" ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "NEXT" || "${{ inputs.kernelsu_variant }}" == "WILD" ]; then
             echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
           fi
                     
@@ -329,7 +341,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
 
-          if [ "${{ inputs.kernelsu_variant }}" == "NEXT" ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "NEXT" || "${{ inputs.kernelsu_variant }}" == "WILD" ]; then
             echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
           else
             echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
