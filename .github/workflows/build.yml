@@ -272,7 +272,7 @@ jobs:
             "KSU" | "WILD")
               echo "Applying Manager patch for Official KernelSU..."
               cd KernelSU
-              cp ../kernel_patches/wild/manager.patch ./
+              cp ../../kernel_patches/wild/manager.patch ./
               ;;
             "NEXT")
               echo "Applying Manager patch for KernelSU Next..."
