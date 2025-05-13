@@ -178,7 +178,7 @@ jobs:
       
           case "${{ inputs.kernelsu_variant }}" in
             "WILD")
-              echo "Adding Wild KSU Official..."
+              echo "Adding Wild KSU..."
               curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/refs/heads/wild/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
             "KSU")
@@ -212,7 +212,7 @@ jobs:
               echo "Applying SUSFS patches for Official KernelSU..."
               cd ./KernelSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
-              patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
+              patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
               cp ../../kernel_patches/wild/fix.corehook.c.patch ./
               patch -p1 --forward --fuzz=3 < fix.corehook.c.patch
               cp ../../kernel_patches/wild/fix.selinux.c.patch ./
