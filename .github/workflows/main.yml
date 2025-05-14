@@ -74,6 +74,18 @@ jobs:
             -d "chat_id=$TELEGRAM_CHAT_ID" \
             -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
             -d "text=$MESSAGE"
+
+      - name: Send Telegram Notification
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -F message_thread_id="${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}" \
+            -F caption=" 🚀 Build started for ${{ github.repository }}! 
+            📦 *Repository:* [${{ github.repository }}](https://github.com/${{ github.repository }})
+            🗂️ *Branch:* ${{ github.ref_name }}
+            ✏️ *Commit:* [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            [🔗 View GitHub Release](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)" \
+            -F parse_mode="Markdown
             
   set-matrix:
     runs-on: ubuntu-latest
@@ -296,21 +308,15 @@ jobs:
         run: |
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
-
-      - name: Send Telegram Release Notification
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
+            
+      - name: Send Telegram Notification
         run: |
-          MESSAGE="*🎉 New Release: ${{ github.repository }}*\\n"
-          MESSAGE+="*Type*: ${{ inputs.release_type }}\\n"
-          MESSAGE+="*Tag*: ${{ env.NEW_TAG }}\\n"
-          MESSAGE+="*Name*: ${{ env.RELEASE_NAME }}\\n"
-          MESSAGE+="*Published by*: ${{ github.actor }}\\n"
-          MESSAGE+="*Link*: https://github.com/WildKernels/GKI_KernelSU_SUSFS/releases/tag/${{ env.NEW_TAG }}"
-          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-            -d "chat_id=$TELEGRAM_CHAT_ID" \
-            -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
-            -d "parse_mode=MarkdownV2" \
-            -d "text=$MESSAGE"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -F message_thread_id="${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}" \
+            -F caption=" 🌽👨‍🌾 *New Stable Kernel Release Uploaded* 
+            📦 *Repository:* [${{ github.repository }}](https://github.com/${{ github.repository }})
+            🗂️ *Branch:* ${{ github.ref_name }}
+            ✏️ *Commit:* [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            [🔗 View GitHub Release](https://github.com/${{ github.repository }}//releases/tag/${{ env.NEW_TAG }})" \
+            -F parse_mode="Markdown
