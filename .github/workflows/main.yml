@@ -243,11 +243,11 @@ jobs:
           cat << 'EOF' > release_body.md
           
           Branch type for KSU: ${{ inputs.kernelsu_branch }}
-          Wild+ Current Kernel Tag: ${{ env.NEW_TAG }}
+          Wild Current Kernel Tag: ${{ env.NEW_TAG }}
       
           Features:
-          -> Wild KSU Kernels
-          -> Multi Manager Support for Wild Kern (Not Recommended)
+          -> Wild KSU Kernels & Others
+          -> Multi Manager Support for Wild Kernels & Next Kernels (Not Recommended)
           -> SUSFS ඞ v1.5.7
           -> Manual Hooks for Better Hiding
           -> Magic Mount Support
@@ -257,7 +257,7 @@ jobs:
           -> BBR Support
       
           Notes:
-          -> KernelSU Next, SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
+          -> Wild KSU & KernelSU-Next, SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
           -> Kernel Flasher is broken with latest susfs, try https://github.com/libxzr/HorizonKernelFlasher!
       
           Module: 
