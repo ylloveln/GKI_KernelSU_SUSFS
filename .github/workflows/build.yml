@@ -192,7 +192,7 @@ jobs:
           case "${{ inputs.kernelsu_variant }}" in
             "WILD")
               echo "Adding Wild KSU..."
-              curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/refs/heads/wild/kernel/setup.sh" | bash ${{ env.BRANCH }}
+              curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/wild/kernel/setup.sh" | bash ${{ env.BRANCH }}
               ;;
             "KSU")
               echo "Adding KernelSU Official..."
