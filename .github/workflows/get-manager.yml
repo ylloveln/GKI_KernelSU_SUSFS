@@ -4,11 +4,14 @@ permissions:
   actions: write   # Allows triggering actions
 
 on:
-  workflow_dispatch: # This allows this workflow to be called from another workflow
-  
+  workflow_call: # This allows this workflow to be called from another workflow
+    inputs:
+      kernelsu_variant:
+        required: true
+        type: string
 
 jobs:
-  build-kernel-kernelsu-susfs:
+  get_ksu_manager:
     runs-on: ubuntu-latest
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"

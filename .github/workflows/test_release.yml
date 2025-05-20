@@ -62,7 +62,7 @@ jobs:
     permissions:
       contents: write
       actions: write
-    
+
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: zzh20188
@@ -310,17 +310,10 @@ jobs:
 
       - name: 动态上传发布资产
         run: |
-          # Loop through all files in the downloaded-artifacts directory
-          for file in ./downloaded-artifacts/*_kernel-*/*; do
-              # Skip directories
-              if [ -d "$file" ]; then
-                  continue
-              fi
-
               # Upload the file to the GitHub release
               echo "Uploading $file..."
               gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/Manager.apk"
-          done
+          
 
       # Display Files Uploaded
       - name: Display Files Uploaded
