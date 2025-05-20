@@ -44,11 +44,11 @@ jobs:
           # 下载 Manager 文件
           curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
 
-          echo "Manager 文件已下载为 Manager.apk"
+          echo "Manager 文件已下载为 Manager*"
 
       - name: 上传编译资产
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.kernelsu_variant }}_kernel-${{ env.CONFIG }}
+          name: Manager
           path: |
             Manager.apk
