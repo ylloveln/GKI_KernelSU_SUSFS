@@ -1,0 +1,54 @@
+name: GetManager
+permissions:
+  contents: write  # Allow writing to repository contents (for pushing tags)
+  actions: write   # Allows triggering actions
+
+on:
+  workflow_call: # This allows this workflow to be called from another workflow
+    inputs:
+      kernelsu_variant:
+        required: true
+        type: string
+
+jobs:
+  build-kernel-kernelsu-susfs:
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_HARDLINK: "true"
+      GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
+
+    steps:
+      - name: 安装依赖
+        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y git curl jq
+
+      - name: 添加 KernelSU
+        run: |
+          # 设置参数
+          REPO="KernelSU-Next/KernelSU-Next"
+          TOKEN=${{ secrets.ZZH_TOKEN }}
+
+          # 获取最新成功构建的 ID
+          BUILD_ID=$(curl -s -H "Authorization: token $TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/runs?status=success" | \
+            jq -r '.workflow_runs[0].id')
+
+          # 获取该构建的 Artifacts
+          ARTIFACTS=$(curl -s -H "Authorization: token $TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
+
+          # 获取 Manager 文件的下载链接
+          DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "Manager") | .archive_download_url')
+
+          # 下载 Manager 文件
+          curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
+
+          echo "Manager 文件已下载为 Manager.apk"
+
+      - name: 上传编译资产
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.kernelsu_variant }}_kernel-${{ env.CONFIG }}
+          path: |
+            Manager.apk
