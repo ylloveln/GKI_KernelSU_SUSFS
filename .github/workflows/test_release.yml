@@ -52,7 +52,7 @@ on:
         default: true
 jobs:
   get_manager:
-    uses: ./.github/workflows/get-manager
+    uses: ./.github/workflows/get-manager.yml
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
