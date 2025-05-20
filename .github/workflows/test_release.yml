@@ -287,7 +287,7 @@ jobs:
             KSU_VERSION=$((10000 + KSU_GIT_VERSION + 606))
             echo $KSU_VERSION
             echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
-            echo "RELEASE_NAME=${{ env.RELEASE_NAME }} v${{ env.KSU_VERSION }}" >> $GITHUB_ENV  # 更新 RELEASE_NAME
+            echo "RELEASE_NAME=${{ env.RELEASE_NAME }} ($KSU_VERSION)" >> $GITHUB_ENV  # 更新 RELEASE_NAME
           else
             echo "Unknown variant"
           fi
