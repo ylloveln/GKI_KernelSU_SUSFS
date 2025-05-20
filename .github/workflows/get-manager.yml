@@ -25,19 +25,14 @@ jobs:
 
       - name: 添加 KernelSU
         run: |
+          TOKEN=${{ secrets.ZZH_TOKEN }}
           if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
             echo "KernelSU Next..."
             REPO="KernelSU-Next/KernelSU-Next"
-            FILENAME="Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "SukiSU..."
             REPO="SukiSU-Ultra/SukiSU-Ultra"
-            FILENAME="manager"
           fi
-          # 设置参数
-          REPO="KernelSU-Next/KernelSU-Next"
-          TOKEN=${{ secrets.ZZH_TOKEN }}
-
           # 获取最新成功构建的 ID
           BUILD_ID=$(curl -s -H "Authorization: token $TOKEN" \
             "https://api.github.com/repos/$REPO/actions/runs?status=success" | \
@@ -48,8 +43,11 @@ jobs:
             "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
 
           # 获取 Manager 文件的下载链接
-          DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == \"$FILENAME\") | .archive_download_url')
-
+          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
+            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "Manager") | .archive_download_url')
+          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "manager") | .archive_download_url')
+          fi
           # 下载 Manager 文件
           curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
 
