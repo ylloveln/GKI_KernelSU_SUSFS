@@ -223,7 +223,7 @@ jobs:
           case "${{ inputs.kernelsu_variant }}" in
             "WILD")
               echo "Applying SUSFS patches for Official KernelSU..."
-              cd ./KernelSU
+              cd ./Wild_KSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
               cp ../../kernel_patches/wild/fix.corehook.c.patch ./
@@ -232,8 +232,8 @@ jobs:
               patch -p1 --forward --fuzz=3 < fix.selinux.c.patch
               cp ../../kernel_patches/wild/fix.ksud.c.patch ./
               patch -p1 --forward --fuzz=3 < fix.ksud.c.patch
-              cp ../../kernel_patches/wild/fix.sucompat.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.sucompat.c.patch
+              #cp ../../kernel_patches/wild/fix.sucompat.c.patch ./
+              #patch -p1 --forward --fuzz=3 < fix.sucompat.c.patch
               sed -i '/bool ksu_devpts_hook = false;/d' ./kernel/sucompat.c
               ;;
             "KSU")
