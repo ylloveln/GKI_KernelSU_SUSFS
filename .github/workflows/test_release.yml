@@ -314,7 +314,7 @@ jobs:
         run: |
               # Upload the file to the GitHub release
               echo "Uploading $file..."
-              gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/Manager.apk"
+              gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/Manager.zip"
           
 
       # Display Files Uploaded
