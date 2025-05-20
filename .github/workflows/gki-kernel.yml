@@ -450,7 +450,7 @@ jobs:
           if [ ! -z ${{ inputs.version }} ]; then
             echo "版本号不为空"
             sed -i '$s|echo "\$res"|echo "${{ inputs.version }}"|' ./common/scripts/setlocalversion
-
+          fi
           # Run perl command to modify UTS_VERSION
           CURRENT_TIME=$(date -u +"%a %b %d %H:%M:%S UTC %Y")
           echo "CURRENT_TIME=$CURRENT_TIME"
