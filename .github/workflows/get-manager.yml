@@ -4,11 +4,8 @@ permissions:
   actions: write   # Allows triggering actions
 
 on:
-  workflow_call: # This allows this workflow to be called from another workflow
-    inputs:
-      kernelsu_variant:
-        required: true
-        type: string
+  workflow_dispatch: # This allows this workflow to be called from another workflow
+  
 
 jobs:
   build-kernel-kernelsu-susfs:
