@@ -48,7 +48,7 @@ jobs:
             "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
 
           # 获取 Manager 文件的下载链接
-          DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "$FILENAME") | .archive_download_url')
+          DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == \"$FILENAME\") | .archive_download_url')
 
           # 下载 Manager 文件
           curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
