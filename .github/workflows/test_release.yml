@@ -317,10 +317,10 @@ jobs:
       #     done
 
       # Display Files Uploaded
-      - name: Display Files Uploaded
-        run: |
-          echo "GitHub release created with the following files:"
-          ls ./downloaded-artifacts/**/*
+      # - name: Display Files Uploaded
+      #   run: |
+      #     echo "GitHub release created with the following files:"
+      #     ls ./downloaded-artifacts/**/*
 
       # - name: send telegram message on push
       #   env:
