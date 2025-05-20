@@ -141,7 +141,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
       RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }}"
       RELEASE_NOTES: |
-        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}-${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }},请注意此处的KSU版本** 、SUSFS v1.5.7 、 LZ4KD
+        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }},请注意此处的KSU版本** 、SUSFS v1.5.7 、 LZ4KD
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}-${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
