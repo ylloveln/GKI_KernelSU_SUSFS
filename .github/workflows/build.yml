@@ -285,7 +285,12 @@ jobs:
         run: |
           cd "$CONFIG"
           case "${{ inputs.kernelsu_variant }}" in
-            "KSU" | "WILD")
+            "WILD")
+              echo "Applying Manager patch for Official KernelSU..."
+              cd Wild_KSU
+              cp ../../kernel_patches/wild/manager.patch ./
+              ;;
+            "KSU")
               echo "Applying Manager patch for Official KernelSU..."
               cd KernelSU
               cp ../../kernel_patches/wild/manager.patch ./
