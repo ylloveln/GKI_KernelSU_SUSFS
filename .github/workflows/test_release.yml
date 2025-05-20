@@ -302,19 +302,19 @@ jobs:
           release_name: "${{ env.RELEASE_NAME }}($KSU_VERSION)"  # Pass the RELEASE_NAME to the action
           body: ${{ env.RELEASE_NOTES }}  # Pass the RELEASE_NOTES to the action
 
-      - name: 动态上传发布资产
-        run: |
-          # Loop through all files in the downloaded-artifacts directory
-          for file in ./downloaded-artifacts/*_kernel-*/*; do
-              # Skip directories
-              if [ -d "$file" ]; then
-                  continue
-              fi
+      # - name: 动态上传发布资产
+      #   run: |
+      #     # Loop through all files in the downloaded-artifacts directory
+      #     for file in ./downloaded-artifacts/*_kernel-*/*; do
+      #         # Skip directories
+      #         if [ -d "$file" ]; then
+      #             continue
+      #         fi
 
-              # Upload the file to the GitHub release
-              echo "Uploading $file..."
-              gh release upload ${{ env.NEW_TAG }} "$file"
-          done
+      #         # Upload the file to the GitHub release
+      #         echo "Uploading $file..."
+      #         gh release upload ${{ env.NEW_TAG }} "$file"
+      #     done
 
       # Display Files Uploaded
       - name: Display Files Uploaded
