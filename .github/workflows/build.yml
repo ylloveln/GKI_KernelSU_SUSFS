@@ -230,6 +230,8 @@ jobs:
               patch -p1 --forward --fuzz=3 < fix.corehook.c.patch
               cp ../../kernel_patches/wild/fix.selinux.c.patch ./
               patch -p1 --forward --fuzz=3 < fix.selinux.c.patch
+              cp ../../kernel_patches/wild/fix.ksud.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix.ksud.c.patch
               cp ../../kernel_patches/wild/fix.sucompat.c.patch ./
               patch -p1 --forward --fuzz=3 < fix.sucompat.c.patch
               sed -i '/bool ksu_devpts_hook = false;/d' ./kernel/sucompat.c
