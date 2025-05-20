@@ -50,7 +50,18 @@ on:
         required: true
         type: boolean
         default: true
+      get_manager:
+        description: '是否同时获取最新KSU管理器?'
+        required: true
+        type: boolean
+        default: false
 jobs:
+  get_manager:
+    uses: ./.github/workflows/get-manager.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: ${{ inputs.kernelsu_variant }}
+
   build-kernel-a12-5-10:
     uses: ./.github/workflows/kernel-a12-5.10.yml
     secrets: inherit
@@ -128,6 +139,7 @@ jobs:
       contents: write
       actions: write
     needs:
+        - get_manager
         - build-kernel-a12-5-10
         - build-kernel-a13-5-10
         - build-kernel-a13-5-15
@@ -139,12 +151,12 @@ jobs:
       REPO_OWNER: zzh20188
       REPO_NAME: GKI_KernelSU_SUSFS
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
-      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }}"
+      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}"
       RELEASE_NOTES: |
         此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }},请注意此处的KSU版本** 、SUSFS v1.5.7 、 LZ4KD
 
         功能:
-        -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}-${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
+        -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
         -> SUSFS ඞ v1.5.7
         -> 手动Syscall Hooks,实现更好的隐藏效果
         -> Magic Mount 支持
@@ -380,7 +392,10 @@ jobs:
 
       - name: 动态上传发布资产
         run: |
-          # Loop through all files in the downloaded-artifacts directory
+          # 先传管理器
+          echo "Uploading $file..."
+          gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/*Manager*/*"
+          # 再传其他
           for file in ./downloaded-artifacts/*_kernel-*/*; do
               # Skip directories
               if [ -d "$file" ]; then
