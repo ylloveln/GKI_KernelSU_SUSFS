@@ -226,14 +226,14 @@ jobs:
               cd ./Wild_KSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-              cp ../../kernel_patches/wild/fix.core_hook.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.core_hook.c.patch
-              cp ../../kernel_patches/wild/fix.selinux.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.selinux.c.patch
-              cp ../../kernel_patches/wild/fix.ksud.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.ksud.c.patch
-              cp ../../kernel_patches/wild/fix.sucompat.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.sucompat.c.patch
+              cp ../../kernel_patches/wild/fix_core_hook.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_core_hook.c.patch
+              cp ../../kernel_patches/wild/fix_selinux.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_selinux.c.patch
+              cp ../../kernel_patches/wild/fix_ksud.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_ksud.c.patch
+              cp ../../kernel_patches/wild/fix_sucompat.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_sucompat.c.patch
               sed -i '/bool ksu_devpts_hook = false;/d' ./kernel/sucompat.c
               ;;
             "KSU")
@@ -247,16 +247,16 @@ jobs:
               cd ./KernelSU-Next
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-              cp ../../kernel_patches/next/fix.apk_sign.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.apk_sign.c.patch
-              cp ../../kernel_patches/next/fix.core_hook.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.core_hook.c.patch
-              cp ../../kernel_patches/next/fix.selinux.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.selinux.c.patch
-              cp ../../kernel_patches/next/fix.ksud.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.ksud.c.patch
-              cp ../../kernel_patches/next/fix.sucompat.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.sucompat.c.patch
+              cp ../../kernel_patches/next/fix_apk_sign.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_apk_sign.c.patch
+              cp ../../kernel_patches/next/fix_core_hook.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_core_hook.c.patch
+              cp ../../kernel_patches/next/fix_selinux.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_selinux.c.patch
+              cp ../../kernel_patches/next/fix_ksud.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_ksud.c.patch
+              cp ../../kernel_patches/next/fix_sucompat.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix_sucompat.c.patch
               sed -i '/bool ksu_devpts_hook = false;/d' ./kernel/sucompat.c
               ;;
             "MKSU")
