@@ -49,13 +49,13 @@ jobs:
             DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "manager") | .archive_download_url')
           fi
           # 下载 Manager 文件
-          curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
+          curl -L -H "Authorization: token $TOKEN" -o "${{ inputs.kernelsu_variant }}-Manager.apk" "$DOWNLOAD_URL"
 
-          echo "Manager 文件已下载为 Manager"
+          echo "Manager 文件已下载为${{ inputs.kernelsu_variant }}-Manager.apk"
 
       - name: 上传编译资产
         uses: actions/upload-artifact@v4
         with:
-          name: Manager
+          name: ${{ inputs.kernelsu_variant }}管理器
           path: |
-            Manager.apk
+            ${{ inputs.kernelsu_variant }}-Manager.apk

@@ -312,10 +312,20 @@ jobs:
 
       - name: 动态上传发布资产
         run: |
+          # 先传管理器
+          echo "Uploading $file..."
+          gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/${{ inputs.kernelsu_variant }}管理器/*"
+          # 再传其他
+          for file in ./downloaded-artifacts/*_kernel-*/*; do
+              # Skip directories
+              if [ -d "$file" ]; then
+                  continue
+              fi
+
               # Upload the file to the GitHub release
               echo "Uploading $file..."
-              gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/Manager/*"
-          
+              gh release upload ${{ env.NEW_TAG }} "$file"
+          done
 
       # Display Files Uploaded
       - name: Display Files Uploaded

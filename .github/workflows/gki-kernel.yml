@@ -80,7 +80,7 @@ jobs:
 
       # Install ccache
       - name: 安装 ccache
-        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y ccache python3 git curl jq
+        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y ccache python3 git curl
 
       - name: 配置 ccache
         run: |
@@ -214,9 +214,6 @@ jobs:
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
-          
-          
-          TOKEN=${{ secrets.ZZH_TOKEN }}
 
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "Adding KernelSU Official..."
@@ -224,38 +221,12 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
             echo "Adding KernelSU Next..."
             curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash $BRANCH
-
-            REPO="KernelSU-Next/KernelSU-Next"
-            # 获取最新成功构建的 ID
-            BUILD_ID=$(curl -s -H "Authorization: token $TOKEN" \
-            "https://api.github.com/repos/$REPO/actions/runs?status=success" | \
-            jq -r '.workflow_runs[0].id')
-            # 获取该构建的 Artifacts
-            ARTIFACTS=$(curl -s -H "Authorization: token $TOKEN" \
-            "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
-            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "Manager") | .archive_download_url')
-            cd ..
-            curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
-            echo "Manager 文件已下载为 Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "Adding KernelSU MKSU..."
             curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash $BRANCH
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "Adding KernelSU SukiSU..."
-            curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
-
-            REPO="SukiSU-Ultra/SukiSU-Ultra"
-            # 获取最新成功构建的 ID
-            BUILD_ID=$(curl -s -H "Authorization: token $TOKEN" \
-            "https://api.github.com/repos/$REPO/actions/runs?status=success" | \
-            jq -r '.workflow_runs[0].id')
-            # 获取该构建的 Artifacts
-            ARTIFACTS=$(curl -s -H "Authorization: token $TOKEN" \
-            "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
-            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "manager") | .archive_download_url')
-            cd ..
-            curl -L -H "Authorization: token $TOKEN" -o Manager.apk "$DOWNLOAD_URL"
-            echo "Manager 文件已下载为 Manager"
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
           fi
 
       - name: 为 KernelSU 变体安装 SUSFS 补丁
@@ -675,4 +646,3 @@ jobs:
           path: |
             *AnyKernel3.zip
             *.img
-            Manager.apk
