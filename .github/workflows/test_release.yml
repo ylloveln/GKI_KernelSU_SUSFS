@@ -50,6 +50,11 @@ on:
         required: true
         type: boolean
         default: true
+      get_manager:
+        description: '是否同时获取最新KSU管理器?'
+        required: true
+        type: boolean
+        default: false
 jobs:
   get_manager:
     uses: ./.github/workflows/get-manager.yml
