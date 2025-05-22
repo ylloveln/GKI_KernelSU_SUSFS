@@ -40,6 +40,11 @@ on:
         required: false
         type: boolean
         default: false
+      get_manager:
+        description: '是否同时获取最新KSU管理器?'
+        required: true
+        type: boolean
+        default: true
 jobs:
 
  build-kernel-a15-6-6:
@@ -52,3 +57,9 @@ jobs:
       version: ${{ inputs.version }}
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
+ get-ksu-manager:
+    if: ${{ inputs.get_manager }}
+    uses: ./.github/workflows/get-manager.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: ${{ inputs.kernelsu_variant }}
