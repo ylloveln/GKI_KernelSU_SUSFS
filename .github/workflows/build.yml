@@ -246,7 +246,11 @@ jobs:
               echo "Applying SUSFS patches for KernelSU Next..."
               cd ./KernelSU-Next
               cp ../../kernel_patches/next/kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch ./
-              patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch
+              patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch || true
+              cp ../../kernel_patches/wild/fix.corehook.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix.corehook.c.patch
+              cp ../../kernel_patches/wild/fix.ksud.c.patch ./
+              patch -p1 --forward --fuzz=3 < fix.ksud.c.patch
               ;;
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
