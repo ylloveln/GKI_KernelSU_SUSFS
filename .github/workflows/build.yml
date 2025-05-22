@@ -245,15 +245,14 @@ jobs:
             "NEXT")
               echo "Applying SUSFS patches for KernelSU Next..."
               cd ./KernelSU-Next
-              curl -Ls "https://raw.githubusercontent.com/KOWX712/files/main/0001-ksun-susfs157.patch" | patch -p1 --fuzz=3
-              curl -Ls https://github.com/KernelSU-Next/KernelSU-Next/commit/30707682565083e497485edc4d7764924e2d042f.patch | patch -p1 --fuzz=3
-              curl -Ls https://github.com/KernelSU-Next/KernelSU-Next/commit/1ac3a3a112abae73801fd52fe32ea8749407ff8d.patch | patch -p1 --fuzz=3
+              cp ../../kernel_patches/next/0001_susfs_157_for_ksunext.patch ./
+              patch -p1 --forward --fuzz=3 < 0001_susfs_157_for_ksunext.patch
               ;;
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
               cd ./KernelSU
-              cp ../../kernel_patches/next/kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch ./
-              patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch
+              cp ../../kernel_patches/next/0001_susfs_157_for_ksunext.patch ./
+              patch -p1 --forward --fuzz=3 < 0001_susfs_157_for_ksunext.patch
               ;;
           esac
 
