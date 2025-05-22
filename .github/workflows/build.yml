@@ -245,12 +245,9 @@ jobs:
             "NEXT")
               echo "Applying SUSFS patches for KernelSU Next..."
               cd ./KernelSU-Next
-              cp ../../kernel_patches/next/kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch ./
-              patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch || true
-              cp ../../kernel_patches/wild/fix.corehook.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.corehook.c.patch
-              cp ../../kernel_patches/wild/fix.ksud.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix.ksud.c.patch
+              curl -Ls "https://raw.githubusercontent.com/KOWX712/files/main/0001-ksun-susfs157.patch" | patch -p1 --fuzz=3
+              curl -Ls https://github.com/KernelSU-Next/KernelSU-Next/commit/30707682565083e497485edc4d7764924e2d042f.patch | patch -p1 --fuzz=3
+              curl -Ls https://github.com/KernelSU-Next/KernelSU-Next/commit/1ac3a3a112abae73801fd52fe32ea8749407ff8d.patch | patch -p1 --fuzz=3
               ;;
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
@@ -321,7 +318,7 @@ jobs:
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           
           if [ "${{ inputs.kernelsu_variant }}" == "NEXT" ] || [ "${{ inputs.kernelsu_variant }}" == "WILD" ]; then
-            echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_KSU_KPROBES_HOOK=n" >> ./common/arch/arm64/configs/gki_defconfig
           fi
                     
           # Add additional tmpfs config setting
