@@ -153,7 +153,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
       RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}"
       RELEASE_NOTES: |
-        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }} ${{ inputs.kernelsu_branch }},请注意此处的KSU版本** 、SUSFS v1.5.7 、 LZ4KD
+        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** 、SUSFS v1.5.7 、 LZ4KD
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
@@ -164,13 +164,14 @@ jobs:
         -> 徒劳隐藏 jit-zygote-cache 检测
         -> Wireguard 支持
         -> BBR 支持
-        -> KPM ${{ inputs.kernelsu_variant == "SukiSU" && '支持' || '不支持' }}
+        ${{ inputs.use_kpm && '-> KPM 支持' || '' }}
         -> **LZ4KD&ONEPLUS_LZ4K**  ${{ inputs.use_zram && '支持' || '不支持' }}
         
-        备注:
+        <details>
+        <summary>备注:</summary>
         -> 在SUS SU 模式 2 下, 将显示为禁用或不兼容, 原因是(编译内核时)使用了非kprobe钩子 ,并且不再需要(非kprobe钩子)!
         -> 在最新版的susfs, 使用Kernel Flasher刷入AK3压缩包会变砖, 尝试 https://github.com/libxzr/HorizonKernelFlasher!
-
+        </details>
         模块: 
         -> https://github.com/sidex15/ksu_module_susfs
         
