@@ -39,11 +39,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ubuntu-latest is not supported
-          # - sub_level: "94"
-          #   os_patch_level: "2023-05"
-          # - sub_level: "104"
-          #   os_patch_level: "2023-07"
+          # 从谷歌提交找到补丁，修复94与104的兼容性问题
+          - sub_level: "94"
+            os_patch_level: "2023-05"
+          - sub_level: "104"
+            os_patch_level: "2023-07"
           - sub_level: "123"
             os_patch_level: "2023-11"
           - sub_level: "137"
