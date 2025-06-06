@@ -284,12 +284,15 @@ jobs:
 
           cd ../common
           FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
-          if grep -q deprecated <<< "$REMOTE_BRANCH" && [ "$FORMATTED_BRANCH" != "android12-5.10-2022-11" ]; then
-            patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
-            curl -LSs https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/legacy/fdinfo.c.patch -o fdinfo.c.patch
-            patch -p1 < fdinfo.c.patch
+          if grep -q deprecated <<< "$REMOTE_BRANCH" && \
+             { [ "$FORMATTED_BRANCH" == "android13-5.15-2023-05" ] || \
+               [ "$FORMATTED_BRANCH" == "android13-5.15-2023-07" ]; }; then
+              echo '遗弃内核：使用修复补丁'
+              patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
+              curl -LSs https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/legacy/fdinfo.c.patch -o fdinfo.c.patch
+              patch -p1 < fdinfo.c.patch
           else
-            patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
+              patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
           fi
           if [ "$FORMATTED_BRANCH" == "android15-6.6-2024-08" ] || [ "$FORMATTED_BRANCH" == "android15-6.6-2024-09" ]; then
             echo "Applying fix 6.6.30 6.6.30&46 patches"
