@@ -230,7 +230,7 @@ jobs:
 
       - name: 添加 KernelSU
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG"
 
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
@@ -249,7 +249,7 @@ jobs:
 
       - name: 为 KernelSU 变体安装 SUSFS 补丁
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG"
 
           echo "Applying SUSFS patches..."
@@ -318,7 +318,7 @@ jobs:
           fi
       - name: 应用新的HOOKS补丁
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG/common"
 
           if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
@@ -334,7 +334,7 @@ jobs:
       - name: 复制源文件&应用LZ4KD&ZSTDN补丁
         if: ${{ inputs.use_zram }}
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG/common"
           cp -r ../../SukiSU_patch/other/zram/lz4k/include/linux/* ./include/linux/
           cp -r ../../SukiSU_patch/other/zram/lz4k/lib/* ./lib/
@@ -353,7 +353,7 @@ jobs:
 
       - name: 应用隐藏某特征的补丁
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG/common"
           # Apply additional patch
           if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
@@ -416,7 +416,7 @@ jobs:
           
       - name: 添加SUSFS配置设置
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG"
           echo "Adding configuration settings to gki_defconfig..."
 
@@ -474,7 +474,7 @@ jobs:
 
       - name: 配置内核名称
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG"
 
           if [ ! -z ${{ inputs.version }} ]; then
@@ -546,7 +546,7 @@ jobs:
       - name: 创建Bootimgs文件夹并复制镜像
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           mkdir bootimgs
 
           echo "Creating bootimgs folder and copying images..."
@@ -561,7 +561,7 @@ jobs:
       - name: 创建Bootimgs文件夹并复制镜像
         if: ${{ inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           mkdir bootimgs
 
           echo "Creating bootimgs folder and copying images..."
@@ -600,7 +600,7 @@ jobs:
       - name: 运行boot镜像 ${{ inputs.android_version }} 编译脚本
         if: ${{ inputs.android_version == 'android12' }}
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
+          echo "更改为配置目录: $CONFIG..."
           cd bootimgs
 
           GKI_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-"${{ inputs.os_patch_level }}"_"${{ inputs.revision }}".zip
