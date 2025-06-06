@@ -82,7 +82,7 @@ jobs:
           echo "CONFIG set to: $CONFIG"
 
       - name: 安装 依赖
-        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y python3 git curl
+        run: sudo apt install -y python3 git curl
 
       - name: 缓存工具链
         id: cache-toolchain
