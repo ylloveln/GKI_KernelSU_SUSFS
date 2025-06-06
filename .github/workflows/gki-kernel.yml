@@ -411,8 +411,11 @@ jobs:
             echo "CONFIG_MODULE_SIG_FORCE=n" >> "$CONFIG_FILE"
             echo 'Android14_Bazel:已修复zram&zsmalloc'
           elif [ "${{ inputs.kernel_version }}" = "5.10" ] || [ "${{ inputs.kernel_version }}" = "5.15" ]; then
-            echo "加入zram补丁后,不创建dlkm镜像"
+            rm "$CONFIG/common/android/gki_aarch64_modules"
+            touch "$CONFIG/common/android/gki_aarch64_modules"
+            echo '5.10&5.15:已修复zram&zsmalloc'
             sed -i 's/BUILD_SYSTEM_DLKM=1/BUILD_SYSTEM_DLKM=0/' $CONFIG/common/build.config.gki.aarch64
+            echo "加入zram补丁后,不创建dlkm镜像"
           fi
 
           
