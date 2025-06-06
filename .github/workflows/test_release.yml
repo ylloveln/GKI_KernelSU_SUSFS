@@ -168,10 +168,13 @@ jobs:
         -> **LZ4KD&ONEPLUS_LZ4K**  ${{ inputs.use_zram && '支持' || '不支持' }}
         
         <details>
+        
         <summary>备注:</summary>
-        -> 在SUS SU 模式 2 下, 将显示为禁用或不兼容, 原因是(编译内核时)使用了非kprobe钩子 ,并且不再需要(非kprobe钩子)!
-        -> 在最新版的susfs, 使用Kernel Flasher刷入AK3压缩包会变砖, 尝试 https://github.com/libxzr/HorizonKernelFlasher!
+        - -> 在SUS SU 模式 2 下, 将显示为禁用或不兼容, 原因是(编译内核时)使用了非kprobe钩子 ,并且不再需要(非kprobe钩子)!
+        - -> 在最新版的susfs, 使用Kernel Flasher刷入AK3压缩包会变砖, 尝试 https://github.com/libxzr/HorizonKernelFlasher!
+
         </details>
+
         模块: 
         -> https://github.com/sidex15/ksu_module_susfs
         
