@@ -40,6 +40,8 @@ jobs:
       matrix:
         include:
           # ubuntu-latest is not supported
+          - sub_level: "74"
+            os_patch_level: "2023-01"
           - sub_level: "94"
             os_patch_level: "2023-05"
           - sub_level: "104"
