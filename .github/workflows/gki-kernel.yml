@@ -220,7 +220,7 @@ jobs:
           
           case "$branch_input" in
             "Stable(标准)")
-              echo "BRANCH=-" >> $GITHUB_ENV
+              echo "BRANCH=-s susfs-stable" >> $GITHUB_ENV
               ;;
             "Dev(开发)")
               case "$variant_input" in
