@@ -255,9 +255,9 @@ jobs:
               patch -p1 --forward --fuzz=3 < fix_selinux.c.patch
               cp ../../kernel_patches/next/fix_ksud.c.patch ./
               patch -p1 --forward --fuzz=3 < fix_ksud.c.patch
-              cp ../../kernel_patches/next/fix_sucompat.c.patch ./
-              patch -p1 --forward --fuzz=3 < fix_sucompat.c.patch
-              sed -i '/bool ksu_devpts_hook = false;/d' ./kernel/sucompat.c
+              #cp ../../kernel_patches/next/fix_sucompat.c.patch ./
+              #patch -p1 --forward --fuzz=3 < fix_sucompat.c.patch
+              #sed -i '/bool ksu_devpts_hook = false;/d' ./kernel/sucompat.c
               ;;
             "MKSU")
               echo "Applying SUSFS patches for MKSU..."
