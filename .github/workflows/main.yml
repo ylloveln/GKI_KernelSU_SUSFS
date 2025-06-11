@@ -15,12 +15,12 @@ on:
           - Actions
           - Pre-Release
           - Release
-        default: Actions
+        default: Pre-Release
       include_wild:
         description: 'Include WILD?'
         required: true
         type: boolean
-        default: true
+        default: false
       include_ksu:
         description: 'Include KSU?'
         required: true
@@ -30,7 +30,7 @@ on:
         description: 'Include NEXT?'
         required: true
         type: boolean
-        default: false
+        default: true
       include_mksu:
         description: 'Include MKSU?'
         required: true
@@ -44,7 +44,7 @@ on:
           - Stable
           - Dev
           - Other
-        default: Stable
+        default: Dev
       kernelsu_branch_other:
         description: "If 'Other' is selected, specify your custom branch"
         required: false
@@ -230,7 +230,7 @@ jobs:
           -> Wild KSU Kernels & Others
           -> Multi Manager Support for Wild Kernels & Next Kernels (Not Recommended)
           -> SUSFS ඞ v1.5.7
-          -> Manual Hooks for Better Hiding
+          -> Scope-Minimized Manual hooks v1.4
           -> Magic Mount Support
           -> Simple Maphide for LineageOS Detections
           -> Futile Maphide for jit-zygote-cache Detections
