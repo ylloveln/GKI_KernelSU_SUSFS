@@ -62,6 +62,8 @@ jobs:
       fail-fast: true
       matrix:
         include:
+          - sub_level: "123"
+            os_patch_level: "2023-11"
           - sub_level: "137"
             os_patch_level: "2024-01"
           - sub_level: "144"
