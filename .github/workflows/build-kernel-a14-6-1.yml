@@ -50,6 +50,11 @@ on:
         required: false
         type: boolean
         default: false
+      onlyAk3:
+        description: '仅上传AK3压缩包?(无boot,下载更快)'
+        required: false
+        type: boolean
+        default: false
 jobs:
 
   build-kernel-a14-6-1:
@@ -63,6 +68,7 @@ jobs:
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
       fast: ${{ inputs.fast }}
+      onlyAk3: ${{ inputs.onlyAk3 }}
   get-ksu-manager:
     if: ${{ inputs.get_manager }}
     uses: ./.github/workflows/get-manager.yml

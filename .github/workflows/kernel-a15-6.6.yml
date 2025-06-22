@@ -42,6 +42,11 @@ on:
         required: false
         type: boolean
         default: false
+      onlyAk3:
+        description: '仅上传AK3压缩包?(无boot,下载更快)'
+        required: false
+        type: boolean
+        default: false
 
 
 jobs:
@@ -83,3 +88,4 @@ jobs:
       use_kpm: ${{ inputs.use_kpm }}
       supp_op: ${{ inputs.supp_op }}
       fast: ${{ inputs.fast }}
+      onlyAk3: ${{ inputs.onlyAk3 || false }}

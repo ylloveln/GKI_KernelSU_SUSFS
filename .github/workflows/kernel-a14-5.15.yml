@@ -32,6 +32,11 @@ on:
         required: true
         type: boolean
         default: true
+      onlyAk3:
+        description: '仅上传AK3压缩包?(无boot,下载更快)'
+        required: false
+        type: boolean
+        default: false
   
 jobs:
   build-kernel-a14-5-15-kernelsu-susfs:
@@ -72,3 +77,4 @@ jobs:
       use_kpm: ${{ inputs.use_kpm }}
       supp_op: ${{ inputs.supp_op || false }}
       fast: ${{ inputs.fast || false }}
+      onlyAk3: ${{ inputs.onlyAk3 || false }}

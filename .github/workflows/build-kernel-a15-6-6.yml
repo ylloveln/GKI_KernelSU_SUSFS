@@ -55,6 +55,11 @@ on:
         required: false
         type: boolean
         default: false
+      onlyAk3:
+        description: '仅上传AK3压缩包?(无boot,下载更快)'
+        required: false
+        type: boolean
+        default: false
 jobs:
 
  build-kernel-a15-6-6:
@@ -69,6 +74,7 @@ jobs:
       use_kpm: ${{ inputs.use_kpm }}
       supp_op: ${{ inputs.supp_op }}
       fast: ${{ inputs.fast }}
+      onlyAk3: ${{ inputs.onlyAk3 }}
  get-ksu-manager:
     if: ${{ inputs.get_manager }}
     uses: ./.github/workflows/get-manager.yml

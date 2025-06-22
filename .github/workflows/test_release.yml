@@ -157,7 +157,7 @@ jobs:
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
-        -> SUSFS ඞ v1.5.7
+        -> SUSFS ඞ v1.5.7 **(6.1则为 1.5.8)**
         -> 最小作用域手动挂钩 v1.4
         -> Magic Mount 支持
         -> 简单隐藏 LineageOS 检测
