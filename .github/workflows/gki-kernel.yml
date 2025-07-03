@@ -506,7 +506,34 @@ jobs:
 
           # 用于debug config
           tail -n 40 ./common/arch/arm64/configs/gki_defconfig
-      - name: 配置内核名称
+
+      - name: 配置内核构时间/删除dirty字符
+        run: |
+          echo "更改为配置目录: $CONFIG..."
+          cd "$CONFIG"
+
+          # 如果你需要改构建时间,请把以下变量 CURRENT_TIME 修改为如下例子字符串,如以下例子:
+          # CURRENT_TIME="Sat Jun 07 06:29:29 UTC 2025"
+          # 该字符串表示 UTC时间: 2025年6月7日 06:29:29,"Sat" 是星期六的缩写，而 "Jun" 是六月的缩写
+          CURRENT_TIME=$(date -u +"%a %b %d %H:%M:%S UTC %Y")
+          echo "CURRENT_TIME=$CURRENT_TIME"
+
+          # 设置构建时间为上方的 `CURRENT_TIME` 变量
+          perl -pi -e "s{UTS_VERSION=\"\\\$\(echo \\\$UTS_VERSION \\\$CONFIG_FLAGS \\\$TIMESTAMP \\| cut -b -\\\$UTS_LEN\)\"}{UTS_VERSION=\"#1 SMP PREEMPT $CURRENT_TIME\"}" ./common/scripts/mkcompile_h
+          if [ -f "build/build.sh" ]; then
+            sed -i 's/-dirty//' ./common/scripts/setlocalversion
+          else
+          # 设置构建时间
+            sed -i "s/build-timestamp = \$(or \$(KBUILD_BUILD_TIMESTAMP), \$(build-timestamp-auto))/build-timestamp = \"$CURRENT_TIME\"/" ./common/init/Makefile
+          # 删除导出文件
+            sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' ./common/BUILD.bazel
+            rm -rf ./common/android/abi_gki_protected_exports_*
+          # 去除dirty块
+            sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
+          fi
+
+      - name: 配置内核名称(常规构建)
+        if: ${{ !inputs.fast }}
         run: |
           echo "更改为配置目录: $CONFIG..."
           cd "$CONFIG"
@@ -514,29 +541,11 @@ jobs:
           if [ ! -z ${{ inputs.version }} ]; then
             echo "版本号不为空"
             sed -i '$s|echo "\$res"|echo "${{ inputs.version }}"|' ./common/scripts/setlocalversion
+            sed -i '/^CONFIG_LOCALVERSION=/ s/="\([^"]*\)"/="${{ inputs.version }}"/' ./common/arch/arm64/configs/gki_defconfig
           fi
-
-          # 如果你需要改构建时间,请把以下变量 CURRENT_TIME 修改为如下例子字符串,如以下例子:
-          # CURRENT_TIME="Sat Jun 07 06:29:29 UTC 2025"
-          # 该字符串表示 UTC时间: 2025年6月7日 06:29:29,"Sat" 是星期六的缩写，而 "Jun" 是六月的缩写
-          CURRENT_TIME=$(date -u +"%a %b %d %H:%M:%S UTC %Y")
-
-          echo "CURRENT_TIME=$CURRENT_TIME"
-          perl -pi -e "s{UTS_VERSION=\"\\\$\(echo \\\$UTS_VERSION \\\$CONFIG_FLAGS \\\$TIMESTAMP \\| cut -b -\\\$UTS_LEN\)\"}{UTS_VERSION=\"#1 SMP PREEMPT $CURRENT_TIME\"}" ./common/scripts/mkcompile_h
-          if [ -f "build/build.sh" ]; then
-            sed -i 's/-dirty//' ./common/scripts/setlocalversion
-          else
-            sed -i 's/build-timestamp = $(or $(KBUILD_BUILD_TIMESTAMP), $(build-timestamp-auto))/build-timestamp = "$CURRENT_TIME"/' ./common/init/Makefile
-            sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' ./common/BUILD.bazel
-            rm -rf ./common/android/abi_gki_protected_exports_*
-            sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
-            # sed -E -i '/^CONFIG_LOCALVERSION=/ s/(.*)"$/\1"/' ./common/arch/arm64/configs/gki_defconfig
-            if [ ! -z ${{ inputs.version }} ]; then
-              sed -i '/^CONFIG_LOCALVERSION=/ s/="\([^"]*\)"/="${{ inputs.version }}"/' ./common/arch/arm64/configs/gki_defconfig
-            fi
-          fi
-
-          if [ "${{ inputs.fast }}" == "true" ]; then
+      - name: 配置内核名称(快速构建)
+        if: ${{ inputs.fast }}
+        run: |
             echo "启用快速编译：设置随机字符串或指定内容"
             case "${{ inputs.kernel_version }}" in
                   "6.1")
@@ -552,7 +561,7 @@ jobs:
                         Kversion="${Android}${Random_hash}"
                       fi
                       echo $Kversion
-                      sed -i "\$s|echo \"\$res\"|echo \"$Kversion\"|" ./common/scripts/setlocalversion
+                      sed -i "\$s|echo \"\$res\"|echo \"$Kversion\"|" ./common/scripts/setlocalversion                  
                       ;;
                   "6.6")
                       echo "进入6.6 内核名称编辑"
@@ -574,11 +583,10 @@ jobs:
                       exit 1
                       ;;
               esac
-          fi
           
-          echo "KVERSION=$Kversion" >> $GITHUB_ENV
-          echo "查看内核名是否正确"
-          tail -n 3 ./common/scripts/setlocalversion
+              echo "KVERSION=$Kversion" >> $GITHUB_ENV
+              echo "查看内核名是否正确"
+              tail -n 3 ./common/scripts/setlocalversion
 
       - name: Build with retry
         uses: nick-fields/retry@v3
