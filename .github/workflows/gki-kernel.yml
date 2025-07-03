@@ -227,6 +227,9 @@ jobs:
             cd "$CONFIG/common/"
             curl -LSs "https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/oneplus/6.1-oneplus.patch" -o 6.1-oneplus.patch
             patch -p1 --fuzz=8 < 6.1-oneplus.patch
+            # lz4 升级
+            curl -LSs "https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/oneplus/lz4:_v1.10.0.patch" -o lz4:_v1.10.0.patch
+            patch -p1 --fuzz=2 < lz4:_v1.10.0.patch
           fi
          
       
@@ -570,7 +573,7 @@ jobs:
                         Kversion="${Android}${Random_hash}"
                       fi
                       echo $Kversion
-                      sed -i "\$s|echo \"\$res\"|echo \"$Kversion\"|" ./common/scripts/setlocalversion                  
+                      sed -i "\$s|echo \"\$res\"|echo "-android14-11-gykhmmbrqf9kt"|" ./common/scripts/setlocalversion                  
                       ;;
                   "6.6")
                       echo "进入6.6 内核名称编辑"
