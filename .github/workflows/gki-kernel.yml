@@ -210,19 +210,24 @@ jobs:
             patch -p1 < fix_5.15.legacy.patch
           fi
 
-      - name: 使GKI在一加8E平台正常使用
+      - name: 使GKI在一加平台正常使用
         if: ${{ inputs.supp_op }}
         run: |
-          echo '切换到驱动目录'
-          cd "$CONFIG/common/drivers/"
-          echo '当前目录$(pwd),下载支持补丁'
-          curl -LSs "https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/dev/hmbird_patch.c" -o hmbird_patch.c
-          if [ ! -f hmbird_patch.c ]; then
-            echo "hmbird_patch.c 下载失败"
+          if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
+            echo '切换到驱动目录'
+            cd "$CONFIG/common/drivers/"
+            echo '当前目录$(pwd),下载支持补丁'
+            curl -LSs "https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/dev/hmbird_patch.c" -o hmbird_patch.c
+            if [ ! -f hmbird_patch.c ]; then
+              echo "hmbird_patch.c 下载失败"
+            fi
+            echo '补丁加入构建'
+            echo "obj-y += hmbird_patch.o" >> Makefile
+            tail -n 3 Makefile
+          elif [ "${{ inputs.kernel_version }}" = "6.1" ]; then
+            
           fi
-          echo '补丁加入构建'
-          echo "obj-y += hmbird_patch.o" >> Makefile
-          tail -n 3 Makefile
+         
       
       - name: 确定 KernelSU 的分支
         run: |
@@ -604,54 +609,48 @@ jobs:
             sed -i '/KMI_SYMBOL_LIST_STRICT_MODE/d' common/build.config.gki.aarch64
 
             echo "Building the kernel..."
-            if [ -f "build/build.sh" ]; then
-              LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
-            elif [ "${{ inputs.fast }}" != "true" ]; then
-              tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
-            else
-              sed -i 's/-dirty//' common/scripts/setlocalversion
-              case "${{ inputs.kernel_version }}" in
-                  "6.1")
-                      CLANG_VERSION="clang-r487747c"
-                      ;;
-                  "6.6")
-                      CLANG_VERSION="clang-r510928"
-                      ;;
-                  *)
-                      echo "Error: Unsupported kernel_version: '${{ inputs.kernel_version }}'"
-                      exit 1
-                      ;;
-              esac
+            case "${{ inputs.kernel_version }}" in
+                "6.1")
+                    CLANG_VERSION="clang-r487747c"
+                    ;;
+                "6.6")
+                    CLANG_VERSION="clang-r510928"
+                    ;;
+                *)
+                    echo "Error: Unsupported kernel_version: '${{ inputs.kernel_version }}'"
+                    exit 1
+                    ;;
+            esac
 
-                echo "Using Clang version: $CLANG_VERSION for Kernel version: ${{ inputs.kernel_version }}"
+              echo "Using Clang version: $CLANG_VERSION for Kernel version: ${{ inputs.kernel_version }}"
 
-                cd common
+              cd common
 
-                export PATH="$GITHUB_WORKSPACE/$CONFIG/prebuilts/clang/host/linux-x86/$CLANG_VERSION/bin:$PATH"
-                export PATH="$GITHUB_WORKSPACE/$CONFIG/gcc/bin:$PATH"
-                export PATH="$GITHUB_WORKSPACE/$CONFIG/prebuilts/kernel-build-tools/linux-x86/bin:$PATH"
-                export PATH="/usr/lib/ccache:$PATH"
+              export PATH="$GITHUB_WORKSPACE/$CONFIG/prebuilts/clang/host/linux-x86/$CLANG_VERSION/bin:$PATH"
+              export PATH="$GITHUB_WORKSPACE/$CONFIG/gcc/bin:$PATH"
+              export PATH="$GITHUB_WORKSPACE/$CONFIG/prebuilts/kernel-build-tools/linux-x86/bin:$PATH"
+              export PATH="/usr/lib/ccache:$PATH"
 
-                echo "--- Clang Version ---"
-                clang --version
-                echo "--- GCC Version ---"
-                aarch64-linux-gnu-gcc -v
+              echo "--- Clang Version ---"
+              clang --version
+              echo "--- GCC Version ---"
+              aarch64-linux-gnu-gcc -v
 
-                COMMON_MAKE_PARAMS=(
-                  -j$(nproc --all)
-                  O=out
-                  ARCH=arm64
-                  LLVM=1
-                  CC="ccache clang"
-                  CROSS_COMPILE=aarch64-linux-gnu-
-              )
+              COMMON_MAKE_PARAMS=(
+                -j$(nproc --all)
+                O=out
+                ARCH=arm64
+                LLVM=1
+                CC="ccache clang"
+                CROSS_COMPILE=aarch64-linux-gnu-
+            )
 
-              BUILD_TARGETS=(
-                  Image
-                  Image.lz4
-                  Image.gz
-                  modules
-              )
+            BUILD_TARGETS=(
+                Image
+                Image.lz4
+                Image.gz
+                modules
+            )
               
               echo "--- Running make gki_defconfig ---"
               make "${COMMON_MAKE_PARAMS[@]}" gki_defconfig || { echo "make defconfig failed"; exit 1; }
@@ -661,7 +660,7 @@ jobs:
               echo "debug:输出内核版本号"
               strings out/arch/arm64/boot/Image | grep 'Linux version'
               cp ./out/arch/arm64/boot/Image* ../bazel-bin/common/kernel_aarch64/
-            fi
+          
             
       - name: 修补 Image 文件 安卓12和安卓13(仅限sukisu)
         if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' && (inputs.android_version == 'android12' || inputs.android_version == 'android13') }}
@@ -823,3 +822,15 @@ jobs:
         with:
           name: ${{ inputs.kernelsu_variant }}_kernel-${{ env.CONFIG }}-Anykernel3
           path: ./AnyKernel3/*
+              
+      - name: 上传debug资源
+        uses: actions/upload-artifact@v4
+        with:
+          # 上传产物的名称，供您后续手动下载
+          name: common-files-artifact
+          path: |
+            ${{ env.CONFIG }}/common/arch/arm64/configs/gki_defconfig
+            ${{ env.CONFIG }}/common/fs/f2fs/*
+            ${{ env.CONFIG }}/common/include/linux/*
+            ${{ env.CONFIG }}/common/include/trace/events/*
+            ${{ env.CONFIG }}/common/include/uapi/linux/*
