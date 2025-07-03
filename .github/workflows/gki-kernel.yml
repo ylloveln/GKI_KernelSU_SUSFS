@@ -224,7 +224,7 @@ jobs:
             echo "obj-y += hmbird_patch.o" >> Makefile
             tail -n 3 Makefile
           elif [ "${{ inputs.kernel_version }}" = "6.1" ]; then
-            cd "$CONFIG/common/
+            cd "$CONFIG/common/"
             curl -LSs "https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/oneplus/6.1-oneplus.patch" -o 6.1-oneplus.patch
             patch -p1 --fuzz=8 < 6.1-oneplus.patch
           fi
