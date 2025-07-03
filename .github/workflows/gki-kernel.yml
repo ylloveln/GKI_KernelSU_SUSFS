@@ -555,6 +555,7 @@ jobs:
         run: |
             echo "更改为配置目录: $CONFIG..."
             cd "$CONFIG"
+            sed -i 's/-dirty//' ./common/scripts/setlocalversion
             echo "启用快速编译：设置随机字符串或指定内容"
             case "${{ inputs.kernel_version }}" in
                   "6.1")
@@ -592,7 +593,7 @@ jobs:
                       exit 1
                       ;;
               esac
-          
+            
               echo "KVERSION=$Kversion" >> $GITHUB_ENV
               echo "查看内核名是否正确"
               tail -n 3 ./common/scripts/setlocalversion
