@@ -553,6 +553,8 @@ jobs:
       - name: 配置内核名称(快速构建)
         if: ${{ inputs.fast }}
         run: |
+            echo "更改为配置目录: $CONFIG..."
+            cd "$CONFIG"
             echo "启用快速编译：设置随机字符串或指定内容"
             case "${{ inputs.kernel_version }}" in
                   "6.1")
