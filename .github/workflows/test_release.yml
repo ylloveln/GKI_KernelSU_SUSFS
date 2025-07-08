@@ -42,7 +42,7 @@ on:
         - Stable(标准)
         - Dev(开发)
         - Other(其他/指定)
-        default: Dev(开发)
+        default: Stable(标准)
       version:
         description: 'Custom version name (e.g., characters after 5.10.198 / leave blank to use default version number)'
         required: false
@@ -240,10 +240,11 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernel: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
       INITIAL_RELEASE_NOTES: |
-        This release includes **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }}, please note the KSU version here**, SUSFS v1.5.8, LZ4KD
+        This release includes **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }}**
+        
         Features:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}
-        -> SUSFS ඞ v1.5.8
+        -> SUSFS ඞ v1.5.9
         -> Manual Syscall Hooks for better hiding
         -> Magic Mount Support
         -> Simple hiding for LineageOS detection
@@ -286,7 +287,7 @@ jobs:
         run: |
           set -e
 
-          BASE_VERSION="v1.5.8"
+          BASE_VERSION="v1.5.9"
           
           # Fetch all existing tags using git ls-remote
           EXISTING_TAGS=$(git ls-remote --tags https://github.com/$REPO_OWNER/$REPO_NAME.git | awk '{print $2}' | sed 's/refs\/tags\///' || true)
@@ -338,22 +339,22 @@ jobs:
             echo "Next version: $KSU_VERSION"
             cd ..
             rm -rf ksu-next-tmp
-            echo "RELEASE_NAME=\"GKI Kernel: KernelSU-Next ($KSU_VERSION) & SUSFS v1.5.8\"" >> $GITHUB_ENV
+            echo "RELEASE_NAME=\"GKI Kernel: KernelSU-Next ($KSU_VERSION) & SUSFS v1.5.9\"" >> $GITHUB_ENV
             
           elif [ "${{ inputs.kernelsu_variant }}" = "SukiSU" ]; then
             echo "Processing SukiSU variant"
             git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git suki-tmp
             cd suki-tmp
             KSU_GIT_VERSION=$(git rev-list --count HEAD)
-            KSU_VERSION=$((10000 + KSU_GIT_VERSION + 606))
+            KSU_VERSION=$((10000 + KSU_GIT_VERSION + 703))
             echo "SukiSU version: $KSU_VERSION"
             cd ..
             rm -rf suki-tmp
-            echo "RELEASE_NAME=\"GKI Kernel: SukiSU ($KSU_VERSION) & SUSFS v1.5.8\"" >> $GITHUB_ENV
+            echo "RELEASE_NAME=\"GKI Kernel: SukiSU ($KSU_VERSION) & SUSFS v1.5.9\"" >> $GITHUB_ENV
             
           else
             echo "Using default naming for variant: ${{ inputs.kernelsu_variant }}"
-            echo "RELEASE_NAME=\"GKI Kernel: ${{ inputs.kernelsu_variant }} & SUSFS v1.5.8\"" >> $GITHUB_ENV
+            echo "RELEASE_NAME=\"GKI Kernel: ${{ inputs.kernelsu_variant }} & SUSFS v1.5.9\"" >> $GITHUB_ENV
           fi
           
       - name: Fetch KSU and SUSFS Commit Info
@@ -491,8 +492,10 @@ jobs:
                   ;;
               esac
             done
-            KERNELS_TO_FETCH_SUSFS=( $(printf "%s\n" "${KERNELS_TO_FETCH_SUSFS[@]}" | sort -u) )
           fi
+
+          mapfile -t SORTED_KERNELS < <(printf '%s\n' "${KERNELS_TO_FETCH_SUSFS[@]}" | sort)
+          KERNELS_TO_FETCH_SUSFS=("${SORTED_KERNELS[@]}")
           
           for kernel_id in "${KERNELS_TO_FETCH_SUSFS[@]}"; do
             susfs_branch_name="${BRANCH_MAP[$kernel_id]}"
