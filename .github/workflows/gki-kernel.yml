@@ -101,23 +101,6 @@ jobs:
           ccache --set-config=compression=true
           echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
 
-      - name: 从缓存中还原ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-${{ github.sha }}
-          restore-keys: |
-            ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-
-
-      - name: 缓存工具链
-        id: cache-toolchain
-        uses: actions/cache@v4
-        with:
-          path: |
-            kernel-build-tools
-            mkbootimg
-          key: toolchain-${{ runner.os }}-v1
-
       # Step 2: Download toolchain if cache was not found
       - name: 下载工具链（如果未找到缓存）
         if: steps.cache-toolchain.outputs.cache-hit != 'true'
