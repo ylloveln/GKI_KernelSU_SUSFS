@@ -151,18 +151,18 @@ jobs:
     env:
       REPO_OWNER: zzh20188
       REPO_NAME: GKI_KernelSU_SUSFS
+      SUS_VERSION: ''
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
       RELEASE_NAME: "纯净GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
       RELEASE_NOTES: |
-        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** 、SUSFS v1.5.9
+        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** 、SUSFS $SUS_VERSION
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_variant == 'Official' && '原版' || '' }}${{ inputs.kernelsu_branch }}
-        -> SUSFS ඞ v1.5.9
+        -> SUSFS ඞ $SUS_VERSION
         -> 手动Hooks v1.4
-         ${{ inputs.kernelsu_variant == 'Official' && '-> Magic Mount 支持' || '-> OVERLAYFS 支持' }}
-        -> 纯净GKI版:无附加补丁、zram、bbr等...(该版本旨在纯净，适合无须其他功能的人)
-        ${{ inputs.use_kpm && '-> KPM 支持' || '' }}
+        ${{ inputs.kernelsu_variant == 'Official' && '-> Magic Mount 支持' || '-> OVERLAYFS 支持' }}
+        -> 纯净GKI版:无附加补丁、zram、bbr等...(该版本旨在纯净，适合无须其他功能的人)${{ inputs.use_kpm && '\n-> KPM 支持' || '' }}
         
         模块: 
         -> https://github.com/sidex15/ksu_module_susfs
@@ -309,12 +309,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
         run: |
             # Fetch the latest tag from GitHub (this is the latest tag based on the GitHub API)
-            LATEST_TAG=$(gh api repos/$REPO_OWNER/$REPO_NAME/tags --jq '.[0].name')
-            if [ -z "$LATEST_TAG" ]; then
-              LATEST_TAG="v1.5.9-r0"
-            fi
             
+            INFO="https://gitlab.com/simonpunk/susfs4ksu/-/raw/gki-android14-6.1/ksu_module_susfs/module.prop\?ref_type\=heads"
+            SUS_VERSION=$(curl -s $INFO | awk -F '=' '$1 == "version" { print $2 }')
+            echo "SUS_VERSION=$SUS_VERSION" >> $GITHUB_ENV
+            LATEST_TAG=$(gh api repos/$REPO_OWNER/$REPO_NAME/tags --jq '.[0].name'| sed 's/-.*//')
+            echo $SUS_VERSION
+            echo $LATEST_TAG
+
+            # 判断是否相等
+            if [ "$SUS_VERSION" = "$LATEST_TAG" ]; then
+              echo "版本相等"
+              LATEST_TAG=$(gh api repos/$REPO_OWNER/$REPO_NAME/tags --jq '.[0].name')
+            else
+              echo "版本不相等"
+              LATEST_TAG="$SUS_VERSION-r0"
+            fi
+
             NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
+            
             
             # Output the new tag to be used
             echo "New tag: $NEW_TAG"
@@ -358,7 +371,7 @@ jobs:
           KSU_VERSION=$((10000 + KSU_GIT_VERSION + VAR))
           echo $KSU_VERSION
           echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
-          echo "RELEASE_NAME=${{ env.RELEASE_NAME }}($KSU_VERSION) & SUSFS v1.5.9" >> $GITHUB_ENV
+          echo "RELEASE_NAME=${{ env.RELEASE_NAME }}($KSU_VERSION) & SUSFS $SUS_VERSION" >> $GITHUB_ENV
       # 如果 make_release 为 true，则创建 GitHub 发布并上传文件
       - name: Create GitHub Release
         uses: actions/create-release@v1

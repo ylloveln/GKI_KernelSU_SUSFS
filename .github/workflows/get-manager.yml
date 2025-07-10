@@ -64,27 +64,51 @@ jobs:
             echo "MKSU..."
             REPO="5ec1cff/KernelSU"
           elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
-            exit
+            echo "KSU..."
+            REPO="tiann/KernelSU"
           fi
 
           FILENAME=$([[ "${{ inputs.kernelsu_variant }}" == "Next" ]] && echo "build-manager-ci.yml" || echo "build-manager.yml")
+          KSUM=$([[ "${{ inputs.kernelsu_variant }}" == "Next" ]] && echo "Manager" || echo "manager")
+          
+          # 初始化
+          NUMBER=0
+          DOWNLOAD_URL=""
 
-          # 获取最新成功构建的 ID
-          BUILD_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/$REPO/actions/workflows/$FILENAME/runs?status=success" | \
-          jq -r '.workflow_runs[0].id')
-          echo 'BUILD_ID=$BUILD_ID'
-          # 获取该构建的 Artifacts
-          ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
-          echo 'ARTIFACTS=$ARTIFACTS'
-          # 获取 Manager 文件的下载链接
-          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
-            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "Manager") | .archive_download_url')
-          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ] || [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "manager") | .archive_download_url')
-          fi
+          echo "开始查找包含 'manager' 产物的构建..."
+          while true; do
+            echo "--------------------------------------------------"
+            echo "正在检查第 ${NUMBER} 个历史构建 (0代表最新)..."
 
+            if [ "$NUMBER" -ge 9 ]; then
+              echo "查找九次仍然失败，跳出循环。"
+              break
+            fi
+
+            # 1. 获取指定顺序的成功构建的ID
+
+            BUILD_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/$REPO/actions/workflows/$FILENAME/runs?status=success" |
+              jq -r '.workflow_runs['"$NUMBER"'].id')
+
+            echo "找到构建 ID: $BUILD_ID"
+
+            ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
+
+            result=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name | contains("'"$KSUM"'")) | .name')
+
+            if [ -z "$result" ]; then
+              echo "没有找到包含 '$KSUM' 的项"
+              NUMBER=$((NUMBER + 1))
+            else
+              echo "$result"
+              DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "'"$KSUM"'") | .archive_download_url')
+              break
+            fi
+
+          done
+         
           # 下载 Manager 文件
           curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "${{ inputs.kernelsu_variant }}-管理器(${{ env.KSU_VERSION }}).zip" "$DOWNLOAD_URL"
           echo "Manager 文件已下载为：${{ inputs.kernelsu_variant }}-管理器(${{ env.KSU_VERSION }}).zip"
