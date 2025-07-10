@@ -152,24 +152,18 @@ jobs:
       REPO_OWNER: zzh20188
       REPO_NAME: GKI_KernelSU_SUSFS
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
-      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
+      RELEASE_NAME: "纯净GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
       RELEASE_NOTES: |
-        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** 、SUSFS v1.5.9 ${{ inputs.use_zram && '、LZ4KD' || '' }}
+        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** 、SUSFS v1.5.9
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_variant == 'Official' && '原版' || '' }}${{ inputs.kernelsu_branch }}
         -> SUSFS ඞ v1.5.9
-        -> 最小作用域手动挂钩 v1.4
-        -> Magic Mount 支持
-        -> 简单隐藏 LineageOS 检测
-        -> 徒劳隐藏 jit-zygote-cache 检测
-        -> Wireguard 支持
-        -> BBR 支持
+        -> 手动Hooks v1.4
+         ${{ inputs.kernelsu_variant == 'Official' && '-> Magic Mount 支持' || '-> OVERLAYFS 支持' }}
+        -> 纯净GKI版:无附加补丁、zram、bbr等...(该版本旨在纯净，适合无须其他功能的人)
         ${{ inputs.use_kpm && '-> KPM 支持' || '' }}
-        -> **LZ4KD&ONEPLUS_LZ4K**  ${{ inputs.use_zram && '支持' || '不支持' }}
-        -> lz4: v1.10.0
         
-
         模块: 
         -> https://github.com/sidex15/ksu_module_susfs
         
@@ -308,29 +302,6 @@ jobs:
             echo "Unknown variant"
           fi
           
-      - name: 将提交哈希值和链接添加到 `RELEASE_NOTES` 中，并将 KernelSU-Next 引用添加到 `RELEASE_NOTES` 中。
-        run: |
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_NOTES" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "LTO: thin" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "<details>" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "<summary>提交信息</summary>" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "提交的哈希值与链接(以下提交指的是,本次编译时,KSU或SUSFS所在的进度):" >> $GITHUB_ENV
-          echo "- **KernelSU为${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_branch }}** (提交): [$KSU_REF]($KSU_URL)" >> $GITHUB_ENV
-          echo "- **SUSFS4KSU** (提交):" >> $GITHUB_ENV
-          echo "  - gki-android12-5.10: [$COMMIT_HASH_gki_android12_5_10]($COMMIT_URL_gki_android12_5_10)" >> $GITHUB_ENV
-          echo "  - gki-android13-5.10: [$COMMIT_HASH_gki_android13_5_10]($COMMIT_URL_gki_android13_5_10)" >> $GITHUB_ENV
-          echo "  - gki-android13-5.15: [$COMMIT_HASH_gki_android13_5_15]($COMMIT_URL_gki_android13_5_15)" >> $GITHUB_ENV
-          echo "  - gki-android14-5.15: [$COMMIT_HASH_gki_android14_5_15]($COMMIT_URL_gki_android14_5_15)" >> $GITHUB_ENV
-          echo "  - gki-android14-6.1: [$COMMIT_HASH_gki_android14_6_1]($COMMIT_URL_gki_android14_6_1)" >> $GITHUB_ENV
-          echo "  - gki-android15-6.6: [$COMMIT_HASH_gki_android15_6_6]($COMMIT_URL_gki_android15_6_6)" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "</details>" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
           
       # Get the Latest Tag from GitHub
       - name: 生成和创建新标签
