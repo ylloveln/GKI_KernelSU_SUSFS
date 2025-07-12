@@ -153,13 +153,13 @@ jobs:
       REPO_NAME: GKI_KernelSU_SUSFS
       SUS_VERSION: ''
       GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
-      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
+      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}(${{ needs.get_manager.outputs.ksuVer }})  & SUSFS ${{ needs.get_manager.outputs.susVer }}"
       RELEASE_NOTES: |
-        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** ${{ inputs.use_zram && '、LZ4KD' || '' }}
+        此发布包含 **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }},请注意此处的KSU版本** SUSFS ${{ needs.get_manager.outputs.susVer }}、${{ inputs.use_zram && '、LZ4KD' || '' }}
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}-${{ inputs.kernelsu_variant == 'Official' && '原版' || '' }}${{ inputs.kernelsu_branch }}
-        -> SUSFS ඞ 最新(见标题)
+        -> SUSFS ඞ ${{ needs.get_manager.outputs.susVer }}
         -> 最小作用域手动挂钩 v1.4
         ${{ inputs.kernelsu_variant != 'Official' && '-> Magic Mount 支持' || '-> OVERLAYFS 支持' }}
         -> 简单隐藏 LineageOS 检测
@@ -338,10 +338,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ZZH_TOKEN }}
         run: |
             # Fetch the latest tag from GitHub (this is the latest tag based on the GitHub API)
-            
-            INFO="https://gitlab.com/simonpunk/susfs4ksu/-/raw/gki-android14-6.1/ksu_module_susfs/module.prop\?ref_type\=heads"
-            SUS_VERSION=$(curl -s $INFO | awk -F '=' '$1 == "version" { print $2 }')
-            echo "SUS_VERSION=$SUS_VERSION" >> $GITHUB_ENV
+            SUS_VERSION=${{ needs.get_manager.outputs.susVer }}
             LATEST_TAG=$(gh api repos/$REPO_OWNER/$REPO_NAME/tags --jq '.[0].name'| sed 's/-.*//')
             echo $SUS_VERSION
             echo $LATEST_TAG
@@ -374,33 +371,7 @@ jobs:
         with:
           path: ./downloaded-artifacts
           
-      - name: 设定 KSU 环境变量
-        run: |
 
-          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
-            echo "This is the Next variant"
-            git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
-          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            echo "This is the SukiSU variant"
-            git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git KernelSU
-          elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
-            echo "This is the Official"
-            git clone https://github.com/tiann/KernelSU.git KernelSU
-          elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            echo "This is the Official"
-            git clone https://github.com/5ec1cff/KernelSU.git KernelSU    
-          else
-            echo "Unknown variant"
-          fi
-
-          VAR=$([[ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]] && echo 700 || echo 200)
-
-          cd KernelSU
-          KSU_GIT_VERSION=$(git rev-list --count HEAD)
-          KSU_VERSION=$((10000 + KSU_GIT_VERSION + VAR))
-          echo $KSU_VERSION
-          echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
-          echo "RELEASE_NAME=${{ env.RELEASE_NAME }}($KSU_VERSION) & SUSFS $SUS_VERSION" >> $GITHUB_ENV
       # 如果 make_release 为 true，则创建 GitHub 发布并上传文件
       - name: Create GitHub Release
         uses: actions/create-release@v1
