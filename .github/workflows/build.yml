@@ -294,6 +294,27 @@ jobs:
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 --forward -F 3 < 69_hide_stuff.patch
 
+      - name: Fix WiFi and Bluetooth on Samsung 6.6 GKI devices
+        if: ${{ ( inputs.kernel_version == '6.6' ) }}
+        run: |
+          echo "[+] Adding Samsung KDP exported symbols to abi_gki_aarch64_galaxy"
+          SYMBOL_LIST=$CONFIG/common/android/abi_gki_aarch64_galaxy
+          echo "kdp_set_cred_non_rcu" >> $SYMBOL_LIST
+          echo "kdp_usecount_dec_and_test" >> $SYMBOL_LIST
+          echo "kdp_usecount_inc" >> $SYMBOL_LIST
+          echo "[+] Adding Samsung KDP exported symbols definition to abi_gki_aarch64.stg"
+          cd $CONFIG/common
+          PATCH="../../kernel_patches/samsung/min_kdp/add-min_kdp-symbols.patch"
+          if patch -p1 --dry-run < $PATCH; then
+            echo "[+] Successfully added Samsung KDP exported symbols definition to abi_gki_aarch64.stg"
+            patch -p1 --no-backup-if-mismatch < $PATCH
+          fi
+          echo "[+] Adding Samsung minimal KDP driver"
+          cd drivers
+          cp "../../../kernel_patches/samsung/min_kdp/min_kdp.c" min_kdp.c
+          echo "obj-y += min_kdp.o" >> Makefile
+
+
       - name: Add Configuration Settings
         run: |
           echo "Changing to configuration directory: $CONFIG..."
