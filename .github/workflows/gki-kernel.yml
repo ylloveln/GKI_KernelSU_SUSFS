@@ -331,15 +331,18 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "Applying SUSFS patches for MKSU..."
             cd ./KernelSU
+            # 回退devpts hooks
+            # cp ../../zzh_patch/mksu_sucompat.c.patch ./
+            # patch -p1 --fuzz=3 < mksu_sucompat.c.patch
+            git revert --no-edit 99b82405e8473b715e8edb92e2226dc3c376bde4
+
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
             patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-            # 当KSU为标准版,无须额外补丁
-            if [ "$BRANCH" != "-" ]; then
-              cp ../../zzh_patch/core_hook.c.patch ./
-              cp ../../zzh_patch/rules.c.patch ./
-              patch -p1 --fuzz=3 < core_hook.c.patch
-              patch -p1 --fuzz=3 < rules.c.patch
-            fi
+
+            cp ../../zzh_patch/core_hook.c.patch ./
+            cp ../../zzh_patch/rules.c.patch ./
+            patch -p1 --fuzz=3 < core_hook.c.patch
+            patch -p1 --fuzz=3 < rules.c.patch
 
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "Applying SUSFS patches for SukiSU..."
@@ -535,8 +538,6 @@ jobs:
             echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
-          elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
           fi
           
           # Add additional tmpfs config setting

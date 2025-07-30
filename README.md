@@ -4,11 +4,11 @@
 >
 > 第一次使用务必**详细阅读**以下内容，不要因为懒惰而占用他人时间！
 >
-> 因SUKISU和NEXT已不在维护旧版本susfs的分支，编译时你无论选择Dev或Stable，都是一样的结果
+> 因SUKISU和NEXT已不在维护旧版本susfs的分支，编译时你无论选择Dev或Stable，都是一样的结果；
+>且mksu也无标准/开发版本概念，无论选择哪个都一样，但（KSU的稳定版是最新TAG，也就是[v1.0.5](https://github.com/tiann/KernelSU/tree/v1.0.5)，4月22日发布的那个）
 > 
 > 最近更新：
-> 
-> 1. 修复next、ksu、mksu的dev编译，但是之后仍然可能编译失败
+> 1. MKSU启用sus_su，同KSU
 
 ### 无限重启？
 1. 一加：colorOS15魔改过f2fs，已经不兼容GKI的f2fs，除非进入rec清除Data重启

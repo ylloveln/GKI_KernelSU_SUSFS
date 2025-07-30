@@ -1,0 +1,36 @@
+diff --git a/kernel/sucompat.c b/kernel/sucompat.c
+index 2a2ed130..615c11d4 100644
+--- a/kernel/sucompat.c
++++ b/kernel/sucompat.c
+@@ -199,6 +199,31 @@ int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
+ 	return 0;
+ }
+ 
++int ksu_handle_devpts(struct inode *inode)
++{
++	if (!current->mm) {
++		return 0;
++	}
++
++	uid_t uid = current_uid().val;
++	if (uid % 100000 < 10000) {
++		// not untrusted_app, ignore it
++		return 0;
++	}
++
++	if (!ksu_is_allow_uid(uid))
++		return 0;
++
++	if (ksu_devpts_sid) {
++		struct inode_security_struct *sec = selinux_inode(inode);
++		if (sec) {
++			sec->sid = ksu_devpts_sid;
++		}
++	}
++
++	return 0;
++}
++
+ #ifdef CONFIG_KPROBES
+ 
+ static int faccessat_handler_pre(struct kprobe *p, struct pt_regs *regs)
