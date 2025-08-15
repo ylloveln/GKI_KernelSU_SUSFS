@@ -617,29 +617,25 @@ jobs:
               cd common
 
               export PATH="$GITHUB_WORKSPACE/$CONFIG/prebuilts/clang/host/linux-x86/$CLANG_VERSION/bin:$PATH"
-              export PATH="$GITHUB_WORKSPACE/$CONFIG/gcc/bin:$PATH"
+              
               export PATH="$GITHUB_WORKSPACE/$CONFIG/prebuilts/kernel-build-tools/linux-x86/bin:$PATH"
               export PATH="/usr/lib/ccache:$PATH"
 
               echo "--- Clang Version ---"
               clang --version
               echo "--- GCC Version ---"
-              aarch64-linux-gnu-gcc -v
+          
 
               COMMON_MAKE_PARAMS=(
                 -j$(nproc --all)
                 O=out
                 ARCH=arm64
                 LLVM=1
-                CC="ccache clang"
                 CROSS_COMPILE=aarch64-linux-gnu-
             )
 
             BUILD_TARGETS=(
                 Image
-                Image.lz4
-                Image.gz
-                modules
             )
               
               echo "--- Running make gki_defconfig ---"
