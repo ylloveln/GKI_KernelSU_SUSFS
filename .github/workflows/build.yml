@@ -33,9 +33,6 @@ on:
       revision:
         required: false
         type: string
-      use_make:
-        required: true
-        type: boolean
 
 jobs:
   build-gki:
