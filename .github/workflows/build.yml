@@ -524,7 +524,7 @@ jobs:
           cp ./boot-lz4.img ../${{ inputs.kernelsu_variant }}-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4.img
 
       - name: Android 13/14/15 boot image build script
-        if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' && inputs.use_make == 'false' }}
+        if: ${{ (inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15') && inputs.use_make == 'false' }}
         run: |
           cd bootimgs
 
