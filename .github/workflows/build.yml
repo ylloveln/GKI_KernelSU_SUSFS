@@ -216,7 +216,7 @@ jobs:
           
           case "${{ inputs.kernelsu_variant }}" in
             "WILD")
-               echo "Applying SUSFS patches for Wild KSU..."
+              echo "Applying SUSFS patches for Wild KSU..."
               cd ./Wild_KSU
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
