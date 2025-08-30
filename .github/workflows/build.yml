@@ -6,6 +6,9 @@ permissions:
 on:
   workflow_call:
     inputs:
+      use_make:
+        required: true
+        type: boolean
       android_version:
         required: true
         type: string
@@ -30,6 +33,9 @@ on:
       revision:
         required: false
         type: string
+      use_make:
+        required: true
+        type: boolean
 
 jobs:
   build-gki:
@@ -410,6 +416,7 @@ jobs:
           fi
 
       - name: Build
+        if: ${{ inputs.use_make == 'false' }}
         run : |
           set -e
           set -x
@@ -423,7 +430,7 @@ jobs:
           ccache --show-stats
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
-        if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
+        if: ${{ (inputs.android_version == 'android12' || inputs.android_version == 'android13') && inputs.use_make == 'false' }}
         run: |
           mkdir bootimgs
 
@@ -437,7 +444,7 @@ jobs:
           gzip -n -k -f -9 ./Image > ./Image.gz
 
       - name: Create Bootimgs Folder and Copy Images for Android 14/15
-        if: ${{ inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
+        if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && inputs.use_make == 'false' }}
         run: |
           mkdir bootimgs
 
@@ -451,6 +458,7 @@ jobs:
           gzip -n -k -f -9 ./Image > ./Image.gz
 
       - name: Create ZIP Files for Different Formats
+        if: ${{ inputs.use_make == 'false' }}
         run: |
           echo "Creating zip files for all formats..."
           cd ./AnyKernel3
@@ -475,7 +483,7 @@ jobs:
           rm ./Image.gz
 
       - name: Android 12 boot image build script
-        if: ${{ inputs.android_version == 'android12' }}
+        if: ${{ inputs.android_version == 'android12' && inputs.use_make == 'false' }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd bootimgs
@@ -525,7 +533,7 @@ jobs:
           cp ./boot-lz4.img ../${{ inputs.kernelsu_variant }}-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4.img
 
       - name: Android 13/14/15 boot image build script
-        if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
+        if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' && inputs.use_make == 'false' }}
         run: |
           cd bootimgs
 
@@ -548,10 +556,125 @@ jobs:
           cp ./boot-lz4.img ../${{ inputs.kernelsu_variant }}-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4.img
           
       - name: Compress all img files with gzip
+        if: ${{ inputs.use_make == 'false' }}
         run: |
           for image in *.img; do
             gzip -vnf9 "$image"
           done
+
+      - name: Add Build based configs
+        if: ${{ github.event.inputs.use_make == 'true' }}
+        run: |
+          echo "Changing to configuration directory: $CONFIG..."
+          cd "$CONFIG"
+          echo "CONFIG_LTO_CLANG_THIN=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_CLANG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> "./common/arch/arm64/configs/gki_defconfig"
+          echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=n" >> "./common/arch/arm64/configs/gki_defconfig"
+
+      - name: Detect Clang Version from Configs
+        if: ${{ github.event.inputs.use_make == 'true' }}
+        shell: bash
+        run: |
+          KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
+          DEFCONFIG="$KERNEL_PATH/common/arch/arm64/configs/gki_defconfig"
+          BUILDCONFIG="$KERNEL_PATH/common/build.config.gki"
+          CONSTANTSCONFIG="$KERNEL_PATH/common/build.config.constants"
+          CLANG_VERSION=""
+          CLANG_BIN_PATH=""
+          if grep -q '^CONFIG_CLANG_VERSION=' "$DEFCONFIG" 2>/dev/null; then
+            CLANG_VERSION=$(grep '^CONFIG_CLANG_VERSION=' "$DEFCONFIG" 2>/dev/null | head -n1 | cut -d'=' -f2 | tr -d '"' | xargs)
+          elif grep -q '^CLANG_VERSION=' "$BUILDCONFIG" 2>/dev/null; then
+            CLANG_VERSION=$(grep '^CLANG_VERSION=' "$BUILDCONFIG" 2>/dev/null | head -n1 | cut -d'=' -f2 | xargs)
+          elif grep -q '^CLANG_VERSION=' "$CONSTANTSCONFIG" 2>/dev/null; then
+            CLANG_VERSION=$(grep '^CLANG_VERSION=' "$CONSTANTSCONFIG" 2>/dev/null | head -n1 | cut -d'=' -f2 | xargs)
+            CLANG_VERSION="clang-$CLANG_VERSION"
+          else
+            echo "No clang version found in config, will auto-detect in prebuilts."
+          fi
+          if [ -z "$CLANG_VERSION" ]; then
+            if [ -d "$KERNEL_PATH/prebuilts/clang/host/linux-x86" ]; then
+              CLANG_VERSION=$(ls -d "$KERNEL_PATH"/prebuilts/clang/host/linux-x86/clang-r*/ | tail -n 1 | xargs basename)
+              CLANG_BIN_PATH="$KERNEL_PATH/prebuilts/clang/host/linux-x86/$CLANG_VERSION/bin"
+            elif [ -d "$KERNEL_PATH/prebuilts-master/clang/host/linux-x86" ]; then
+              CLANG_VERSION=$(ls -d "$KERNEL_PATH"/prebuilts-master/clang/host/linux-x86/clang-r*/ | tail -n 1 | xargs basename)
+              CLANG_BIN_PATH="$KERNEL_PATH/prebuilts-master/clang/host/linux-x86/$CLANG_VERSION/bin"
+            else
+              CLANG_VERSION="clang"
+              CLANG_BIN_PATH="$KERNEL_PATH/prebuilts/clang/host/linux-x86/$CLANG_VERSION/bin" # dummy
+            fi
+          else
+            if [ -d "$KERNEL_PATH/prebuilts/clang/host/linux-x86" ]; then
+              CLANG_BIN_PATH="$KERNEL_PATH/prebuilts/clang/host/linux-x86/$CLANG_VERSION/bin"
+            else
+              CLANG_BIN_PATH="$KERNEL_PATH/prebuilts-master/clang/host/linux-x86/$CLANG_VERSION/bin"
+            fi
+          fi
+          echo "Detected CLANG_VERSION: $CLANG_VERSION"
+          echo "CLANG_VERSION=$CLANG_VERSION" >> $GITHUB_ENV
+          echo "CLANG_BIN_PATH=$CLANG_BIN_PATH" >> $GITHUB_ENV
+
+      - name: Build Kernel
+        if: ${{ github.event.inputs.use_make == 'true' }}  
+        shell: bash
+        run: |
+          KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
+          CLANG_BIN_PATH="${{ env.CLANG_BIN_PATH }}"
+          CLANG_VERSION="${{ env.CLANG_VERSION }}"
+          if [ -d "$CLANG_BIN_PATH" ] && [ -x "$CLANG_BIN_PATH/clang" ]; then
+            echo "Adding Clang to PATH: $CLANG_BIN_PATH"
+            export PATH="$CLANG_BIN_PATH:$PATH"
+            SELECTED_CLANG="$CLANG_BIN_PATH/clang"
+          elif command -v clang >/dev/null 2>&1; then
+            SELECTED_CLANG="$(command -v clang)"
+            echo "Using system Clang: $SELECTED_CLANG"
+            exit 1
+          else
+            echo "Error: No valid Clang binary found"
+            exit 1
+          fi
+          echo "Using Clang version: $($SELECTED_CLANG --version | head -n1)"
+          LLVM_TOOLS="clang ld.lld llvm-ar llvm-objcopy llvm-objdump llvm-nm"
+          MISSING_TOOLS=""
+          for tool in $LLVM_TOOLS; do
+            if ! command -v $tool >/dev/null 2>&1; then
+              MISSING_TOOLS="$MISSING_TOOLS $tool"
+            fi
+          done
+          if [ -n "$MISSING_TOOLS" ]; then
+            echo "Installing missing LLVM tools:$MISSING_TOOLS"
+            sudo apt-get update
+            sudo apt-get install -yq --no-install-recommends llvm
+            for tool in $MISSING_TOOLS; do
+              if ! command -v $tool >/dev/null 2>&1; then
+                echo "Error: Failed to install $tool"
+                exit 1
+              fi
+            done
+          fi
+          KERNEL_VERSION="${{ inputs.kernel_version }}"
+          if [[ "$KERNEL_VERSION" == "5.10" ]]; then
+            USE_LLVM_IAS=true
+          fi
+          cd "$KERNEL_PATH/common" || exit 1
+          MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- \
+            RUSTC=$KERNEL_PATH/prebuilts/rust/linux-x86/1.73.0b/bin/rustc \
+            PAHOLE=$KERNEL_PATH/prebuilts/kernel-build-tools/linux-x86/bin/pahole \
+            LD=ld.lld HOSTLD=ld.lld"
+          if [[ -v USE_LLVM_IAS ]]; then
+            MAKE_ARGS="LLVM_IAS=1 $MAKE_ARGS"
+          fi
+          
+          make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" gki_defconfig || exit 1
+          make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" || exit 1
+
+      - name: Create Kernel ZIP
+        if: ${{ github.event.inputs.use_make == 'true' }}
+        run: |
+          cp $CONFIG/common/out/arch/arm64/boot/Image AnyKernel3/Image
+          cd AnyKernel3
+          ZIP_NAME="${{ inputs.kernelsu_variant }}-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3.zip"
+          zip -r "../$ZIP_NAME" ./*
   
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
