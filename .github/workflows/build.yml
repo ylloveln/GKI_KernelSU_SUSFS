@@ -569,7 +569,7 @@ jobs:
           done
 
       - name: Change Kernel Name
-        if: ${{ inputs.use_make == 'false' }}
+        if: ${{ inputs.use_make == 'true' }}
         run: |
           cd "$CONFIG"
           perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
