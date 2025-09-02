@@ -399,6 +399,7 @@ jobs:
           fi
 
       - name: Change Kernel Name
+        if: ${{ inputs.use_make == 'false' }}
         run: |
           cd "$CONFIG"
           if [ -f "build/build.sh" ]; then
@@ -410,7 +411,7 @@ jobs:
               perl -pi -e 's/-maybe-dirty//g' ./build/kernel/kleaf/impl/stamp.bzl
               
               #Set Kernel Name
-              perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\$res-WKSU-v\$KSUVER-SUSFS-v1.5.9-Wild"/s' ./common/scripts/setlocalversion
+              echo "CONFIG_LOCALVERSION=\"-WKSU-v$KSUVER-SUSFS-v1.5.9-Wild\"" >> ./common/arch/arm64/configs/gki_defconfig
 
               #Set Kernel Timestamp
               perl -pi -e 's/build-timestamp = \$\(or \$\(KBUILD_BUILD_TIMESTAMP\), \$\(build-timestamp-auto\)\)/build-timestamp = "Sun Apr 20 04:20:00 UTC 2025"/' ./common/init/Makefile
@@ -566,6 +567,24 @@ jobs:
           for image in *.img; do
             gzip -vnf9 "$image"
           done
+
+      - name: Change Kernel Name
+        if: ${{ inputs.use_make == 'false' }}
+        run: |
+          cd "$CONFIG"
+          perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
+          if [ -f "build/build.sh" ]; then
+              #Set Kernel Name
+              perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\$res-WKSU-v\$KSUVER-SUSFS-v1.5.9-Wild"/s' ./common/scripts/setlocalversion
+              #Set Kernel Timestamp
+              perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
+          else
+              #Set Kernel Name
+              perl -pi -e 's{echo "\${KERNELVERSION}\${file_localversion}\${config_localversion}\${LOCALVERSION}\${scm_version}"}{echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}-WKSU-v'"$KSUVER"'-SUSFS-v1.5.9-Wild"}' /scripts/setlocalversion
+              
+              #Set Kernel Timestamp
+              perl -pi -e 's/build-timestamp = \$\(or \$\(KBUILD_BUILD_TIMESTAMP\), \$\(build-timestamp-auto\)\)/build-timestamp = "Sun Apr 20 04:20:00 UTC 2025"/' ./common/init/Makefile
+          fi
 
       - name: Add Build based configs
         if: ${{ github.event.inputs.use_make == 'true' }}
