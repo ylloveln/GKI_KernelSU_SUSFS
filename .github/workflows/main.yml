@@ -11,7 +11,7 @@ on:
         description: 'Build with MAKE?'
         required: true
         type: boolean
-        default: true
+        default: false
       release_type:
         description: "Choose Release Type"
         required: true
