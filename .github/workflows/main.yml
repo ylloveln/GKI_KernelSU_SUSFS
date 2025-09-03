@@ -46,83 +46,45 @@ on:
         type: string
         default: ""
 
-jobs:          
-  set-matrix:
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        run: |
-          case "${{ inputs.kernel_variant }}" in
-            "WKSU")
-              VARIANTS=("\"WILD\"")
-              ;;
-            "KSU")
-              VARIANTS=("\"KSU\"")
-              ;;
-            "NEXT")
-              VARIANTS=("\"NEXT\"")
-              ;;
-          esac
-
-          echo "matrix={\"kernelsu_variant\": [$(IFS=,; echo "${VARIANTS[*]}")]}" >> $GITHUB_OUTPUT
-
+jobs:
   build-kernels-a12:
-    needs: set-matrix
     uses: ./.github/workflows/kernel-a12.yml
     secrets: inherit
-    strategy:
-      fail-fast: true
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
-      kernelsu_variant: ${{ matrix.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      use_make: ${{ inputs.use_make }}
+      kernelsu_variant: ${{ github.event.inputs.kernel_variant == 'WKSU' && 'WILD' || github.event.inputs.kernel_variant == 'KSU' && 'KSU' || 'NEXT' }}
+      kernelsu_branch: ${{ github.event.inputs.kernelsu_branch }}
+      kernelsu_branch_other: ${{ github.event.inputs.kernelsu_branch_other }}
+      use_make: ${{ github.event.inputs.use_make }}
 
   build-kernels-a13:
-    needs: set-matrix
     uses: ./.github/workflows/kernel-a13.yml
     secrets: inherit
-    strategy:
-      fail-fast: true
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
-      kernelsu_variant: ${{ matrix.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      use_make: ${{ inputs.use_make }}
+      kernelsu_variant: ${{ github.event.inputs.kernel_variant == 'WKSU' && 'WILD' || github.event.inputs.kernel_variant == 'KSU' && 'KSU' || 'NEXT' }}
+      kernelsu_branch: ${{ github.event.inputs.kernelsu_branch }}
+      kernelsu_branch_other: ${{ github.event.inputs.kernelsu_branch_other }}
+      use_make: ${{ github.event.inputs.use_make }}
 
   build-kernels-a14:
-    needs: set-matrix
     uses: ./.github/workflows/kernel-a14.yml
     secrets: inherit
-    strategy:
-      fail-fast: true
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
-      kernelsu_variant: ${{ matrix.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      use_make: ${{ inputs.use_make }}
+      kernelsu_variant: ${{ github.event.inputs.kernel_variant == 'WKSU' && 'WILD' || github.event.inputs.kernel_variant == 'KSU' && 'KSU' || 'NEXT' }}
+      kernelsu_branch: ${{ github.event.inputs.kernelsu_branch }}
+      kernelsu_branch_other: ${{ github.event.inputs.kernelsu_branch_other }}
+      use_make: ${{ github.event.inputs.use_make }}
 
   build-kernels-a15:
-    needs: set-matrix
     uses: ./.github/workflows/kernel-a15.yml
     secrets: inherit
-    strategy:
-      fail-fast: true
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     with:
-      kernelsu_variant: ${{ matrix.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
-      use_make: ${{ inputs.use_make }}
+      kernelsu_variant: ${{ github.event.inputs.kernel_variant == 'WKSU' && 'WILD' || github.event.inputs.kernel_variant == 'KSU' && 'KSU' || 'NEXT' }}
+      kernelsu_branch: ${{ github.event.inputs.kernelsu_branch }}
+      kernelsu_branch_other: ${{ github.event.inputs.kernelsu_branch_other }}
+      use_make: ${{ github.event.inputs.use_make }}
 
   release:
-    if: ${{ inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release' }}
+    if: ${{ github.event.inputs.release_type == 'Release' || github.event.inputs.release_type == 'Pre-Release' }}
     runs-on: ubuntu-latest
     needs:
       - build-kernels-a12
