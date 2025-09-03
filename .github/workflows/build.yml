@@ -130,7 +130,7 @@ jobs:
         run: |
           cd "$CONFIG/common"
           echo "Patching ptrace!"
-          patch -p1 -F 3 < "../../../kernel_patches/gki_ptrace.patch"
+          patch -p1 -F 3 < "../../kernel_patches/gki_ptrace.patch"
 
       - name: Determine the branch for KernelSU
         run: |
