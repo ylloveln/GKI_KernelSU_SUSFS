@@ -47,8 +47,8 @@ on:
         default: ""
 
 jobs:
-  build-kernels-a12:
-    uses: ./.github/workflows/kernel-a12.yml
+  build-kernels-a12-5-10:
+    uses: ./.github/workflows/kernel-a12-5-10.yml
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernel_variant }}
@@ -56,8 +56,8 @@ jobs:
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       use_make: ${{ inputs.use_make }}
 
-  build-kernels-a13:
-    uses: ./.github/workflows/kernel-a13.yml
+  build-kernels-a13-5-10:
+    uses: ./.github/workflows/kernel-a13-5-10.yml
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernel_variant }}
@@ -65,8 +65,8 @@ jobs:
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       use_make: ${{ inputs.use_make }}
 
-  build-kernels-a14:
-    uses: ./.github/workflows/kernel-a14.yml
+  build-kernels-a13-5-15:
+    uses: ./.github/workflows/kernel-a13-5-15.yml
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernel_variant }}
@@ -74,8 +74,26 @@ jobs:
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       use_make: ${{ inputs.use_make }}
 
-  build-kernels-a15:
-    uses: ./.github/workflows/kernel-a15.yml
+  build-kernels-a14-5-15:
+    uses: ./.github/workflows/kernel-a14-5-15.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: ${{ inputs.kernel_variant }}
+      kernelsu_branch: ${{ inputs.kernelsu_branch }}
+      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
+      use_make: ${{ inputs.use_make }}
+
+  build-kernels-a14-6-1:
+    uses: ./.github/workflows/kernel-a14-6-1.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: ${{ inputs.kernel_variant }}
+      kernelsu_branch: ${{ inputs.kernelsu_branch }}
+      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
+      use_make: ${{ inputs.use_make }}
+
+  build-kernels-a15-6-6:
+    uses: ./.github/workflows/kernel-a15-6-6.yml
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernel_variant }}
@@ -87,10 +105,12 @@ jobs:
     if: ${{ inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release' }}
     runs-on: ubuntu-latest
     needs:
-      - build-kernels-a12
-      - build-kernels-a13
-      - build-kernels-a14
-      - build-kernels-a15
+      - build-kernels-a12-5-10
+      - build-kernels-a13-5-10
+      - build-kernels-a13-5-15
+      - build-kernels-a14-5-15
+      - build-kernels-a14-6-1
+      - build-kernels-a15-6-6
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernels With WKSU & SUSFS v1.5.9"
