@@ -21,26 +21,16 @@ on:
           - Pre-Release
           - Release
         default: Pre-Release
-      include_wild:
-        description: 'Include WILD?'
+      kernel_variant:
+        description: 'Choose Kernel Variant'
         required: true
-        type: boolean
-        default: true
-      include_ksu:
-        description: 'Include KSU?'
-        required: true
-        type: boolean
-        default: false
-      include_next:
-        description: 'Include NEXT?'
-        required: true
-        type: boolean
-        default: false
-      include_mksu:
-        description: 'Include MKSU?'
-        required: true
-        type: boolean
-        default: false
+        type: choice
+        options:
+          - WKSU
+          - KSU
+          - NEXT
+        default: WKSU
+
       kernelsu_branch:
         description: "Choose ksu branch"
         required: true
@@ -65,11 +55,18 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          VARIANTS=()
-          [[ "${{ inputs.include_wild }}" == "true" ]] && VARIANTS+=("\"WILD\"")
-          [[ "${{ inputs.include_ksu }}" == "true" ]] && VARIANTS+=("\"KSU\"")
-          [[ "${{ inputs.include_next }}" == "true" ]] && VARIANTS+=("\"NEXT\"")
-          [[ "${{ inputs.include_mksu }}" == "true" ]] && VARIANTS+=("\"MKSU\"")
+          case "${{ inputs.kernel_variant }}" in
+            "WKSU")
+              VARIANTS=("\"WILD\"")
+              ;;
+            "KSU")
+              VARIANTS=("\"KSU\"")
+              ;;
+            "NEXT")
+              VARIANTS=("\"NEXT\"")
+              ;;
+          esac
+
           echo "matrix={\"kernelsu_variant\": [$(IFS=,; echo "${VARIANTS[*]}")]}" >> $GITHUB_OUTPUT
 
   build-kernels-a12:
