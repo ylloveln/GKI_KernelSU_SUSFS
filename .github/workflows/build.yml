@@ -78,7 +78,7 @@ jobs:
           echo "CONFIG set to: $CONFIG"
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y libelf-dev libssl-dev build-essential
+        run: sudo apt update #&& sudo apt install -y libelf-dev libssl-dev build-essential
 
       - name: Install Repo
         run: |
