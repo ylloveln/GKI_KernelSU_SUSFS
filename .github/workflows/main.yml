@@ -10,8 +10,8 @@ on:
       use_make:
         description: 'Build with MAKE?'
         required: true
-        type: string
-        default: 'true'
+        type: boolean
+        default: true
       release_type:
         description: "Choose Release Type"
         required: true
