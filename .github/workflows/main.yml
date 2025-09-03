@@ -1,4 +1,4 @@
-name: Build GKI
+name: Build Kernels
 
 permissions:
   contents: write
