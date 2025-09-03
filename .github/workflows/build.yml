@@ -38,7 +38,6 @@ jobs:
   build-gki:
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    env:
 
     steps:
       # - name: Maximize Build Space
