@@ -262,7 +262,10 @@ jobs:
             -F text="
             🌽 *New Kernel Release Uploaded*  
             📦 *Repository:* [${{ github.repository }}](https://github.com/${{ github.repository }})  
-            🗂️ *Branch:* ${{ github.ref_name }}  
             ✏️ *Commit:* [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})  
+            
+            📋 *Release Information:*
+            🔧 *KernelSU Variant:* ${{ inputs.kernel_variant }}
+            
             [🔗 View GitHub Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" \
             -F parse_mode="Markdown"
