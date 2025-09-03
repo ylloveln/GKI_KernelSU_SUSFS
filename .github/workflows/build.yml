@@ -40,6 +40,20 @@ jobs:
     timeout-minutes: 120
 
     steps:
+      - name: Debug - Display All Input Values
+        run: |
+          echo "=== Workflow Input Values ==="
+          echo "use_make: ${{ inputs.use_make }}"
+          echo "android_version: ${{ inputs.android_version }}"
+          echo "kernel_version: ${{ inputs.kernel_version }}"
+          echo "sub_level: ${{ inputs.sub_level }}"
+          echo "os_patch_level: ${{ inputs.os_patch_level }}"
+          echo "kernelsu_variant: ${{ inputs.kernelsu_variant }}"
+          echo "kernelsu_branch: ${{ inputs.kernelsu_branch }}"
+          echo "kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}"
+          echo "revision: ${{ inputs.revision }}"
+          echo "=============================="
+          
       - name: Maximize Build Space
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
