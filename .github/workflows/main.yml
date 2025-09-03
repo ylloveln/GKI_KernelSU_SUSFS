@@ -93,7 +93,7 @@ jobs:
       - build-kernels-a15
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_NAME: "GKI Kernels With WildKSU & SUSFS v1.5.9"
+      RELEASE_NAME: "GKI Kernels With WKSU & SUSFS v1.5.9"
       RELEASE_BODY:
     steps:
       - name: Checkout code
@@ -146,7 +146,7 @@ jobs:
       
           [[ "$BRANCH" == "Stable" ]] && MODE="tag" || MODE="commit"
 
-          get_ref "WILD" "https://github.com/WildKernels/Wild_KSU.git" "WildKernels/Wild_KSU" "$MODE"
+          get_ref "WKSU" "https://github.com/WildKernels/Wild_KSU.git" "WildKernels/Wild_KSU" "$MODE"
           get_ref "KSU" "https://github.com/tiann/KernelSU.git" "tiann/KernelSU" "$MODE"
           get_ref "NEXT" "https://github.com/KernelSU-Next/KernelSU-Next.git" "KernelSU-Next/KernelSU-Next" "$MODE"
           
@@ -175,8 +175,8 @@ jobs:
           cat << 'EOF' > release_body.md
       
           Features:
-          -> Wild KSU Kernels & Others
-          -> Multi Manager Support for Wild KSU Manager & KernelSU Next Manager (Only Install One)
+          -> WKSU Kernels & Others
+          -> Multi Manager Support for WKSU Manager & KernelSU Next Manager (Only Install One)
           -> SUSFS ඞ v1.5.9
           -> Scope-Minimized Manual hooks v1.4
           -> Magic Mount Support
@@ -186,19 +186,19 @@ jobs:
           -> BBR Support
       
           Notes:
-          -> Wild KSU & KernelSU Next, SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
+          -> WKSU & KernelSU Next, SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
           -> Official Kernel Flasher is broken with latest susfs, try https://github.com/fatalcoder524/KernelFlasher/ or https://github.com/libxzr/HorizonKernelFlasher!
       
           Module: 
           -> https://github.com/sidex15/ksu_module_susfs
       
           Managers:
-          -> Wild KSU: https://github.com/WildKernels/Wild_KSU
+          -> WKSU: https://github.com/WildKernels/Wild_KSU
           -> KernelSU: https://github.com/tiann/KernelSU
           -> KernelSU-Next: https://github.com/KernelSU-Next/KernelSU-Next
       
           Commit Hashes (at the time of release):
-          -> Wild KSU: [${{ env.WILD_REF }}](${{ env.WILD_URL }})
+          -> WKSU: [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
           -> KernelSU: [${{ env.KSU_REF }}](${{ env.KSU_URL }})
           -> KernelSU Next: [${{ env.NEXT_REF }}](${{ env.NEXT_URL }})
           -> SUSFS4KSU: 
