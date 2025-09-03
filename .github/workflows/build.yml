@@ -355,7 +355,7 @@ jobs:
           fi
 
       - name: Change Kernel Name
-        if: ${{ inputs.use_make != 'true' }}
+        if: ${{ inputs.use_make == false }}
         run: |
           cd "$CONFIG"
           if [ -f "build/build.sh" ]; then
@@ -378,7 +378,7 @@ jobs:
           fi
 
       - name: Build
-        if: ${{ inputs.use_make != 'true' }}
+        if: ${{ inputs.use_make == false }}
         run : |
           set -e
           set -x
@@ -390,32 +390,8 @@ jobs:
             tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
 
-      - name: Create Kernel ZIP
-        run: |
-          echo "Creating kernel ZIP..."
-          
-          if [ "${{ inputs.use_make }}" = "true" ]; then
-            # Copy Image for make=true builds
-            cp $CONFIG/common/out/arch/arm64/boot/Image AnyKernel3/Image
-          else
-            # Copy Image for make=false builds based on Android version
-            if [ "${{ inputs.android_version }}" = "android12" ] || [ "${{ inputs.android_version }}" = "android13" ]; then
-              echo "Copying images for Android 12/13..."
-              cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image AnyKernel3/Image
-            elif [ "${{ inputs.android_version }}" = "android14" ] || [ "${{ inputs.android_version }}" = "android15" ]; then
-              echo "Copying images for Android 14/15..."
-              cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image AnyKernel3/Image
-            fi
-          fi
-          
-          # Create ZIP file
-          cd AnyKernel3
-          ZIP_NAME="${{ inputs.kernelsu_variant }}-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3.zip"
-          echo "Creating zip file: $ZIP_NAME..."
-          zip -r "../$ZIP_NAME" ./*
-
       - name: Change Kernel Name
-        if: ${{ inputs.use_make == 'true' }}
+        if: ${{ inputs.use_make == true }}
         run: |
           cd "$CONFIG"
           perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
@@ -433,7 +409,7 @@ jobs:
           fi
 
       - name: Add Build based configs
-        if: ${{ inputs.use_make == 'true' }}
+        if: ${{ inputs.use_make == true }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
@@ -443,7 +419,7 @@ jobs:
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=n" >> "./common/arch/arm64/configs/gki_defconfig"
 
       - name: Detect Clang Version from Configs
-        if: ${{ inputs.use_make == 'true' }}
+        if: ${{ inputs.use_make == true }}
         shell: bash
         run: |
           KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
@@ -485,7 +461,7 @@ jobs:
           echo "CLANG_BIN_PATH=$CLANG_BIN_PATH" >> $GITHUB_ENV
 
       - name: Build Kernel
-        if: ${{ inputs.use_make == 'true' }}  
+        if: ${{ inputs.use_make == true }}  
         shell: bash
         run: |
           KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
@@ -538,7 +514,29 @@ jobs:
           make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" gki_defconfig || exit 1
           make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" || exit 1
 
-
+      - name: Create Kernel ZIP
+        run: |
+          echo "Creating kernel ZIP..."
+          
+          if [ ${{ inputs.use_make }} == true ]; then
+            # Copy Image for make=true builds
+            cp $CONFIG/common/out/arch/arm64/boot/Image AnyKernel3/Image
+          else
+            # Copy Image for make=false builds based on Android version
+            if [ "${{ inputs.android_version }}" = "android12" ] || [ "${{ inputs.android_version }}" = "android13" ]; then
+              echo "Copying images for Android 12/13..."
+              cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image AnyKernel3/Image
+            elif [ "${{ inputs.android_version }}" = "android14" ] || [ "${{ inputs.android_version }}" = "android15" ]; then
+              echo "Copying images for Android 14/15..."
+              cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image AnyKernel3/Image
+            fi
+          fi
+          
+          # Create ZIP file
+          cd AnyKernel3
+          ZIP_NAME="${{ inputs.kernelsu_variant }}-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3.zip"
+          echo "Creating zip file: $ZIP_NAME..."
+          zip -r "../$ZIP_NAME" ./*
   
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
