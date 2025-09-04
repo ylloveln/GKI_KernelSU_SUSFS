@@ -324,23 +324,20 @@ jobs:
         run: |
           cd "$CONFIG"
           perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
-          if [ -f "build/build.sh" ]; then
-              #Set Kernel Name
-              perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\-${{ inputs.android_version }}--Wild"/s' ./common/scripts/setlocalversion
+          #Set Kernel Name
+          perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\-${{ inputs.android_version }}--Wild"/s' ./common/scripts/setlocalversion
 
-              #Set Kernel Timestamp
-              perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
-          else
-              #Set Kernel Name
-              sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "-${{ inputs.android_version }}-🌱-Wild"/' ./common/scripts/setlocalversion
+          #Set Kernel Timestamp
+          perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
+          #Set Kernel Name
+          sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "-${{ inputs.android_version }}-🌱-Wild"/' ./common/scripts/setlocalversion
               
-              #Set Kernel Timestamp
-              perl -pi -e 's/build-timestamp = \$\(or \$\(KBUILD_BUILD_TIMESTAMP\), \$\(build-timestamp-auto\)\)/build-timestamp = "Sun Apr 20 04:20:00 UTC 2025"/' ./common/init/Makefile
+          #Set Kernel Timestamp
+          perl -pi -e 's/build-timestamp = \$\(or \$\(KBUILD_BUILD_TIMESTAMP\), \$\(build-timestamp-auto\)\)/build-timestamp = "Sun Apr 20 04:20:00 UTC 2025"/' ./common/init/Makefile
               
-              #Remove Abi Exports and Error
-              rm -rf ./common/android/abi_gki_protected_exports_*
-              perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
-          fi
+          #Remove Abi Exports and Error
+          rm -rf ./common/android/abi_gki_protected_exports_*
+          perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
 
       - name: Add Build based configs
         if: ${{ inputs.use_make == true }}
