@@ -10,12 +10,6 @@ on:
       kernelsu_variant:
         required: true
         type: string
-      kernelsu_branch:
-        required: true
-        type: string
-      kernelsu_branch_other:
-        required: false
-        type: string
       use_make:
         required: true
         type: boolean
@@ -65,7 +59,5 @@ jobs:
       os_patch_level: ${{ matrix.os_patch_level }}
       revision: ${{ matrix.revision }}
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      kernelsu_branch_other: ${{ inputs.kernelsu_branch_other || '' }}
       use_make: ${{ inputs.use_make }}
       
