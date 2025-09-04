@@ -114,9 +114,7 @@ jobs:
           WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_REF"
           echo "WKSU_REF=$WKSU_REF" >> $GITHUB_ENV
           echo "WKSU_URL=$WKSU_URL" >> $GITHUB_ENV
-          
 
-          
       - name: Generate and Create New Tag
         run: |
             LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
@@ -142,7 +140,7 @@ jobs:
           cat << 'EOF' > release_body.md
       
           Features:
-          -> WKSU Kernels & Others
+          -> Wild KSU
           -> Multi Manager Support for WKSU Manager & KernelSU-Next Manager (Only Install One)
           -> SUSFS ඞ v1.5.9
           -> Scope-Minimized Manual hooks v1.4
@@ -155,7 +153,7 @@ jobs:
           -> BBR Support
       
           Notes:
-          -> WKSU, SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
+          -> SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
           -> Official Kernel Flasher is broken with latest susfs, try https://github.com/fatalcoder524/KernelFlasher/
       
           Module: 
@@ -210,9 +208,5 @@ jobs:
             🌽 *New Kernel Release Uploaded*  
             📦 *Repository:* [${{ github.repository }}](https://github.com/${{ github.repository }})  
             ✏️ *Commit:* [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})  
-            
-            📋 *Release Information:*
-            🔧 *KernelSU Variant:* WKSU
-            
             [🔗 View GitHub Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" \
             -F parse_mode="Markdown"
