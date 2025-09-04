@@ -12,6 +12,15 @@ on:
         required: true
         type: boolean
         default: true
+      kernel_variant:
+        description: 'Choose KernelSU Variant'
+        required: true
+        type: choice
+        options:
+          - WKSU
+          - KSU
+          - Both
+        default: WKSU
       release_type:
         description: "Choose Release Type"
         required: true
@@ -24,76 +33,120 @@ on:
 
 
 jobs:
-  build-a12-5-10:
-    strategy:
-      matrix:
-        variant: [KSU, WKSU]
+  # WKSU builds
+  build-a12-5-10-wksu:
+    if: ${{ inputs.kernel_variant == 'WKSU' || inputs.kernel_variant == 'Both' }}
     uses: ./.github/workflows/kernel-a12-5-10.yml
     secrets: inherit
     with:
-      kernelsu_variant: ${{ matrix.variant }}
+      kernelsu_variant: WKSU
       use_make: ${{ inputs.use_make }}
 
-  build-a13-5-10:
-    strategy:
-      matrix:
-        variant: [KSU, WKSU]
+  build-a13-5-10-wksu:
+    if: ${{ inputs.kernel_variant == 'WKSU' || inputs.kernel_variant == 'Both' }}
     uses: ./.github/workflows/kernel-a13-5-10.yml
     secrets: inherit
     with:
-      kernelsu_variant: ${{ matrix.variant }}
+      kernelsu_variant: WKSU
       use_make: ${{ inputs.use_make }}
 
-  build-a13-5-15:
-    strategy:
-      matrix:
-        variant: [KSU, WKSU]
+  build-a13-5-15-wksu:
+    if: ${{ inputs.kernel_variant == 'WKSU' || inputs.kernel_variant == 'Both' }}
     uses: ./.github/workflows/kernel-a13-5-15.yml
     secrets: inherit
     with:
-      kernelsu_variant: ${{ matrix.variant }}
+      kernelsu_variant: WKSU
       use_make: ${{ inputs.use_make }}
 
-  build-a14-5-15:
-    strategy:
-      matrix:
-        variant: [KSU, WKSU]
+  build-a14-5-15-wksu:
+    if: ${{ inputs.kernel_variant == 'WKSU' || inputs.kernel_variant == 'Both' }}
     uses: ./.github/workflows/kernel-a14-5-15.yml
     secrets: inherit
     with:
-      kernelsu_variant: ${{ matrix.variant }}
+      kernelsu_variant: WKSU
       use_make: ${{ inputs.use_make }}
 
-  build-a14-6-1:
-    strategy:
-      matrix:
-        variant: [KSU, WKSU]
+  build-a14-6-1-wksu:
+    if: ${{ inputs.kernel_variant == 'WKSU' || inputs.kernel_variant == 'Both' }}
     uses: ./.github/workflows/kernel-a14-6-1.yml
     secrets: inherit
     with:
-      kernelsu_variant: ${{ matrix.variant }}
+      kernelsu_variant: WKSU
       use_make: ${{ inputs.use_make }}
 
-  build-a15-6-6:
-    strategy:
-      matrix:
-        variant: [KSU, WKSU]
+  build-a15-6-6-wksu:
+    if: ${{ inputs.kernel_variant == 'WKSU' || inputs.kernel_variant == 'Both' }}
     uses: ./.github/workflows/kernel-a15-6-6.yml
     secrets: inherit
     with:
-      kernelsu_variant: ${{ matrix.variant }}
+      kernelsu_variant: WKSU
+      use_make: ${{ inputs.use_make }}
+
+  # KSU builds
+  build-a12-5-10-ksu:
+    if: ${{ inputs.kernel_variant == 'KSU' || inputs.kernel_variant == 'Both' }}
+    uses: ./.github/workflows/kernel-a12-5-10.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: KSU
+      use_make: ${{ inputs.use_make }}
+
+  build-a13-5-10-ksu:
+    if: ${{ inputs.kernel_variant == 'KSU' || inputs.kernel_variant == 'Both' }}
+    uses: ./.github/workflows/kernel-a13-5-10.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: KSU
+      use_make: ${{ inputs.use_make }}
+
+  build-a13-5-15-ksu:
+    if: ${{ inputs.kernel_variant == 'KSU' || inputs.kernel_variant == 'Both' }}
+    uses: ./.github/workflows/kernel-a13-5-15.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: KSU
+      use_make: ${{ inputs.use_make }}
+
+  build-a14-5-15-ksu:
+    if: ${{ inputs.kernel_variant == 'KSU' || inputs.kernel_variant == 'Both' }}
+    uses: ./.github/workflows/kernel-a14-5-15.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: KSU
+      use_make: ${{ inputs.use_make }}
+
+  build-a14-6-1-ksu:
+    if: ${{ inputs.kernel_variant == 'KSU' || inputs.kernel_variant == 'Both' }}
+    uses: ./.github/workflows/kernel-a14-6-1.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: KSU
+      use_make: ${{ inputs.use_make }}
+
+  build-a15-6-6-ksu:
+    if: ${{ inputs.kernel_variant == 'KSU' || inputs.kernel_variant == 'Both' }}
+    uses: ./.github/workflows/kernel-a15-6-6.yml
+    secrets: inherit
+    with:
+      kernelsu_variant: KSU
       use_make: ${{ inputs.use_make }}
 
   release:
-    if: ${{ inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release' }}
+    if: ${{ always() && (inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release') && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
     needs:
-      - build-a12-5-10
-      - build-a13-5-10
-      - build-a13-5-15
-      - build-a14-5-15
-      - build-a14-6-1
-      - build-a15-6-6
+      - build-a12-5-10-wksu
+      - build-a13-5-10-wksu
+      - build-a13-5-15-wksu
+      - build-a14-5-15-wksu
+      - build-a14-6-1-wksu
+      - build-a15-6-6-wksu
+      - build-a12-5-10-ksu
+      - build-a13-5-10-ksu
+      - build-a13-5-15-ksu
+      - build-a14-5-15-ksu
+      - build-a14-6-1-ksu
+      - build-a15-6-6-ksu
     env:
       GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernels With WKSU & SUSFS v1.5.9"
