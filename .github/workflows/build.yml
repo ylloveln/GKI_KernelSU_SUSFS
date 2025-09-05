@@ -331,9 +331,9 @@ jobs:
           #Set Kernel Name
           if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
             #sed -i 's|^\(CONFIG_LOCALVERSION=".*\)"$|\1-🌱-Wild"|' ./common/arch/arm64/configs/gki_defconfig
-            perl -pi -e 's/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"/echo "KERNELVERSION: \$\{KERNELVERSION\}" >\&2; echo "file_localversion: \$\{file_localversion\}" >\&2; echo "config_localversion: \$\{config_localversion\}" >\&2; echo "LOCALVERSION: \$\{LOCALVERSION\}" >\&2; echo "scm_version: \$\{scm_version\}" >\&2; val="\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"; echo "Final version: \$val" >\&2; echo "\$val"; exit 0/' ./common/scripts/setlocalversion
+            echo 'echo "KERNELVERSION: ${KERNELVERSION}" >&2; echo "file_localversion: ${file_localversion}" >&2; echo "config_localversion: ${config_localversion}" >&2; echo "LOCALVERSION: ${LOCALVERSION}" >&2; echo "scm_version: ${scm_version}" >&2; val="${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"; echo "Final version: $val" >&2; echo "$val"; exit 0' >> ./common/scripts/setlocalversion
           else
-            perl -pi -e 's/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"/echo "KERNELVERSION: \$\{KERNELVERSION\}" >\&2; echo "file_localversion: \$\{file_localversion\}" >\&2; echo "config_localversion: \$\{config_localversion\}" >\&2; echo "LOCALVERSION: \$\{LOCALVERSION\}" >\&2; echo "scm_version: \$\{scm_version\}" >\&2; val="\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"; echo "Final version: \$val" >\&2; echo "\$val"; exit 0/' ./common/scripts/setlocalversion
+            echo 'echo "KERNELVERSION: ${KERNELVERSION}" >&2; echo "file_localversion: ${file_localversion}" >&2; echo "config_localversion: ${config_localversion}" >&2; echo "LOCALVERSION: ${LOCALVERSION}" >&2; echo "scm_version: ${scm_version}" >&2; val="${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"; echo "Final version: $val" >&2; echo "$val"; exit 0' >> ./common/scripts/setlocalversion
           fi
               
           #Set Kernel Timestamp
