@@ -330,10 +330,9 @@ jobs:
           
           #Set Kernel Name
           if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
-            #perl -0777 -pi -e 's/(echo "\${KERNELVERSION}\${file_localversion}\${config_localversion}\${LOCALVERSION}\${scm_version}")(?!.*\1)/echo "\${KERNELVERSION}\${file_localversion}\${config_localversion}\${LOCALVERSION}\${scm_version}-🟢-Wild"/s' ./common/scripts/setlocalversion
-            perl -0777 -pi -e 's/(echo "\${KERNELVERSION}\${file_localversion}\${config_localversion}\${LOCALVERSION}\${scm_version}")(?!.*\1)/echo "\${KERNELVERSION}-1-\${file_localversion}-2-\${config_localversion}-3-\${LOCALVERSION}-4-\${scm_version}-🟢-Wild"/s' ./common/scripts/setlocalversion
+            perl -0777 -pi -e 's/(echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}")(?!.*\1)/echo "\$\{KERNELVERSION\}-${{ inputs.android_version }}-🟢-Wild"/s' ./common/scripts/setlocalversion
           else
-            perl -0777 -pi -e 's/(echo "\$res")(?!.*\1)/echo "\$res-🟢-Wild"/s' ./common/scripts/setlocalversion
+            perl -0777 -pi -e 's/(echo "\$res")(?!.*\1)/echo "\-🟢-Wild"/s' ./common/scripts/setlocalversion
           fi
               
           #Set Kernel Timestamp
