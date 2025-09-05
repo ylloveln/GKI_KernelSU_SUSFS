@@ -289,7 +289,7 @@ jobs:
           cd "$CONFIG"
           if [ -f "build/build.sh" ]; then
               perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
-              perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\$res-WKSU-\$KSUVER-SUSFS-v1.5.9-Wild"/s' ./common/scripts/setlocalversion
+              perl -0777 -pi -e 's/(echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}")/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}-WKSU-\$KSUVER-SUSFS-v1.5.9-Wild"; echo "kernel_version=\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}-WKSU-\$KSUVER-SUSFS-v1.5.9-Wild" >> \$GITHUB_OUTPUT/s' ./common/scripts/setlocalversion
               perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
           else
               #Remove -maybe-dirty
@@ -331,9 +331,9 @@ jobs:
           #Set Kernel Name
           if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
             #sed -i 's|^\(CONFIG_LOCALVERSION=".*\)"$|\1-🌱-Wild"|' ./common/arch/arm64/configs/gki_defconfig
-            echo 'echo "KERNELVERSION: ${KERNELVERSION}" >&2; echo "file_localversion: ${file_localversion}" >&2; echo "config_localversion: ${config_localversion}" >&2; echo "LOCALVERSION: ${LOCALVERSION}" >&2; echo "scm_version: ${scm_version}" >&2; val="${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"; echo "Final version: $val" >&2; echo "$val"; exit 0' >> ./common/scripts/setlocalversion
+            perl -0777 -pi -e 's/(echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}")/echo "DEBUG: KERNELVERSION=\$\{KERNELVERSION\}" >\/dev\/stderr; echo "DEBUG: file_localversion=\$\{file_localversion\}" >\/dev\/stderr; echo "DEBUG: config_localversion=\$\{config_localversion\}" >\/dev\/stderr; echo "DEBUG: LOCALVERSION=\$\{LOCALVERSION\}" >\/dev\/stderr; echo "DEBUG: scm_version=\$\{scm_version\}" >\/dev\/stderr; echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}-WKSU-\$KSUVER-SUSFS-v1.5.9-Wild"; exit 0/s' ./common/scripts/setlocalversion
           else
-            echo 'echo "KERNELVERSION: ${KERNELVERSION}" >&2; echo "file_localversion: ${file_localversion}" >&2; echo "config_localversion: ${config_localversion}" >&2; echo "LOCALVERSION: ${LOCALVERSION}" >&2; echo "scm_version: ${scm_version}" >&2; val="${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"; echo "Final version: $val" >&2; echo "$val"; exit 0' >> ./common/scripts/setlocalversion
+            perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\$res-WKSU-\$KSUVER-SUSFS-v1.5.9-Wild"/s' ./common/scripts/setlocalversion
           fi
               
           #Set Kernel Timestamp
