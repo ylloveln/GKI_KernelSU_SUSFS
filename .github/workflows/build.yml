@@ -324,13 +324,16 @@ jobs:
         run: |
           cd "$CONFIG"
           perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
-          #Set Kernel Name
-          perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\-${{ inputs.android_version }}-Wild"/s' ./common/scripts/setlocalversion
-
+          
           #Set Kernel Timestamp
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
+          
           #Set Kernel Name
-          sed -i 's|^CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-WKSU-'$KSUVER'-SUSFS-v1.5.9-Wild"|' ./common/arch/arm64/configs/gki_defconfig
+          if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
+            sed -i 's|^CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-${{ inputs.android_version }}-Wild"|' ./common/arch/arm64/configs/gki_defconfig
+          else
+            perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\-${{ inputs.android_version }}-Wild"/s' ./common/scripts/setlocalversion
+          fi
           #sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "-${{ inputs.android_version }}-Wild"/' ./common/scripts/setlocalversion
               
           #Set Kernel Timestamp
