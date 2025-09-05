@@ -160,9 +160,9 @@ jobs:
           -> https://github.com/sidex15/ksu_module_susfs
       
           Managers:
-          -> WKSU: https://github.com/WildKernels/Wild_KSU
-
-      
+          -> WKSU: https://t.me/Wild_Kernels/26618
+          -> Next: https://github.com/KernelSU-Next/KernelSU-Next
+          
           Commit Hashes (at the time of release):
           -> WKSU: [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
 
