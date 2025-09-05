@@ -25,35 +25,35 @@ on:
 
 
 jobs:
-  # build-a12-5-10:
-  #   uses: ./.github/workflows/kernel-a12-5-10.yml
-  #   secrets: inherit
-  #   with:
-  #     use_make: ${{ inputs.use_make }}
+  build-a12-5-10:
+    uses: ./.github/workflows/kernel-a12-5-10.yml
+    secrets: inherit
+    with:
+      use_make: ${{ inputs.use_make }}
 
-  # build-a13-5-10:
-  #   uses: ./.github/workflows/kernel-a13-5-10.yml
-  #   secrets: inherit
-  #   with:
-  #     use_make: ${{ inputs.use_make }}
+  build-a13-5-10:
+    uses: ./.github/workflows/kernel-a13-5-10.yml
+    secrets: inherit
+    with:
+      use_make: ${{ inputs.use_make }}
 
-  # build-a13-5-15:
-  #   uses: ./.github/workflows/kernel-a13-5-15.yml
-  #   secrets: inherit
-  #   with:
-  #     use_make: ${{ inputs.use_make }}
+  build-a13-5-15:
+    uses: ./.github/workflows/kernel-a13-5-15.yml
+    secrets: inherit
+    with:
+      use_make: ${{ inputs.use_make }}
 
-  # build-a14-5-15:
-  #   uses: ./.github/workflows/kernel-a14-5-15.yml
-  #   secrets: inherit
-  #   with:
-  #     use_make: ${{ inputs.use_make }}
+  build-a14-5-15:
+    uses: ./.github/workflows/kernel-a14-5-15.yml
+    secrets: inherit
+    with:
+      use_make: ${{ inputs.use_make }}
 
-  # build-a14-6-1:
-  #   uses: ./.github/workflows/kernel-a14-6-1.yml
-  #   secrets: inherit
-  #   with:
-  #     use_make: ${{ inputs.use_make }}
+  build-a14-6-1:
+    uses: ./.github/workflows/kernel-a14-6-1.yml
+    secrets: inherit
+    with:
+      use_make: ${{ inputs.use_make }}
 
   build-a15-6-6:
     uses: ./.github/workflows/kernel-a15-6-6.yml
@@ -65,11 +65,11 @@ jobs:
     if: ${{ inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release' }}
     runs-on: ubuntu-latest
     needs:
-      # - build-a12-5-10
-      # - build-a13-5-10
-      # - build-a13-5-15
-      # - build-a14-5-15
-      # - build-a14-6-1
+      - build-a12-5-10
+      - build-a13-5-10
+      - build-a13-5-15
+      - build-a14-5-15
+      - build-a14-6-1
       - build-a15-6-6
     env:
       GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
