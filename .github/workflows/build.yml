@@ -331,7 +331,7 @@ jobs:
           #Set Kernel Name
           if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
             #sed -i 's|^\(CONFIG_LOCALVERSION=".*\)"$|\1-🌱-Wild"|' ./common/arch/arm64/configs/gki_defconfig
-            perl -pi -e 's/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"/val="\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"; echo "Kernel localversion: \$val" >\&2; echo "\$val"; exit/' ./common/scripts/setlocalversion
+            perl -pi -e 's/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"/val="\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"; echo "Kernel localversion: \$val" >\&2; echo "\$val"; exit 0/' ./common/scripts/setlocalversion
           else
             sed -i 's|echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"|echo "::notice::KERNELVERSION=$KERNELVERSION"; echo "::notice::file_localversion=$file_localversion"; echo "::notice::config_localversion=$config_localversion"; echo "::notice::LOCALVERSION=$LOCALVERSION"; echo "::notice::scm_version=$scm_version"; echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"|' ./common/scripts/setlocalversion
             #perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\-${{ inputs.android_version }}-🌱-Wild"/s' ./common/scripts/setlocalversion
