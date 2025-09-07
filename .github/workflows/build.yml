@@ -95,6 +95,29 @@ jobs:
           $REPO --version
           $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
 
+      - name: Extract Actual Sublevel for LTS Builds
+        if: inputs.sub_level == 'X'
+        run: |
+          echo "Extracting actual sublevel from Makefile for LTS build..."
+          cd "$CONFIG/common"
+          if [ -f "Makefile" ]; then
+            ACTUAL_SUBLEVEL=$(grep '^SUBLEVEL = ' Makefile | awk '{print $3}')
+            if [ -n "$ACTUAL_SUBLEVEL" ]; then
+              echo "Found actual sublevel: $ACTUAL_SUBLEVEL"
+              OLD_CONFIG="$CONFIG"
+              NEW_CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-$ACTUAL_SUBLEVEL"
+              echo "CONFIG=$NEW_CONFIG" >> $GITHUB_ENV
+              echo "ACTUAL_SUBLEVEL=$ACTUAL_SUBLEVEL" >> $GITHUB_ENV
+              cd ..
+              mv "$OLD_CONFIG" "$NEW_CONFIG"
+              echo "Renamed directory from $OLD_CONFIG to $NEW_CONFIG"
+            else
+              echo "Warning: Could not extract sublevel from Makefile for lts build"
+            fi
+          else
+            echo "Warning: Makefile not found for lts build"
+          fi
+
       - name: Apply glibc 2.38 Compatibility Fix
         if: inputs.android_version == 'android14' && inputs.kernel_version == '6.1'
         run: |
@@ -468,7 +491,12 @@ jobs:
           
           # Create ZIP file
           cd AnyKernel3
-          ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3.zip"
+          # Use actual sublevel for LTS builds if available
+          SUBLEVEL_FOR_NAME="${{ inputs.sub_level }}"
+          if [ -n "$ACTUAL_SUBLEVEL" ]; then
+            SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
+          fi
+          ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           echo "Creating zip file: $ZIP_NAME..."
           zip -r "../$ZIP_NAME" ./*
   
