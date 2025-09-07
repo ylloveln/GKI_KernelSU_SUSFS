@@ -19,9 +19,8 @@ on:
         type: choice
         options:
           - Actions
-          - Pre-Release
           - Release
-        default: Pre-Release
+        default: Release
 
 
 jobs:
@@ -62,7 +61,7 @@ jobs:
       use_make: ${{ inputs.use_make }}
 
   release:
-    if: ${{ inputs.release_type == 'Release' || inputs.release_type == 'Pre-Release' }}
+    if: ${{ inputs.release_type == 'Release' }}
     runs-on: ubuntu-latest
     needs:
       - build-a12-5-10
@@ -139,6 +138,11 @@ jobs:
         run: |
           cat << 'EOF' > release_body.md
       
+          ⚠️ **IMPORTANT DISCLAIMER** ⚠️
+          This software is provided for testing and educational purposes only. Use at your own risk.
+          The developers are not responsible for any damage, data loss, or issues that may occur.
+          Please ensure you have proper backups before installation.
+      
           Features:
           -> Wild KSU
           -> Multi Manager Support for WKSU Manager & KernelSU-Next Manager (Only Install One)
@@ -179,7 +183,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ inputs.release_type == 'Pre-Release' }}
+          prerelease: false
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
