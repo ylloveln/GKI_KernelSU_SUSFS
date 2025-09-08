@@ -428,6 +428,10 @@ jobs:
         run: |
           mkdir bootimgs
 
+          cd $CONFIG/common/out/arch/arm64/boot/
+          ls -a
+          cd ../$CONFIG
+
           echo "Creating bootimgs folder and copying images..."
           cp $CONFIG/common/out/arch/arm64/boot/Image* ./bootimgs
 
