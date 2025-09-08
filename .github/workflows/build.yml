@@ -453,46 +453,22 @@ jobs:
       - name: Create Bootimgs Folder and Copy Images
         run: |
           mkdir bootimgs
-          mkdir kernel_images_temp
 
           SUBLEVEL_FOR_NAME="${{ inputs.sub_level }}"
           if [ -n "$ACTUAL_SUBLEVEL" ]; then
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
           
-          # Collect all available images for one zip
-          images_found=0
-          for img_type in "" ".lz4" ".gz"; do
-            src_file="$CONFIG/common/out/arch/arm64/boot/Image${img_type}"
-            dest_file="./bootimgs/Image${img_type}"
-            versioned_file="./WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-Image${img_type}"
-            temp_file="./kernel_images_temp/Image${img_type}"
-            
-            if [ -f "$src_file" ]; then
-              cp "$src_file" "$dest_file"
-              cp "$src_file" "$versioned_file"
-              cp "$src_file" "$temp_file"
-              images_found=$((images_found + 1))
-              echo "Found and copied Image${img_type}"
-            else
-              echo "Warning: $src_file not found, skipping Image${img_type}"
-            fi
-          done
+          # Copy images to bootimgs and create compressed zip
+          cd "$CONFIG/common/out/arch/arm64/boot"
+          zip_name="$GITHUB_WORKSPACE/WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-KernelImages.zip"
+          zip -9 "$zip_name" Image*
           
-          # Create one zip containing all available images with maximum compression
-          if [ $images_found -gt 0 ]; then
-            zip_name="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-KernelImages.zip"
-            cd kernel_images_temp
-            zip -9 "../$zip_name" Image*
-            cd ..
-            echo "Created compressed zip with $images_found images: $zip_name"
-          else
-            echo "Error: No kernel images found to compress"
-            exit 1
-          fi
+          # Copy images to bootimgs folder
+          cp Image* "$GITHUB_WORKSPACE/bootimgs/"
           
-          # Clean up temp directory
-          rm -rf kernel_images_temp
+          cd "$GITHUB_WORKSPACE"
+          echo "Created compressed zip: $(basename "$zip_name")"
 
       - name: Build Boot Images
         run: |
