@@ -290,9 +290,6 @@ jobs:
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> "$defconfig"
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=n" >> "$defconfig"
           
-          # LZ4 Compression Support
-          echo "CONFIG_KERNEL_LZ4=y" >> "$defconfig"
-          
           # Remove check_defconfig
           #sed -i 's/check_defconfig//' ./common/build.config.gki
 
@@ -408,7 +405,7 @@ jobs:
             MAKE_ARGS="LLVM_IAS=1 $MAKE_ARGS"
           fi
           
-          make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" gki_defconfig || exit 1
+          make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" gki_defconfig Image Image.gz Image.lz4 || exit 1
           
           make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" || exit 1
 
@@ -425,17 +422,14 @@ jobs:
           fi
           
           ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
-          
           zip -r "../$ZIP_NAME" ./*
-          
-          cd ..
 
       - name: Create Bootimgs Folder and Copy Images
         run: |
           mkdir bootimgs
 
           echo "Creating bootimgs folder and copying images..."
-          cp $CONFIGcommon/out/arch/arm64/boot/Image* ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image* ./bootimgs
 
       - name: Android 12 boot image build script
         if: ${{ inputs.android_version == 'android12' }}
@@ -475,9 +469,6 @@ jobs:
           echo "Running unpack_bootimg.py..."
           $UNPACK_BOOTIMG --boot_img="$FULL_PATH"
           
-          # Create gzip of the Image file
-          gzip -n -k -f -9 ./Image > ./Image.gz
-          
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
@@ -502,13 +493,6 @@ jobs:
           SUBLEVEL_FOR_NAME="${{ inputs.sub_level }}"
           if [ -n "$ACTUAL_SUBLEVEL" ]; then
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
-          fi
-
-          # Create gzip of the Image file if not already present
-          if [ ! -f "Image-gz" ]; then
-            echo "Creating Image-gz from Image..."
-            gzip -n -k -f -9 ./Image
-            mv ./Image.gz ./Image-gz
           fi
           
           echo "Building boot.img"
@@ -541,6 +525,3 @@ jobs:
           path: |
             *.zip
             *.img
-            *KernelImages.zip
-            *Image*
-            !bootimgs/
