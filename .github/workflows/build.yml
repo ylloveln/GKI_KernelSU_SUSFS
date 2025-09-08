@@ -428,12 +428,10 @@ jobs:
         run: |
           mkdir bootimgs
 
-          cd $CONFIG/common/out/arch/arm64/boot/
-          ls -a
-          cd ../$CONFIG
-
           echo "Creating bootimgs folder and copying images..."
-          cp $CONFIG/common/out/arch/arm64/boot/Image* ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image.gz ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image.lz4 ./bootimgs
 
       - name: Android 12 boot image build script
         if: ${{ inputs.android_version == 'android12' }}
