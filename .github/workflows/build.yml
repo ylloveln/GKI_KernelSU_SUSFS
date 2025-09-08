@@ -18,7 +18,6 @@ on:
       os_patch_level:
         required: true
         type: string
-
       revision:
         required: false
         type: string
@@ -122,9 +121,13 @@ jobs:
               NEW_CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-$ACTUAL_SUBLEVEL"
               echo "CONFIG=$NEW_CONFIG" >> $GITHUB_ENV
               echo "ACTUAL_SUBLEVEL=$ACTUAL_SUBLEVEL" >> $GITHUB_ENV
-              cd ..
-              mv "$OLD_CONFIG" "$NEW_CONFIG"
-              echo "Renamed directory from $OLD_CONFIG to $NEW_CONFIG"
+              cd ../..
+              if [ -d "$OLD_CONFIG" ]; then
+                mv "$OLD_CONFIG" "$NEW_CONFIG"
+                echo "Renamed directory from $OLD_CONFIG to $NEW_CONFIG"
+              else
+                echo "Warning: Directory $OLD_CONFIG not found"
+              fi
             else
               echo "Warning: Could not extract sublevel from Makefile for lts build"
             fi
