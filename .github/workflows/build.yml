@@ -367,15 +367,25 @@ jobs:
           MAKEFILE_PATH="$KERNEL_PATH/common/arch/arm64/boot/Makefile"
           
           if [ -f "$MAKEFILE_PATH" ]; then
+            echo "=== Original Makefile content ==="
+            cat "$MAKEFILE_PATH"
+            echo "=== End of original Makefile ==="
+            
             # Check if Image.lz4 is in targets
             if ! grep -q "Image.lz4" "$MAKEFILE_PATH" | grep -q "targets"; then
               sed -i 's/targets := Image Image.bz2 Image.gz Image.lzma Image.lzo \\/targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo \\/' "$MAKEFILE_PATH"
+              echo "=== Makefile after adding Image.lz4 to targets ==="
+              cat "$MAKEFILE_PATH"
+              echo "=== End of Makefile after targets modification ==="
             fi
             
             # Check if Image.lz4 build rule exists
             if ! grep -q "\$(obj)/Image.lz4: \$(obj)/Image FORCE" "$MAKEFILE_PATH"; then
               # Add the Image.lz4 build rule
               perl -pe 'print "\n\$(obj)/Image.lz4: \$(obj)/Image FORCE\n\$(call if_changed,lz4)\n" if eof' "$MAKEFILE_PATH" > "$MAKEFILE_PATH.tmp" && mv "$MAKEFILE_PATH.tmp" "$MAKEFILE_PATH"
+              echo "=== Final Makefile after adding build rule ==="
+              cat "$MAKEFILE_PATH"
+              echo "=== End of final Makefile ==="
             fi
           fi
 
