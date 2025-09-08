@@ -291,10 +291,7 @@ jobs:
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=n" >> "$defconfig"
           
           # LZ4 Compression Support
-          echo "CONFIG_HAVE_KERNEL_LZ4=y" >> "$defconfig"
           echo "CONFIG_KERNEL_LZ4=y" >> "$defconfig"
-          echo "CONFIG_LZ4_COMPRESS=y" >> "$defconfig"
-          echo "CONFIG_LZ4_DECOMPRESS=y" >> "$defconfig"
           
           # Remove check_defconfig
           #sed -i 's/check_defconfig//' ./common/build.config.gki
@@ -361,33 +358,6 @@ jobs:
           echo "CLANG_VERSION=$CLANG_VERSION" >> $GITHUB_ENV
           echo "CLANG_BIN_PATH=$CLANG_BIN_PATH" >> $GITHUB_ENV
 
-      - name: Check and Add Image.lz4 Build Rule
-        run: |
-          KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
-          MAKEFILE_PATH="$KERNEL_PATH/common/arch/arm64/boot/Makefile"
-          
-          if [ -f "$MAKEFILE_PATH" ]; then
-            echo "=== Original Makefile content ==="
-            cat "$MAKEFILE_PATH"
-            echo "=== End of original Makefile ==="
-            
-            # Check if Image.lz4 is in targets
-            if ! grep -q "Image.lz4" "$MAKEFILE_PATH" | grep -q "targets"; then
-              sed -i 's/targets := Image Image.bz2 Image.gz Image.lzma Image.lzo \\/targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo \\/' "$MAKEFILE_PATH"
-              echo "=== Makefile after adding Image.lz4 to targets ==="
-              cat "$MAKEFILE_PATH"
-              echo "=== End of Makefile after targets modification ==="
-            fi
-            
-            # Check if Image.lz4 build rule exists
-            if ! grep -q "\$(obj)/Image.lz4: \$(obj)/Image FORCE" "$MAKEFILE_PATH"; then
-              # Add the Image.lz4 build rule
-              perl -pe 'print "\n\$(obj)/Image.lz4: \$(obj)/Image FORCE\n\$(call if_changed,lz4)\n" if eof' "$MAKEFILE_PATH" > "$MAKEFILE_PATH.tmp" && mv "$MAKEFILE_PATH.tmp" "$MAKEFILE_PATH"
-              echo "=== Final Makefile after adding build rule ==="
-              cat "$MAKEFILE_PATH"
-              echo "=== End of final Makefile ==="
-            fi
-          fi
 
       - name: Build Kernel
         run: |
@@ -464,24 +434,13 @@ jobs:
         run: |
           mkdir bootimgs
 
-          SUBLEVEL_FOR_NAME="${{ inputs.sub_level }}"
-          if [ -n "$ACTUAL_SUBLEVEL" ]; then
-            SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
-          fi
-          
-          # Copy images to bootimgs and create compressed zip
-          cd "$CONFIG/common/out/arch/arm64/boot"
-          zip_name="$GITHUB_WORKSPACE/WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-KernelImages.zip"
-          zip -9 "$zip_name" Image*
-          
-          # Copy images to bootimgs folder
-          cp Image* "$GITHUB_WORKSPACE/bootimgs/"
-          
-          cd "$GITHUB_WORKSPACE"
-          echo "Created compressed zip: $(basename "$zip_name")"
+          echo "Creating bootimgs folder and copying images..."
+          cp $CONFIGcommon/out/arch/arm64/boot/Image* ./bootimgs
 
-      - name: Build Boot Images
+      - name: Android 12 boot image build script
+        if: ${{ inputs.android_version == 'android12' }}
         run: |
+          echo "Changing to configuration directory: $CONFIG..."
           cd bootimgs
           
           # Prepare sublevel for naming
@@ -490,98 +449,82 @@ jobs:
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
           
-          # Android 12 specific setup
-          if [[ "${{ inputs.android_version }}" == "android12" ]]; then
-            # Download and setup GKI kernel with improved error handling
-            GKI_URL="https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-${{ inputs.os_patch_level }}_${{ inputs.revision }}.zip"
-            FALLBACK_URL="https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-2023-01_r1.zip"
-            
-            echo "Attempting to download GKI kernel from: $GKI_URL"
-            if ! curl -fsSL --retry 3 --retry-delay 5 -o gki-kernel.zip "$GKI_URL"; then
-              echo "Primary URL failed, trying fallback: $FALLBACK_URL"
-              if ! curl -fsSL --retry 3 --retry-delay 5 -o gki-kernel.zip "$FALLBACK_URL"; then
-                echo "Error: Failed to download GKI kernel from both URLs"
-                exit 1
-              fi
-            fi
-            
-            if ! unzip -q gki-kernel.zip; then
-              echo "Error: Failed to extract GKI kernel"
-              exit 1
-            fi
-            rm -f gki-kernel.zip
-            
-            FULL_PATH=$(pwd)/boot-5.10.img
-            if ! $UNPACK_BOOTIMG --boot_img="$FULL_PATH"; then
-              echo "Error: Failed to unpack boot image"
-              exit 1
-            fi
-            
-            RAMDISK_ARG="--ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level ${{ inputs.os_patch_level }}"
+          GKI_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-"${{ inputs.os_patch_level }}"_"${{ inputs.revision }}".zip
+          FALLBACK_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-2023-01_r1.zip
+          
+          # Check if the GKI URL is available
+          echo "Checking if GKI kernel URL is reachable: $GKI_URL"
+          status=$(curl -sL -w "%{http_code}" "$GKI_URL" -o /dev/null)
+          
+          if [ "$status" = "200" ]; then
+              echo "[+] Downloading from GKI_URL"
+              curl -Lo gki-kernel.zip "$GKI_URL"
           else
-            RAMDISK_ARG=""
+              echo "[+] $GKI_URL not found, using $FALLBACK_URL"
+              curl -Lo gki-kernel.zip "$FALLBACK_URL"
           fi
           
-          # Function to build a single boot image
-          build_boot_image() {
-            local kernel_type="$1"
-            local kernel_file="Image${kernel_type}"
-            local output_file="boot${kernel_type}.img"
-            local final_name="../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot${kernel_type}.img"
-            
-            echo "Building $output_file with kernel $kernel_file"
-            
-            # Check if kernel file exists
-            if [ ! -f "$kernel_file" ]; then
-              echo "Warning: Kernel file $kernel_file not found, skipping"
-              return 0
-            fi
-            
-            # Build boot image
-            if ! $MKBOOTIMG --header_version 4 --kernel "$kernel_file" --output "$output_file" $RAMDISK_ARG; then
-              echo "Error: Failed to create $output_file"
-              return 1
-            fi
-            
-            # Add AVB hash footer
-            if ! $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image "$output_file" --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH; then
-              echo "Error: Failed to add AVB hash footer to $output_file"
-              return 1
-            fi
-            
-            # Copy to final location
-            if ! cp "$output_file" "$final_name"; then
-              echo "Error: Failed to copy $output_file to $final_name"
-              return 1
-            fi
-            
-            echo "Successfully built $final_name"
-          }
+          # Unzip the downloaded kernel and remove the zip
+          echo "Unzipping the downloaded kernel..."
+          unzip gki-kernel.zip && rm gki-kernel.zip
           
-          # Build all boot images in parallel with error handling
-          declare -a pids=()
-          declare -a kernel_types=("" "-gz" "-lz4")
+          echo "Unpacking boot.img..."
+          FULL_PATH=$(pwd)/boot-5.10.img
+          echo "Unpacking using: $FULL_PATH"
           
-          for kernel_type in "${kernel_types[@]}"; do
-            build_boot_image "$kernel_type" &
-            pids+=("$!")
-          done
+          echo "Running unpack_bootimg.py..."
+          $UNPACK_BOOTIMG --boot_img="$FULL_PATH"
           
-          # Wait for all background jobs and check their exit status
-          failed_jobs=0
-          for i in "${!pids[@]}"; do
-            if ! wait "${pids[$i]}"; then
-              echo "Error: Build job for kernel type '${kernel_types[$i]}' failed"
-              failed_jobs=$((failed_jobs + 1))
-            fi
-          done
+          # Create gzip of the Image file
+          gzip -n -k -f -9 ./Image > ./Image.gz
           
-          if [ $failed_jobs -gt 0 ]; then
-            echo "Error: $failed_jobs build job(s) failed"
-            exit 1
+          echo "Building boot.img"
+          $MKBOOTIMG --header_version 4 --kernel Image --output boot.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
+          $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
+          cp ./boot.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot.img
+          
+          echo "Building boot-gz.img"
+          $MKBOOTIMG --header_version 4 --kernel Image-gz --output boot-gz.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
+          $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
+          cp ./boot-gz.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-gz.img
+          
+          echo "Building boot-lz4.img"
+          $MKBOOTIMG --header_version 4 --kernel Image-lz4 --output boot-lz4.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
+          $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
+          cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-lz4.img
+
+      - name: Android 13/14/15 boot image build script
+        if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
+        run: |
+          cd bootimgs
+
+          # Prepare sublevel for naming
+          SUBLEVEL_FOR_NAME="${{ inputs.sub_level }}"
+          if [ -n "$ACTUAL_SUBLEVEL" ]; then
+            SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
+          fi
+
+          # Create gzip of the Image file if not already present
+          if [ ! -f "Image-gz" ]; then
+            echo "Creating Image-gz from Image..."
+            gzip -n -k -f -9 ./Image
+            mv ./Image.gz ./Image-gz
           fi
           
-          echo "All boot images built successfully"
+          echo "Building boot.img"
+          $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
+          $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
+          cp ./boot.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot.img
+          
+          echo "Building boot-gz.img"
+          $MKBOOTIMG --header_version 4 --kernel Image-gz --output boot-gz.img
+          $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
+          cp ./boot-gz.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-gz.img
+          
+          echo "Building boot-lz4.img"
+          $MKBOOTIMG --header_version 4 --kernel Image-lz4 --output boot-lz4.img
+          $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
+          cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-lz4.img
           
       - name: Upload Build Artifacts
         run: |
