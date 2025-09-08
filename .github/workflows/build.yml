@@ -6,9 +6,6 @@ permissions:
 on:
   workflow_call:
     inputs:
-      use_make:
-        required: true
-        type: boolean
       android_version:
         required: true
         type: string
@@ -395,7 +392,6 @@ jobs:
           echo "CLANG_BIN_PATH=$CLANG_BIN_PATH" >> $GITHUB_ENV
 
       - name: Build Kernel
-        if: ${{ inputs.use_make == true }}  
         shell: bash
         run: |
           KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
