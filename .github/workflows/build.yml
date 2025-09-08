@@ -394,6 +394,38 @@ jobs:
           echo "CLANG_VERSION=$CLANG_VERSION" >> $GITHUB_ENV
           echo "CLANG_BIN_PATH=$CLANG_BIN_PATH" >> $GITHUB_ENV
 
+      - name: Check and Add Image.lz4 Build Rule
+        shell: bash
+        run: |
+          KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
+          MAKEFILE_PATH="$KERNEL_PATH/common/arch/arm64/boot/Makefile"
+          
+          echo "Checking for Image.lz4 build rule in Makefile..."
+          
+          if [ -f "$MAKEFILE_PATH" ]; then
+            # Check if Image.lz4 is in targets
+            if ! grep -q "Image.lz4" "$MAKEFILE_PATH" | grep -q "targets"; then
+              echo "Adding Image.lz4 to targets list"
+              sed -i 's/targets := Image Image.bz2 Image.gz Image.lzma Image.lzo \\/targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo \\/' "$MAKEFILE_PATH"
+            fi
+            
+            # Check if Image.lz4 build rule exists
+            if grep -q "\$(obj)/Image.lz4: \$(obj)/Image FORCE" "$MAKEFILE_PATH"; then
+              echo "Image.lz4 build rule already exists in Makefile"
+            else
+              echo "Adding Image.lz4 build rule to Makefile"
+              # Add the Image.lz4 build rule
+              cat >> "$MAKEFILE_PATH" << 'EOF'
+
+              $(obj)/Image.lz4: $(obj)/Image FORCE
+              $(call if_changed,lz4)
+              EOF
+              echo "Image.lz4 build rule added successfully"
+            fi
+          else
+            echo "Warning: Makefile not found at $MAKEFILE_PATH"
+          fi
+
       - name: Build Kernel
         shell: bash
         run: |
@@ -470,18 +502,14 @@ jobs:
 
           echo "Listing files in boot directory:"
           ls -la $CONFIG/common/out/arch/arm64/boot/
-          
-          exit
             
           echo "Creating bootimgs folder and copying images..."
           cp $CONFIG/common/out/arch/arm64/boot/Image ./bootimgs
           cp $CONFIG/common/out/arch/arm64/boot/Image.lz4 ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image.gz ./bootimgs
           cp $CONFIG/common/out/arch/arm64/boot/Image ./WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-Image
           cp $CONFIG/common/out/arch/arm64/boot/Image.lz4 ./WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-Image.lz4
-
-          # Create gzip of the Image file
-          gzip -n -k -f -9 ./bootimgs/Image
-          gzip -n -k -f -9 ./WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-Image
+          cp $CONFIG/common/out/arch/arm64/boot/Image.gz ./WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-Image.gz
 
       - name: Android 12 boot image build script
         if: ${{ inputs.android_version == 'android12' }}
