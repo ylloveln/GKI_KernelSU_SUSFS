@@ -174,7 +174,7 @@ jobs:
 
       - name: Upload Release Assets
         run: |
-          for file in ./downloaded-artifacts/*-kernel-*/*; do
+          for file in ./downloaded-artifacts/*/*; do
             if [ -d "$file" ]; then
               continue
             fi
