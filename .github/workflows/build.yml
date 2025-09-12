@@ -21,6 +21,11 @@ on:
       revision:
         required: false
         type: string
+      use_make:
+        description: 'Build with MAKE?'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   build-gki:
@@ -48,8 +53,6 @@ jobs:
 
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
-
-
 
       - name: Setup Build Environment
         run: |
@@ -314,14 +317,15 @@ jobs:
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=n" >> "$defconfig"
           
           # Remove check_defconfig
-          #sed -i 's/check_defconfig//' ./common/build.config.gki
+          sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: Change Kernel Name
         run: |
           cd "$CONFIG"
           
           perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
-          
+          perl -pi -e 's/-maybe-dirty//g' ./build/kernel/kleaf/impl/stamp.bzl
+
           #Set Kernel Timestamp
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
           
@@ -337,9 +341,51 @@ jobs:
               
           #Remove Abi Exports and Error
           rm -rf ./common/android/abi_gki_protected_exports_*
-          #perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
+          perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
+
+      - name: Build
+        if: ${{ inputs.use_make == false }}
+        run : |
+          set -e
+          set -x
+          cd "$CONFIG"
+          echo "Building the kernel..."
+          if [ -f "build/build.sh" ]; then
+            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
+          else
+            tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
+          fi
+
+      - name: Create Bootimgs Folder and Copy Images for Android 12/13
+        if: (${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}) && ${{ inputs.use_make == false }}
+        run: |
+          mkdir bootimgs
+
+          echo "Creating bootimgs folder and copying images..."
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./bootimgs
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./bootimgs
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./
+
+          # Create gzip of the Image file
+          gzip -n -k -f -9 ./Image > ./Image.gz
+
+      - name: Create Bootimgs Folder and Copy Images for Android 14/15
+        if: (${{ inputs.android_version == 'android14' || inputs.android_version == 'android15' }}) && ${{ inputs.use_make == false }}
+        run: |
+          mkdir bootimgs
+
+          echo "Creating bootimgs folder and copying images..."
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./bootimgs
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./bootimgs
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./
+
+          # Create gzip of the Image file
+          gzip -n -k -f -9 ./Image > ./Image.gz
 
       - name: Detect Clang Version from Configs
+        if: ${{ inputs.use_make == true }}
         run: |
           KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
           DEFCONFIG="$KERNEL_PATH/common/arch/arm64/configs/gki_defconfig"
@@ -380,6 +426,7 @@ jobs:
 
 
       - name: Build Kernel
+        if: ${{ inputs.use_make == true }}
         run: |
           KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG"
           CLANG_BIN_PATH="${{ env.CLANG_BIN_PATH }}"
@@ -433,6 +480,7 @@ jobs:
           make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" || exit 1
 
       - name: Create Kernel ZIP
+        if: ${{ inputs.use_make == true }}
         run: |
           cp $CONFIG/common/out/arch/arm64/boot/Image AnyKernel3/Image
 
@@ -448,6 +496,7 @@ jobs:
           zip -r "../$ZIP_NAME" ./*
 
       - name: Create Bootimgs Folder and Copy Images
+        if: ${{ inputs.use_make == true }}
         run: |
           mkdir bootimgs
 

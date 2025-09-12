@@ -6,6 +6,12 @@ permissions:
 
 on:
   workflow_call:
+    inputs:
+      use_make:
+        description: 'Build with MAKE?'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   build-kernels-a15:
@@ -48,3 +54,4 @@ jobs:
       kernel_version: "6.6"
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
+      use_make: ${{ inputs.use_make }}
