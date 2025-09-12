@@ -6,23 +6,7 @@ permissions:
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/**'
-      - 'config/**'
-      - '**.yml'
-      - '**.yaml'
   workflow_dispatch:
-    inputs:
-      kernelsu_variant:
-        description: 'KernelSU Variant'
-        required: true
-        default: 'Wild KSU'
-        type: choice
-        options:
-          - 'Wild KSU'
-          - 'KSU'
-          - 'NEXT'
 
 jobs:
   build-check:
@@ -35,44 +19,38 @@ jobs:
             kernel_version: "5.10"
             sub_level: "X"
             os_patch_level: "lts"
-            display_name: "A12-5.10-LTS"
           
           # Android 13 - Kernel 5.10 LTS
           - android_version: "android13"
             kernel_version: "5.10"
             sub_level: "X"
             os_patch_level: "lts"
-            display_name: "A13-5.10-LTS"
           
           # Android 13 - Kernel 5.15 LTS
           - android_version: "android13"
             kernel_version: "5.15"
             sub_level: "X"
             os_patch_level: "lts"
-            display_name: "A13-5.15-LTS"
           
           # Android 14 - Kernel 5.15 LTS
           - android_version: "android14"
             kernel_version: "5.15"
             sub_level: "X"
             os_patch_level: "lts"
-            display_name: "A14-5.15-LTS"
           
           # Android 14 - Kernel 6.1 LTS
           - android_version: "android14"
             kernel_version: "6.1"
             sub_level: "X"
             os_patch_level: "lts"
-            display_name: "A14-6.1-LTS"
           
           # Android 15 - Kernel 6.6 LTS
           - android_version: "android15"
             kernel_version: "6.6"
             sub_level: "X"
             os_patch_level: "lts"
-            display_name: "A15-6.6-LTS"
 
-    name: "Build Check: ${{ matrix.display_name }}"
+    name: Build Check
     uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
@@ -80,5 +58,3 @@ jobs:
       kernel_version: ${{ matrix.kernel_version }}
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
-      kernelsu_variant: ${{ inputs.kernelsu_variant || 'Wild KSU' }}
-      make: 'false'  # Build check only, no artifacts needed
