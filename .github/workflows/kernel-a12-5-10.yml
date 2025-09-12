@@ -8,10 +8,8 @@ on:
   workflow_call:
     inputs:
       use_make:
-        description: 'Build with MAKE?'
         required: true
         type: boolean
-        default: true
 
 jobs:
   build-kernels-a12:

@@ -22,10 +22,8 @@ on:
         required: false
         type: string
       use_make:
-        description: 'Build with MAKE?'
         required: true
         type: boolean
-        default: true
 
 jobs:
   build-gki:
@@ -357,7 +355,7 @@ jobs:
           fi
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
-        if: (${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}) && ${{ inputs.use_make == false }}
+        if: ${{ (inputs.android_version == 'android12' || inputs.android_version == 'android13') && inputs.use_make == false }}
         run: |
           mkdir bootimgs
 
@@ -371,7 +369,7 @@ jobs:
           gzip -n -k -f -9 ./Image > ./Image.gz
 
       - name: Create Bootimgs Folder and Copy Images for Android 14/15
-        if: (${{ inputs.android_version == 'android14' || inputs.android_version == 'android15' }}) && ${{ inputs.use_make == false }}
+        if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && inputs.use_make == false }}
         run: |
           mkdir bootimgs
 
