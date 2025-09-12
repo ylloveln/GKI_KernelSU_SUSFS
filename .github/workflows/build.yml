@@ -205,13 +205,13 @@ jobs:
       - name: Apply Module Symbol Version Fix Patch
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
-            cd "$CONFIG/common/kernel/module"
-            curl -s -o module_symbol_fix.patch "https://github.com/Anything-at-25-00/android_kernel_common_android12-5.10/commit/2476d262b597fe8af82cfb7aaf96676f51c6b4ed.patch"
-            patch -p1 --forward version.c < module_symbol_fix.patch
+            cd "$CONFIG/kernel/module"
+            sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' version.c
+            sed -i '/bad_version:/,/return 0;/s/return 0;/return 1;/' version.c
           else
-            cd "$CONFIG/common"
-            curl -s -o module_symbol_fix.patch "https://github.com/Anything-at-25-00/android_kernel_common_android12-5.10/commit/2476d262b597fe8af82cfb7aaf96676f51c6b4ed.patch"
-            patch -p1 --forward < module_symbol_fix.patch
+            cd "$CONFIG/kernel"
+            sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' module.c
+            sed -i '/bad_version:/,/return 0;/s/return 0;/return 1;/' module.c
           fi
 
       - name: Fix WiFi and Bluetooth on Samsung 6.6 GKI devices
