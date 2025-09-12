@@ -205,11 +205,11 @@ jobs:
       - name: Apply Module Symbol Version Fix Patch
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
-            cd "$CONFIG/kernel/module"
+            cd "$CONFIG/common/kernel/module"
             sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' version.c
             sed -i '/bad_version:/,/return 0;/s/return 0;/return 1;/' version.c
           else
-            cd "$CONFIG/kernel"
+            cd "$CONFIG/common/kernel"
             sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' module.c
             sed -i '/bad_version:/,/return 0;/s/return 0;/return 1;/' module.c
           fi
