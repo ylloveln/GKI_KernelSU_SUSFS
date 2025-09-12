@@ -1,8 +1,8 @@
 name: Build Check - All LTS Kernels
 
 permissions:
-  contents: read
-  actions: read
+  contents: write
+  actions: write
 
 on:
   push:
@@ -26,7 +26,6 @@ on:
 
 jobs:
   build-check:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -74,122 +73,12 @@ jobs:
             display_name: "A15-6.6-LTS"
 
     name: "Build Check: ${{ matrix.display_name }}"
-    
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Environment
-        run: |
-          echo "KERNEL_VERSION=${{ matrix.kernel_version }}" >> $GITHUB_ENV
-          echo "ANDROID_VERSION=${{ matrix.android_version }}" >> $GITHUB_ENV
-          echo "SUB_LEVEL=${{ matrix.sub_level }}" >> $GITHUB_ENV
-          echo "OS_PATCH_LEVEL=${{ matrix.os_patch_level }}" >> $GITHUB_ENV
-          echo "KERNELSU_VARIANT=${{ inputs.kernelsu_variant || 'Wild KSU' }}" >> $GITHUB_ENV
-
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-
-      - name: Setup Build Environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev
-          sudo apt-get install -y git wget curl python3 python3-pip
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-
-      - name: Download Kernel Source
-        run: |
-          if [ "${{ matrix.android_version }}" = "android12" ]; then
-            BRANCH="android12-${{ matrix.kernel_version }}"
-          elif [ "${{ matrix.android_version }}" = "android13" ]; then
-            BRANCH="android13-${{ matrix.kernel_version }}"
-          elif [ "${{ matrix.android_version }}" = "android14" ]; then
-            BRANCH="android14-${{ matrix.kernel_version }}"
-          elif [ "${{ matrix.android_version }}" = "android15" ]; then
-            BRANCH="android15-${{ matrix.kernel_version }}"
-          fi
-          
-          echo "Cloning kernel branch: $BRANCH"
-          git clone --depth=1 --single-branch --branch $BRANCH https://android.googlesource.com/kernel/common kernel
-          cd kernel
-          echo "Kernel source downloaded successfully"
-          echo "Current commit: $(git rev-parse HEAD)"
-
-      - name: Apply KernelSU Patches
-        run: |
-          cd kernel
-          
-          # Download and apply KernelSU
-          if [ "${{ env.KERNELSU_VARIANT }}" = "KSU" ]; then
-            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-          elif [ "${{ env.KERNELSU_VARIANT }}" = "Wild KSU" ]; then
-            curl -LSs "https://raw.githubusercontent.com/WildKernels/KernelSU/main/kernel/setup.sh" | bash -s main
-          elif [ "${{ env.KERNELSU_VARIANT }}" = "NEXT" ]; then
-            curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/main/kernel/setup.sh" | bash -s main
-          fi
-          
-          echo "KernelSU patches applied successfully"
-
-      - name: Configure Kernel
-        run: |
-          cd kernel
-          
-          # Set up cross-compilation
-          export ARCH=arm64
-          export CROSS_COMPILE=aarch64-linux-gnu-
-          export LLVM=1
-          
-          # Use GKI defconfig
-          make gki_defconfig
-          
-          # Enable KernelSU in config
-          echo "CONFIG_KPROBES=y" >> .config
-          echo "CONFIG_HAVE_KPROBES=y" >> .config
-          echo "CONFIG_KPROBE_EVENTS=y" >> .config
-          
-          echo "Kernel configured successfully"
-
-      - name: Build Kernel (Test Only)
-        run: |
-          cd kernel
-          
-          export ARCH=arm64
-          export CROSS_COMPILE=aarch64-linux-gnu-
-          export LLVM=1
-          
-          # Build kernel image only (no modules to save time)
-          make -j$(nproc) Image
-          
-          if [ -f arch/arm64/boot/Image ]; then
-            echo "✅ Build successful for ${{ matrix.display_name }}"
-            ls -la arch/arm64/boot/Image
-          else
-            echo "❌ Build failed for ${{ matrix.display_name }}"
-            exit 1
-          fi
-
-      - name: Build Summary
-        if: always()
-        run: |
-          echo "## Build Check Summary for ${{ matrix.display_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Android Version:** ${{ matrix.android_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Kernel Version:** ${{ matrix.kernel_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Sub Level:** ${{ matrix.sub_level }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **OS Patch Level:** ${{ matrix.os_patch_level }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **KernelSU Variant:** ${{ env.KERNELSU_VARIANT }}" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ job.status }}" = "success" ]; then
-            echo "- **Status:** ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- **Status:** ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
-          fi
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      android_version: ${{ matrix.android_version }}
+      kernel_version: ${{ matrix.kernel_version }}
+      sub_level: ${{ matrix.sub_level }}
+      os_patch_level: ${{ matrix.os_patch_level }}
+      kernelsu_variant: ${{ inputs.kernelsu_variant || 'Wild KSU' }}
+      make: 'false'  # Build check only, no artifacts needed
