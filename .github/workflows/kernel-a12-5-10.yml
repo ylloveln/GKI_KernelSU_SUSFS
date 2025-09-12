@@ -6,10 +6,6 @@ permissions:
 
 on:
   workflow_call:
-    inputs:
-      use_make:
-        required: true
-        type: boolean
 
 jobs:
   build-kernels-a12:
@@ -55,5 +51,4 @@ jobs:
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
       revision: ${{ matrix.revision }}
-      use_make: ${{ inputs.use_make }}
 

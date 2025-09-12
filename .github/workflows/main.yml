@@ -7,11 +7,6 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      use_make:
-        description: 'Build with MAKE?'
-        required: true
-        type: boolean
-        default: true
       release_type:
         description: "Choose Release Type"
         required: true
@@ -25,38 +20,26 @@ jobs:
   build-a12-5-10:
     uses: ./.github/workflows/kernel-a12-5-10.yml
     secrets: inherit
-    with:
-      use_make: ${{ inputs.use_make }}
 
   build-a13-5-10:
     uses: ./.github/workflows/kernel-a13-5-10.yml
     secrets: inherit
-    with:
-      use_make: ${{ inputs.use_make }}
 
   build-a13-5-15:
     uses: ./.github/workflows/kernel-a13-5-15.yml
     secrets: inherit
-    with:
-      use_make: ${{ inputs.use_make }}
 
   build-a14-5-15:
     uses: ./.github/workflows/kernel-a14-5-15.yml
     secrets: inherit
-    with:
-      use_make: ${{ inputs.use_make }}
 
   build-a14-6-1:
     uses: ./.github/workflows/kernel-a14-6-1.yml
     secrets: inherit
-    with:
-      use_make: ${{ inputs.use_make }}
 
   build-a15-6-6:
     uses: ./.github/workflows/kernel-a15-6-6.yml
     secrets: inherit
-    with:
-      use_make: ${{ inputs.use_make }}
 
   release:
     runs-on: ubuntu-latest

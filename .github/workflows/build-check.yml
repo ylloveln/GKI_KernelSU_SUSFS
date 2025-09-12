@@ -49,8 +49,6 @@ jobs:
             kernel_version: "6.6"
             sub_level: "X"
             os_patch_level: "lts"
-        
-        use_make: [true, false]
 
     name: Build Check
     uses: ./.github/workflows/build.yml
@@ -60,4 +58,3 @@ jobs:
       kernel_version: ${{ matrix.kernel_config.kernel_version }}
       sub_level: ${{ matrix.kernel_config.sub_level }}
       os_patch_level: ${{ matrix.kernel_config.os_patch_level }}
-      use_make: ${{ matrix.use_make }}
