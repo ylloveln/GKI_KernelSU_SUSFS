@@ -172,8 +172,8 @@ jobs:
           
           # Apply KSU integration patches
           cd ./Wild_KSU
-          #cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch .
-          cp ../../kernel_patches/wild/susfs_fix_patches/v1.5.9/10_enable_susfs_for_ksu.patch ./
+          cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch .
+          #cp ../../kernel_patches/wild/susfs_fix_patches/v1.5.9/10_enable_susfs_for_ksu.patch ./
           patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
           
           # Apply compatibility fixes
@@ -368,6 +368,7 @@ jobs:
 
           # Create gzip of the Image file
           gzip -n -k -f -9 ./Image > ./Image.gz
+          gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
 
       - name: Create Bootimgs Folder and Copy Images for Android 14/15
         if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && matrix.build_type == 'normal' }}
@@ -382,6 +383,7 @@ jobs:
 
           # Create gzip of the Image file
           gzip -n -k -f -9 ./Image > ./Image.gz
+          gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
 
       - name: Detect Clang Version from Configs
         if: ${{ matrix.build_type == 'make' }}
