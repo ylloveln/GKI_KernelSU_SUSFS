@@ -205,7 +205,7 @@ jobs:
       - name: Apply Module Symbol Version Fix Patch
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
-            cd "$CONFIG/kernel/module"
+            cd "$CONFIG/common/kernel/module"
             curl -s -o module_symbol_fix.patch "https://github.com/Anything-at-25-00/android_kernel_common_android12-5.10/commit/2476d262b597fe8af82cfb7aaf96676f51c6b4ed.patch"
             patch -p1 --forward version.c < module_symbol_fix.patch
           else
