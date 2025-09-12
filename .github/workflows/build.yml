@@ -349,9 +349,9 @@ jobs:
           cd "$CONFIG"
           echo "Building the kernel..."
           if [ -f "build/build.sh" ]; then
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
+            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh || exit 1
           else
-            tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
+            tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
