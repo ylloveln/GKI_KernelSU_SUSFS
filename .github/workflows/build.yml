@@ -480,9 +480,18 @@ jobs:
           make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" || exit 1
 
       - name: Create Kernel ZIP
-        if: ${{ matrix.build_type == 'make' }}
         run: |
-          cp $CONFIG/common/out/arch/arm64/boot/Image AnyKernel3/Image
+          # Try different Image locations based on build type
+          if [ -f "$CONFIG/common/out/arch/arm64/boot/Image" ]; then
+            cp $CONFIG/common/out/arch/arm64/boot/Image AnyKernel3/Image
+          elif [ -f "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image" ]; then
+            cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image AnyKernel3/Image
+          elif [ -f "./$CONFIG/bazel-bin/common/kernel_aarch64/Image" ]; then
+            cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image AnyKernel3/Image
+          else
+            echo "Error: Image file not found in any expected location"
+            exit 1
+          fi
 
           cd AnyKernel3
           
