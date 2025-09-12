@@ -202,6 +202,12 @@ jobs:
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 --forward -F 3 < 69_hide_stuff.patch
 
+      - name: Apply Module Symbol Version Fix Patch
+        run: |
+          cd "$CONFIG/common"
+          curl -s -o module_symbol_fix.patch "https://github.com/Anything-at-25-00/android_kernel_common_android12-5.10/commit/2476d262b597fe8af82cfb7aaf96676f51c6b4ed.patch"
+          patch -p1 --forward < module_symbol_fix.patch
+
       - name: Fix WiFi and Bluetooth on Samsung 6.6 GKI devices
         if: ${{ ( inputs.kernel_version == '6.6' ) }}
         run: |
