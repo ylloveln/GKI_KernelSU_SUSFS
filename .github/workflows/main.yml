@@ -6,15 +6,6 @@ permissions:
 
 on:
   workflow_dispatch:
-    inputs:
-      release_type:
-        description: "Choose Release Type"
-        required: true
-        type: choice
-        options:
-          - Actions
-          - Release
-        default: Release
 
 jobs:
   build-a12-5-10:
@@ -41,9 +32,9 @@ jobs:
     uses: ./.github/workflows/kernel-a15-6-6.yml
     secrets: inherit
 
+
   release:
     runs-on: ubuntu-latest
-    if: ${{ inputs.release_type == 'Release' }}
     needs:
       - build-a12-5-10
       - build-a13-5-10
@@ -51,6 +42,7 @@ jobs:
       - build-a14-5-15
       - build-a14-6-1
       - build-a15-6-6
+
     env:
       GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernels With WKSU & SUSFS v1.5.9"
