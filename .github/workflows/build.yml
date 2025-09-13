@@ -329,9 +329,13 @@ jobs:
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
           
           #Set Kernel Name
-          if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
+          if [ "${{ matrix.build_type }}" = "make" ] && [ "${{ inputs.kernel_version }}" = "6.6" ]; then
+            perl -0777 -pi -e 's/(echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}")/echo "\$\{KERNELVERSION\}-${{ inputs.android_version }}-🟢-Wild"/s' ./common/scripts/setlocalversion
+          elif [ "${{ matrix.build_type }}" = "make" ]; then
+            perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\-${{ inputs.android_version }}-🟢-Wild"/s' ./common/scripts/setlocalversion
+          elif [ "${{ matrix.build_type }}" = "normal" ] && [ "${{ inputs.kernel_version }}" = "6.6" ]; then
             perl -0777 -pi -e 's/(echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}")/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}-🟢-Wild"/s' ./common/scripts/setlocalversion
-          else
+          elif [ "${{ matrix.build_type }}" = "normal" ]; then
             perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\$res-🟢-Wild"/s' ./common/scripts/setlocalversion
           fi
 
@@ -354,36 +358,6 @@ jobs:
           else
             tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
-
-      - name: Create Bootimgs Folder and Copy Images for Android 12/13
-        if: ${{ (inputs.android_version == 'android12' || inputs.android_version == 'android13') && matrix.build_type == 'normal' }}
-        run: |
-          mkdir bootimgs
-
-          echo "Creating bootimgs folder and copying images..."
-          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./bootimgs
-          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./bootimgs
-          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./
-          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./
-
-          # Create gzip of the Image file
-          gzip -n -k -f -9 ./Image > ./Image.gz
-          gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
-
-      - name: Create Bootimgs Folder and Copy Images for Android 14/15
-        if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && matrix.build_type == 'normal' }}
-        run: |
-          mkdir bootimgs
-
-          echo "Creating bootimgs folder and copying images..."
-          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./bootimgs
-          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./bootimgs
-          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./
-          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./
-
-          # Create gzip of the Image file
-          gzip -n -k -f -9 ./Image > ./Image.gz
-          gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
 
       - name: Detect Clang Version from Configs
         if: ${{ matrix.build_type == 'make' }}
@@ -476,10 +450,10 @@ jobs:
             MAKE_ARGS="LLVM_IAS=1 $MAKE_ARGS"
           fi
           
-          make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" gki_defconfig || exit 1
+          make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" Image Image.gz Image.lz4 gki_defconfig || exit 1
           make -j$(nproc --all) O=out $MAKE_ARGS KCFLAGS+="-Wno-error -O2 -flto=thin -fno-stack-protector" || exit 1
 
-      - name: Create Kernel ZIP
+      - name: Create AK3 ZIP
         run: |
           # Try different Image locations based on build type
           if [ -f "$CONFIG/common/out/arch/arm64/boot/Image" ]; then
@@ -503,6 +477,49 @@ jobs:
           
           ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           zip -r "../$ZIP_NAME" ./*
+
+      - name: Create Bootimgs Folder and Copy Images for Android 12/13
+        if: ${{ matrix.build_type == 'make' }}
+        run: |
+          mkdir bootimgs
+
+          echo "Creating bootimgs folder and copying images..."
+          cp $CONFIG/common/out/arch/arm64/boot/Image ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image.gz ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image.lz4 ./bootimgs
+          cp $CONFIG/common/out/arch/arm64/boot/Image ./
+          cp $CONFIG/common/out/arch/arm64/boot/Image.gz ./
+          cp $CONFIG/common/out/arch/arm64/boot/Image.lz4 ./
+
+      - name: Create Bootimgs Folder and Copy Images for Android 12/13
+        if: ${{ (inputs.android_version == 'android12' || inputs.android_version == 'android13') && matrix.build_type == 'normal' }}
+        run: |
+          mkdir bootimgs
+
+          echo "Creating bootimgs folder and copying images..."
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./bootimgs
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./bootimgs
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./
+
+          # Create gzip of the Image file
+          gzip -n -k -f -9 ./Image > ./Image.gz
+          gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
+
+      - name: Create Bootimgs Folder and Copy Images for Android 14/15
+        if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && matrix.build_type == 'normal' }}
+        run: |
+          mkdir bootimgs
+
+          echo "Creating bootimgs folder and copying images..."
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./bootimgs
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./bootimgs
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./
+
+          # Create gzip of the Image file
+          gzip -n -k -f -9 ./Image > ./Image.gz
+          gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
 
       - name: Android 12 boot image build script
         if: ${{ inputs.android_version == 'android12' && matrix.build_type == 'normal' }}
