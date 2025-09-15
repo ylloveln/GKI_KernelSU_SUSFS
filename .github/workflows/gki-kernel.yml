@@ -606,6 +606,11 @@ jobs:
             rm -rf ./common/android/abi_gki_protected_exports_*
           # 去除dirty块
             sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
+
+          # 禁用严格模式以防止构建失败 (仅限MKSU和Official),因为它们关闭了Kprobes
+            if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ] || [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
+              sed -i 's/"kmi_symbol_list_strict_mode": True,/"kmi_symbol_list_strict_mode": False,/g' ./common/BUILD.bazel
+            fi
           fi
 
       - name: 配置内核名称(常规构建)
@@ -672,10 +677,7 @@ jobs:
             sed -i '/MODULES_ORDER=android\/gki_aarch64_modules/d' ./common/build.config.gki.aarch64
             sed -i '/KMI_SYMBOL_LIST_STRICT_MODE/d' ./common/build.config.gki.aarch64
 
-            # 禁用严格模式以防止构建失败 (仅限MKSU和Official),因为它们关闭了Kprobes
-            if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ] || [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
-            sed -i 's/"kmi_symbol_list_strict_mode": True,/"kmi_symbol_list_strict_mode": False,/g' ./common/BUILD.bazel
-            fi
+            
             
             echo "Building the kernel..."
             if [ -f "build/build.sh" ]; then
