@@ -1,0 +1,19 @@
+name: Sync to GitLab
+
+permissions:
+  contents: read
+
+on:
+  push:
+  workflow_run:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Sync to GitLab
+      uses: keninkujovic/gitlab-sync@2.1.0
+      with:
+        gitlab_url: https://gitlab.com/TheWildJames/${{ github.event.repository.name }}.git
+        username: TheWildJames
+        gitlab_pat: ${{ secrets.GITLAB_PAT }}

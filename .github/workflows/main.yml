@@ -9,16 +9,6 @@ on:
 
 jobs:
 
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Sync to GitLab
-      uses: keninkujovic/gitlab-sync@2.1.0
-      with:
-        gitlab_url: https://gitlab.com/TheWildJames/GKI_KernelSU_SUSFS.git
-        username: TheWildJames
-        gitlab_pat: ${{ secrets.GITLAB_PAT }}
-
   build-a12-5-10:
     uses: ./.github/workflows/kernel-a12-5-10.yml
     secrets: inherit
