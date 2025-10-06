@@ -119,7 +119,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           path: ./downloaded-artifacts
-          pattern: '*-make-*'
+          pattern: 'WKSU-*'
 
       - name: Set release body
         run: |
@@ -144,9 +144,9 @@ jobs:
           -> BBR v1 Support
       
           Build Types:
-          -> **Make Build**: Built using traditional make
-          -> **Normal Build**: Built using Bazel or build.sh
-          -> **For avbroot users**: Try the normal build from CI to get proper KMI (Kernel Module Interface) compatibility
+          -> **Normal Build**: Built using Bazel or build.sh with KMI compatibility
+          -> **Symbol Fix Variant**: Normal build with additional symbol fixes for compatibility
+          -> **For avbroot users**: Use the normal build to get proper KMI (Kernel Module Interface) compatibility
 
           Notes:
           -> SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
