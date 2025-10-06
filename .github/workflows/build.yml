@@ -29,6 +29,7 @@ jobs:
     strategy:
       matrix:
         build_type: ["make", "normal"]
+        apply_symbol_fix: [true, false]
 
     steps:
       # # - name: Maximize Build Space
@@ -234,17 +235,18 @@ jobs:
           cp ../../kernel_patches/wild/hooks/scope_min_manual_hooks_v1.4.patch ./
           patch -p1 --forward -F 3 < scope_min_manual_hooks_v1.4.patch
 
-      #- name: Apply Module Symbol Version Fix Patch
-      #  run: |
-      #    if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
-      #      cd "$CONFIG/common/kernel/module"
-      #      #sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' version.c
-      #      sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' version.c
-      #    else
-      #      cd "$CONFIG/common/kernel"
-      #      #sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' module.c
-      #      sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' module.c
-      #    fi
+      - name: Apply Module Symbol Version Fix Patch
+        if: ${{ matrix.apply_symbol_fix }}
+        run: |
+          if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
+            cd "$CONFIG/common/kernel/module"
+            #sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' version.c
+            sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' version.c
+          else
+            cd "$CONFIG/common/kernel"
+            #sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' module.c
+            sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' module.c
+          fi
 
       - name: Fix WiFi and Bluetooth on Samsung 6.6 GKI devices
         if: ${{ ( inputs.kernel_version == '6.6' ) }}
@@ -625,7 +627,7 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.build_type }}
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.build_type }}-${{ matrix.apply_symbol_fix && 'SymbolFix'}}
           path: |
             *.zip
             *.img
