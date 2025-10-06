@@ -31,18 +31,18 @@ jobs:
         apply_symbol_fix: [true, false]
 
     steps:
-      # # - name: Maximize Build Space
-        # uses: AdityaGarg8/remove-unwanted-software@v5
-        # with:
-          # remove-dotnet: 'true'          # Frees ~2 GB
-          # remove-android: 'true'         # Frees ~9 GB
-          # remove-haskell: 'true'         # Frees ~5.2 GB
-          # remove-codeql: 'true'          # Frees ~5.4 GB
-          # remove-docker-images: 'true'   # Frees ~3.2 GB
-          # remove-large-packages: 'true'  # Frees ~3.1 GB
-          # remove-swapfile: 'true'        # Frees ~4 GB
-          # remove-cached-tools: 'false'   # Avoid unless confirmed safe
-          # verbose: 'true'                # Enable detailed logging
+      - name: Maximize Build Space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          #remove-dotnet: 'true'          # Frees ~2 GB
+          #remove-android: 'true'         # Frees ~9 GB
+          #remove-haskell: 'true'         # Frees ~5.2 GB
+          #remove-codeql: 'true'          # Frees ~5.4 GB
+          #remove-docker-images: 'true'   # Frees ~3.2 GB
+          #remove-large-packages: 'true'  # Frees ~3.1 GB
+          remove-swapfile: 'true'        # Frees ~4 GB
+          #remove-cached-tools: 'false'   # Avoid unless confirmed safe
+          verbose: 'true'                # Enable detailed logging
           
       - name: Set CONFIG Environment Variable
         run: |
@@ -54,8 +54,6 @@ jobs:
 
       - name: Setup Build Environment
         run: |
-          sudo apt update && sudo apt install -y libelf-dev libssl-dev build-essential
-          
           AOSP_MIRROR=https://android.googlesource.com
           BRANCH=main-kernel-2025
           git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools &
