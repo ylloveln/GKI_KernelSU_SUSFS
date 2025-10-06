@@ -129,10 +129,14 @@ jobs:
           This software is provided for testing and educational purposes only. Use at your own risk.
           The developers are not responsible for any damage, data loss, or issues that may occur.
           Please ensure you have proper backups before installation.
+
+          NEW:
+          -> **Symbol Fix Variant**: Normal build with additional symbol fixes for compatibility, if you encounter any issues with the normal build try this!
+
       
           Features:
           -> Wild KSU
-          -> Multi Manager Support for WKSU Manager & KernelSU-Next Manager (Only Install One)
+          -> Multi Manager Support for WKSU, KernelSU-Next, KSU, MKSU, RKSU, xxKSU, KowSU and SukiSU (Best compatibility with WKSU, no support will be provided for other managers)
           -> SUSFS ඞ v1.5.11
           -> Scope-Minimized Manual hooks v1.4
           -> Magic Mount Support
@@ -140,11 +144,6 @@ jobs:
           -> IPSet Support for Advanced Network Filtering
           -> Wireguard Support
           -> BBR v1 Support
-      
-          Build Types:
-          -> **Normal Build**: Built using Bazel or build.sh with KMI compatibility
-          -> **Symbol Fix Variant**: Normal build with additional symbol fixes for compatibility
-          -> **For avbroot users**: Use the normal build to get proper KMI (Kernel Module Interface) compatibility
 
           Notes:
           -> SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
