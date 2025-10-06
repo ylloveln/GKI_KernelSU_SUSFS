@@ -132,7 +132,6 @@ jobs:
 
           NEW:
           -> **Symbol Fix Variant**: Normal build with additional symbol fixes for compatibility, if you encounter any issues with the normal build try this!
-
       
           Features:
           -> Wild KSU
