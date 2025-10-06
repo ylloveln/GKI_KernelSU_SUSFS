@@ -136,7 +136,7 @@ jobs:
       
           Features:
           -> Wild KSU
-          -> Multi Manager Support for WKSU, KernelSU-Next, KSU, MKSU, RKSU, xxKSU, KowSU and SukiSU (Best compatibility with WKSU, no support will be provided for other managers)
+          -> Multi Manager Support for WKSU, KernelSU-Next, KSU, MKSU! Needs Testing: RKSU, xxKSU, KowSU and SukiSU (Best compatibility with WKSU, no support will be provided for other managers)
           -> SUSFS ඞ v1.5.11
           -> Scope-Minimized Manual hooks v1.4
           -> Magic Mount Support
