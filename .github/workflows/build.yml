@@ -236,7 +236,7 @@ jobs:
 
       - name: Add BBG
         run: |
-          cd "$CONFIG/kernel_platform"
+          cd "$CONFIG"
           echo "Adding BBG..."
           wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
           echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
