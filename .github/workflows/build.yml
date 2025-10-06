@@ -517,10 +517,26 @@ jobs:
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-lz4.img
           
-      - name: Upload Build Artifacts
+      - name: Upload AnyKernel3 ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}
-          path: |
-            *.zip
-            *.img
+          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3
+          path: "*.zip"
+
+      - name: Upload Boot Image (Uncompressed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-boot
+          path: "*-boot.img"
+
+      - name: Upload Boot Image (GZ Compressed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-gz
+          path: "*-boot-gz.img"
+
+      - name: Upload Boot Image (LZ4 Compressed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4
+          path: "*-boot-lz4.img"
