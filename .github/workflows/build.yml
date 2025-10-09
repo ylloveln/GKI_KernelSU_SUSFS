@@ -28,21 +28,18 @@ jobs:
     timeout-minutes: 120
     strategy:
       matrix:
-        apply_symbol_fix: [true, false]
+        apply_module_check_bypass: [true, false]
 
     steps:
-      # # - name: Maximize Build Space
-        # uses: AdityaGarg8/remove-unwanted-software@v5
-        # with:
-          # remove-dotnet: 'true'          # Frees ~2 GB
-          # remove-android: 'true'         # Frees ~9 GB
-          # remove-haskell: 'true'         # Frees ~5.2 GB
-          # remove-codeql: 'true'          # Frees ~5.4 GB
-          # remove-docker-images: 'true'   # Frees ~3.2 GB
-          # remove-large-packages: 'true'  # Frees ~3.1 GB
-          # remove-swapfile: 'true'        # Frees ~4 GB
-          # remove-cached-tools: 'false'   # Avoid unless confirmed safe
-          # verbose: 'true'                # Enable detailed logging
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
           
       - name: Set CONFIG Environment Variable
         run: |
@@ -54,8 +51,6 @@ jobs:
 
       - name: Setup Build Environment
         run: |
-          sudo apt update && sudo apt install -y libelf-dev libssl-dev build-essential
-          
           AOSP_MIRROR=https://android.googlesource.com
           BRANCH=main-kernel-2025
           git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools &
@@ -242,16 +237,14 @@ jobs:
           echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig
 
-      - name: Apply Module Symbol Version Fix Patch
-        if: ${{ matrix.apply_symbol_fix }}
+      - name: Apply Module Check Bypass
+        if: ${{ matrix.apply_module_check_bypass }}
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
             cd "$CONFIG/common/kernel/module"
-            #sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' version.c
             sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' version.c
           else
             cd "$CONFIG/common/kernel"
-            #sed -i 's/pr_warn("%s: disagrees about version of symbol %s\\n"/pr_warn("%s: disagrees about version of symbol %s, but ignore...\\n"/' module.c
             sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' module.c
           fi
 
@@ -316,26 +309,24 @@ jobs:
           echo "CONFIG_IP_SET_HASH_NETNET=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_NETPORT=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_NETIFACE=y" >> "$defconfig"
+
           # SUSFS Configuration
           echo "CONFIG_KSU_SUSFS=y" >> "$defconfig"
-          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> "$defconfig"
+          #echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> "$defconfig"
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> "$defconfig"
           
-          # SUSFS Auto Mount Features
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> "$defconfig"
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> "$defconfig"
           
-          # SUSFS Advanced Features
           echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> "$defconfig"
           
-          # SUSFS Debugging and Security
           echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "$defconfig"
@@ -352,26 +343,20 @@ jobs:
       - name: Change Kernel Name
         run: |
           cd "$CONFIG"
-          
-          perl -pi -e 's/-dirty//' ./common/scripts/setlocalversion
-          perl -pi -e 's/-maybe-dirty//g' ./build/kernel/kleaf/impl/stamp.bzl
-
+          #Add Wild to Kernel Version
+          sed -i '$s|echo "\$res"|echo "\$res-Wild"|' ./common/scripts/setlocalversion
           #Set Kernel Timestamp
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sun Apr 20 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
-          
-          #Set Kernel Name
-          if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
-            perl -0777 -pi -e 's/(echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}")/echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}-Wild"/s' ./common/scripts/setlocalversion
+          if [ -f "build/build.sh" ]; then
+            #Remove Dirty Flag
+            sed -i 's/-dirty//' ./common/scripts/setlocalversion
           else
-            perl -0777 -pi -e 's/(echo "\$res")(?!.*echo "\$res")/echo "\$res-Wild"/s' ./common/scripts/setlocalversion
+            #Remove Dirty Flag
+            sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
+            #Remove Abi Exports and Error
+            rm -rf ./common/android/abi_gki_protected_exports_*
+            perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
           fi
-
-          #Set Kernel Timestamp
-          perl -pi -e 's/build-timestamp = \$\(or \$\(KBUILD_BUILD_TIMESTAMP\), \$\(build-timestamp-auto\)\)/build-timestamp = "Sun Apr 20 04:20:00 UTC 2025"/' ./common/init/Makefile
-              
-          #Remove Abi Exports and Error
-          rm -rf ./common/android/abi_gki_protected_exports_*
-          perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
 
       - name: Build
         run : |
@@ -405,7 +390,7 @@ jobs:
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
           
-          ZIP_NAME="WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
+          ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           zip -r "../$ZIP_NAME" ./*
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
@@ -479,17 +464,17 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot.img
+          cp ./boot.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-gz.img
+          cp ./boot-gz.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-lz4.img
+          cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
 
       - name: Android 13/14/15 boot image build script
         if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
@@ -505,38 +490,38 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot.img
+          cp ./boot.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-gz.img
+          cp ./boot-gz.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../WKSU-$KSUVER${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-boot-lz4.img
+          cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
           
       - name: Upload AnyKernel3 ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3
           path: "*.zip"
 
       - name: Upload Boot Image (Uncompressed)
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-boot
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot
           path: "*-boot.img"
 
       - name: Upload Boot Image (GZ Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-gz
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz
           path: "*-boot-gz.img"
 
       - name: Upload Boot Image (LZ4 Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}${{ matrix.apply_symbol_fix && '-SymbolFix' || '' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4
           path: "*-boot-lz4.img"

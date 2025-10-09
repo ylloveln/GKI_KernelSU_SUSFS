@@ -6,6 +6,16 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Choose Release Type"
+        required: true
+        type: choice
+        options:
+          - Actions
+          - Pre-Release
+          - Release
+        default: Actions
 
 jobs:
 
@@ -96,8 +106,15 @@ jobs:
           WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_REF"
           echo "WKSU_REF=$WKSU_REF" >> $GITHUB_ENV
           echo "WKSU_URL=$WKSU_URL" >> $GITHUB_ENV
+          
+          # Get Baseband-guard latest commit from main branch
+          BBG_REF=$(git ls-remote "https://github.com/vc-teahouse/Baseband-guard.git" refs/heads/main | awk '{print $1}')
+          BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_REF"
+          echo "BBG_REF=$BBG_REF" >> $GITHUB_ENV
+          echo "BBG_URL=$BBG_URL" >> $GITHUB_ENV
 
       - name: Generate and Create New Tag
+        if: inputs.release_type != 'Actions'
         run: |
             LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
             if [ -z "$LATEST_TAG" ]; then
@@ -111,6 +128,11 @@ jobs:
 
             git tag $NEW_TAG
             git push origin $NEW_TAG
+
+      - name: Set tag for Actions only
+        if: inputs.release_type == 'Actions'
+        run: |
+            echo "NEW_TAG=actions-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
 
       - name: Download Artifacts
         uses: actions/download-artifact@v5
@@ -128,14 +150,13 @@ jobs:
           Please ensure you have proper backups before installation.
 
           NEW:
-          -> **Symbol Fix Variant**: Normal build with additional hack for compatibility, if you encounter any issues with the normal build try this!
+          -> **Module Check Bypass Variant**: Normal build with additional hack for compatibility, if you encounter any issues with the normal build try this!
       
           Features:
           -> Wild KSU
-          -> Multi Manager Support for WKSU, KernelSU-Next, KSU, MKSU! Needs Testing: RKSU, xxKSU, KowSU and SukiSU (Best compatibility with WKSU, no support will be provided for other managers)
+          -> Multi Manager Support for WKSU, KernelSU-Next! Needs Testing: KSU, MKSU RKSU, xxKSU, KowSU and SukiSU (Best compatibility with WKSU, no support will be provided for other managers)
           -> SUSFS ඞ v1.5.11
           -> Scope-Minimized Manual hooks v1.4
-          -> Magic Mount Support
           -> Ptrace Patch Support for Older Kernels (<5.16)
           -> IPSet Support for Advanced Network Filtering
           -> Wireguard Support
@@ -152,11 +173,13 @@ jobs:
           -> https://github.com/sidex15/ksu_module_susfs
       
           Managers:
-          -> WKSU: https://t.me/Wild_Kernels/26618
+          -> WKSU: https://github.com/WildKernels/Wild_KSU
           -> Next: https://github.com/KernelSU-Next/KernelSU-Next
           
           Commit Hashes (at the time of release):
           -> WKSU: [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
+
+          -> Baseband-guard: [${{ env.BBG_REF }}](${{ env.BBG_URL }})
 
           -> SUSFS4KSU: 
             -> gki-android12-5.10: [${{ env.COMMIT_HASH_gki_android12_5_10 }}](${{ env.COMMIT_URL_gki_android12_5_10 }})
@@ -168,15 +191,17 @@ jobs:
           EOF
 
       - name: Create GitHub Release
+        if: inputs.release_type != 'Actions'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: false
+          prerelease: ${{ inputs.release_type == 'Pre-Release' }}
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
 
       - name: Upload Release Assets
+        if: inputs.release_type != 'Actions'
         run: |
           for file in ./downloaded-artifacts/*/*; do
             if [ -d "$file" ]; then
@@ -187,17 +212,26 @@ jobs:
           done
 
       - name: Display Files Uploaded
+        if: inputs.release_type != 'Actions'
         run: |
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
             
       - name: Send Telegram Notification
+        if: inputs.release_type != 'Actions'
         run: |
+          RELEASE_TYPE_TEXT=""
+          if [ "${{ inputs.release_type }}" == "Pre-Release" ]; then
+            RELEASE_TYPE_TEXT="🧪 *Pre-Release*"
+          else
+            RELEASE_TYPE_TEXT="🚀 *Release*"
+          fi
+          
           curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             -F message_thread_id="${{ secrets.TELEGRAM_TOPIC_ID_GKI }}" \
             -F text="
-            🌽 *New Kernel Release Uploaded*  
+            🌽 *New Kernel $RELEASE_TYPE_TEXT Uploaded*  
             📦 *Repository:* [${{ github.repository }}](https://github.com/${{ github.repository }})  
             ✏️ *Commit:* [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})  
             [🔗 View GitHub Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" \
