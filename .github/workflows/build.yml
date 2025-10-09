@@ -25,8 +25,8 @@ on:
 jobs:
   build-gki:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
     strategy:
+      fail-fast: false
       matrix:
         apply_module_check_bypass: [true, false]
 
