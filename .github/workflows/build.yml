@@ -393,7 +393,7 @@ jobs:
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
           
-          ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
+          ZIP_NAME="WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3.zip"
           zip -r "../$ZIP_NAME" ./*
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
@@ -508,7 +508,7 @@ jobs:
       - name: Upload AnyKernel3 ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3
           path: "*.zip"
 
       - name: Upload Boot Image (Uncompressed)
