@@ -14,6 +14,8 @@ jobs:
       matrix:
         include:
           - sub_level: "30"
+            os_patch_level: "2024-07"
+          - sub_level: "30"
             os_patch_level: "2024-08"
           - sub_level: "46"
             os_patch_level: "2024-09"
@@ -39,8 +41,10 @@ jobs:
             os_patch_level: "2025-07"
           - sub_level: "98"
             os_patch_level: "2025-08"
-          #- sub_level: "102"
-          #  os_patch_level: "2025-10"
+          - sub_level: "98"
+            os_patch_level: "2025-09"
+          - sub_level: "102"
+            os_patch_level: "2025-10"
           - sub_level: "X"
             os_patch_level: "lts"
     uses: ./.github/workflows/build.yml
