@@ -211,9 +211,9 @@ jobs:
               # Get the directory name without path
               dirname=$(basename "$dir")
               
-              # Create ZIP from AnyKernel3 directory
+              # Create ZIP from AnyKernel3 directory with maximum compression
               cd "$dir"
-              zip -r "../../${dirname}.zip" ./*
+              zip -9 -r "../../${dirname}.zip" ./*
               cd - > /dev/null
               
               echo "Created and uploading ${dirname}.zip..."
