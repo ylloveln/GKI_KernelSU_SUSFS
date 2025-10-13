@@ -542,6 +542,7 @@ jobs:
         with:
           name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3
           path: "*.zip"
+          compression-level: 0
 
       - name: Upload Patch Rejects (if any)
         if: ${{ always() && env.REJ_COUNT != '0' }}
