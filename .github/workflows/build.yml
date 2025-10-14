@@ -26,8 +26,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        apply_module_check_bypass: [true, false]
-        apply_susfs_v1_5_9: [true, false]
+        apply_module_check_bypass: ["normal", "bypass"]
+        apply_susfs_v1_5_9: ["v1.5.9", "v1.5.12"]
 
     steps:
       # # - name: Maximize Build Space
@@ -88,7 +88,7 @@ jobs:
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
           
           # Checkout specific commits for SUSFS v1.5.9 if enabled
-          if [ "${{ matrix.apply_susfs_v1_5_9 }}" = "true" ]; then
+          if [ "${{ matrix.apply_susfs_v1_5_9 }}" = "v1.5.9" ]; then
             cd susfs4ksu
             case "${{ inputs.android_version }}-${{ inputs.kernel_version }}" in
               "android15-6.6")
@@ -208,7 +208,7 @@ jobs:
           patch -p1 < 10_enable_susfs_for_ksu.patch || true
           
           # Apply compatibility fixes
-          if [ "${{ matrix.apply_susfs_v1_5_9 }}" = "true" ]; then
+          if [ "${{ matrix.apply_susfs_v1_5_9 }}" = "v1.5.9" ]; then
             SUSFS_VERSION="1.5.9"
           else
             SUSFS_VERSION="1.5.12"
@@ -278,7 +278,7 @@ jobs:
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' security/Kconfig
 
       - name: Apply Module Check Bypass
-        if: ${{ matrix.apply_module_check_bypass }}
+        if: ${{ matrix.apply_module_check_bypass == 'bypass' }}
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
             cd "$CONFIG/common/kernel/module"
@@ -418,7 +418,8 @@ jobs:
           if [ -n "$ACTUAL_SUBLEVEL" ]; then
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
-          ARTIFACT_BASE="WKSU-${{ env.KSUVER }}-${{ matrix.apply_susfs_v1_5_9 && 'SUSFS_v1.5.9' || 'SUSFS_v1.5.12' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${SUBLEVEL_FOR_NAME}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}"
+          # Add workflow run ID to ensure uniqueness across multiple workflow calls
+          ARTIFACT_BASE="WKSU-${{ env.KSUVER }}-SUSFS_${{ matrix.apply_susfs_v1_5_9 }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${SUBLEVEL_FOR_NAME}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass == 'bypass' && 'Module_Check_Bypass' || 'Normal' }}-${{ github.run_id }}"
           echo "ARTIFACT_BASE=$ARTIFACT_BASE" >> $GITHUB_ENV
           echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
 
