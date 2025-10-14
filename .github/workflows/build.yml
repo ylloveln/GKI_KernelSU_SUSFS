@@ -27,6 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         apply_module_check_bypass: [true, false]
+        apply_susfs_v1_5_9: [true, false]
 
     steps:
       # # - name: Maximize Build Space
@@ -86,32 +87,31 @@ jobs:
           git clone https://github.com/WildKernels/kernel_patches.git
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
           
-          ## Checkout specific commits for certain Android/kernel version combinations
-          #if [ "${{ inputs.android_version }}-${{ inputs.kernel_version }}" = "android12-5.10" ]; then
-          #  cd susfs4ksu
-          #  git checkout 0ed20c1656af7806a1760837ad320e62a8fb40fd
-          #  cd ..
-          #elif [ "${{ inputs.android_version }}-${{ inputs.kernel_version }}" = "android13-5.10" ]; then
-          #  cd susfs4ksu
-          #  git checkout 19e5b616464577c986e079cea0700428422bccb5
-          #  cd ..
-          #elif [ "${{ inputs.android_version }}-${{ inputs.kernel_version }}" = "android13-5.15" ]; then
-          #  cd susfs4ksu
-          #  git checkout b443e5be35cd8275b97a776f8cc84fbbf8169749
-          #  cd ..
-          #elif [ "${{ inputs.android_version }}-${{ inputs.kernel_version }}" = "android14-5.15" ]; then
-          #  cd susfs4ksu
-          #  git checkout 40823c6a92d072721c2c05f37776f69e3689ce8f
-          #  cd ..
-          #elif [ "${{ inputs.android_version }}-${{ inputs.kernel_version }}" = "android14-6.1" ]; then
-          #  cd susfs4ksu
-          #  git checkout 0e19a05277d28182c7b653580117145c53e69e92
-          #  cd ..
-          #elif [ "${{ inputs.android_version }}-${{ inputs.kernel_version }}" = "android15-6.6" ]; then
-          #  cd susfs4ksu
-          #  git checkout ef036830ec9d56035d63d328185281c09726b20f
-          #  cd ..
-          #fi
+          # Checkout specific commits for SUSFS v1.5.9 if enabled
+          if [ "${{ matrix.apply_susfs_v1_5_9 }}" = "true" ]; then
+            cd susfs4ksu
+            case "${{ inputs.android_version }}-${{ inputs.kernel_version }}" in
+              "android15-6.6")
+                git checkout 2598fee8963adab11c255bf28521df32912e027f
+                ;;
+              "android14-6.1")
+                git checkout 646cfabce9d5dba5b806e9cbe2c198128ebd0e69
+                ;;
+              "android14-5.15")
+                git checkout ab4d9570a9494a67c290002f3b28e69dd370a0f5
+                ;;
+              "android13-5.15")
+                git checkout a21f265695f2869a6f3fc71a70328aa6d0f4a3ae
+                ;;
+              "android13-5.10")
+                git checkout 8acbd10775a447f546b14c6bded6f476a7f4733f
+                ;;
+              "android12-5.10")
+                git checkout 6f42c0e24e35a6fa0fc43051a5f1e7dfe568e8c2
+                ;;
+            esac
+            cd ..
+          fi
           
 
       - name: Initialize and Sync Kernel Source
@@ -207,19 +207,25 @@ jobs:
           patch -p1 < 10_enable_susfs_for_ksu.patch || true
           
           # Apply compatibility fixes
-          cp ../../kernel_patches/wild/susfs_fix_patches/v1.5.11/fix_core_hook.c.patch ./
+          if [ "${{ matrix.apply_susfs_v1_5_9 }}" = "true" ]; then
+            SUSFS_VERSION="1.5.9"
+          else
+            SUSFS_VERSION="1.5.12"
+          fi
+          
+          cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_core_hook.c.patch ./
           patch -p1 < fix_core_hook.c.patch
           
           ## Skip fix_rules.c.patch for Android 14 with kernel 6.1
           #if [ "${{ inputs.android_version }}" != "android14" ] && [ "${{ inputs.kernel_version }}" != "6.1" ]; then
-          #  cp ../../kernel_patches/wild/susfs_fix_patches/v1.5.11/fix_rules.c.patch ./
+          #  cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_rules.c.patch ./
           #  patch -p1 < fix_rules.c.patch
           #fi
 
-          cp ../../kernel_patches/wild/susfs_fix_patches/v1.5.11/fix_sucompat.c.patch ./
+          cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_sucompat.c.patch ./
           patch -p1 < fix_sucompat.c.patch
 
-          cp ../../kernel_patches/wild/susfs_fix_patches/v1.5.11/fix_kernel_compat.c.patch ./
+          cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_kernel_compat.c.patch ./
           patch -p1 < fix_kernel_compat.c.patch
           
       - name: Apply Hooks Patches
@@ -403,6 +409,13 @@ jobs:
             tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
 
+      - name: Set file name
+        run: |
+          # Set artifact name base for consistent naming
+          ARTIFACT_BASE="WKSU-${{ env.KSUVER }}-${{ matrix.apply_susfs_v1_5_9 && 'SUSFS_v1.5.9' || 'SUSFS_v1.5.12' }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}"
+          echo "ARTIFACT_BASE=$ARTIFACT_BASE" >> $GITHUB_ENV
+          echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
+
       - name: Prepare AnyKernel3
         run: |
           # Copy Image from normal build locations
@@ -486,17 +499,17 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
+          cp ./boot.img ../${{ env.FILE_NAME }}-boot.img
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
+          cp ./boot-gz.img ../${{ env.FILE_NAME }}-boot-gz.img
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
+          cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
 
       - name: Android 13/14/15 boot image build script
         if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
@@ -512,22 +525,22 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
+          cp ./boot.img ../${{ env.FILE_NAME }}-boot.img
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
+          cp ./boot-gz.img ../${{ env.FILE_NAME }}-boot-gz.img
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../WKSU-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
+          cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
           
       - name: Upload AnyKernel3 Files
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3
+          name: ${{ env.FILE_NAME }}-AnyKernel3
           path: AnyKernel3/
           compression-level: 9
 
@@ -535,23 +548,23 @@ jobs:
         if: ${{ always() && env.REJ_COUNT != '0' }}
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-Patch-Rejects
+          name: ${{ env.FILE_NAME }}-Patch-Rejects
           path: patch-rejects
 
       - name: Upload Boot Image (Uncompressed)
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot
+          name: ${{ env.FILE_NAME }}-boot
           path: "*-boot.img"
 
       - name: Upload Boot Image (GZ Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz
+          name: ${{ env.FILE_NAME }}-boot-gz
           path: "*-boot-gz.img"
 
       - name: Upload Boot Image (LZ4 Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4
+          name: ${{ env.FILE_NAME }}-boot-lz4
           path: "*-boot-lz4.img"
