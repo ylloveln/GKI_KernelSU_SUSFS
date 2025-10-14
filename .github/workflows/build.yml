@@ -270,7 +270,7 @@ jobs:
           cd "$CONFIG"
           echo "Adding BBG..."
           wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
-          echo "CONFIG_BBG=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig
           sed -i '/^obj-\$$(CONFIG_BBG) += baseband_guard.o/i # Include kernel config symbols (safe point)\n-include $(srctree)/include/config/auto.conf' Baseband_guard/Makefile
 
