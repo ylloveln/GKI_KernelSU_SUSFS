@@ -55,7 +55,7 @@ jobs:
 
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_NAME: "!!TESTING!! GKI Kernels With WKSU & SUSFS v1.5.11 !!!TESTING!!!"
+      RELEASE_NAME: "!!TESTING!! GKI Kernels With WKSU & SUSFS v1.5.9/v1.5.12 !!!TESTING!!!"
       RELEASE_BODY:
     steps:
       # # - name: Maximize Build Space
@@ -121,7 +121,7 @@ jobs:
         run: |
             LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
             if [ -z "$LATEST_TAG" ]; then
-              LATEST_TAG="v1.5.11-r0"
+              LATEST_TAG="v1.5.12-r0"
             fi
             
             NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
@@ -158,7 +158,7 @@ jobs:
           Features:
           -> Wild KSU
           -> Multi Manager Support for WKSU, KernelSU-Next! Needs Testing: KSU, MKSU RKSU, xxKSU, KowSU and SukiSU (Best compatibility with WKSU, no support will be provided for other managers)
-          -> SUSFS ඞ v1.5.11
+          -> SUSFS ඞ v1.5.9/v1.5.12
           -> Scope-Minimized Manual hooks v1.4
           -> Ptrace Patch Support for Older Kernels (<5.16)
           -> IPSet Support for Advanced Network Filtering
