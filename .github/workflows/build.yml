@@ -398,18 +398,6 @@ jobs:
             perl -pi -e 's/^\s*"protected_exports_list"\s*:\s*"android\/abi_gki_protected_exports_aarch64",\s*$//;' ./common/BUILD.bazel
           fi
 
-      - name: Build
-        run : |
-          set -e
-          set -x
-          cd "$CONFIG"
-          echo "Building the kernel..."
-          if [ -f "build/build.sh" ]; then
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh || exit 1
-          else
-            tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
-          fi
-
       - name: Set file name
         run: |
           # Set artifact name base for consistent naming
@@ -428,6 +416,18 @@ jobs:
           echo "🔍 DEBUG: Matrix values - SUSFS: ${{ matrix.apply_susfs_v1_5_9 }}, Module Check: ${{ matrix.apply_module_check_bypass }}"
           echo "🔍 DEBUG: Input values - Android: ${{ inputs.android_version }}, Kernel: ${{ inputs.kernel_version }}, Sub-level: ${{ inputs.sub_level }}, OS Patch: ${{ inputs.os_patch_level }}"
           echo "🔍 DEBUG: Runtime values - Run ID: ${{ github.run_id }}, Job: ${{ github.job }}, KSU Version: ${{ env.KSUVER }}"
+
+      - name: Build
+        run : |
+          set -e
+          set -x
+          cd "$CONFIG"
+          echo "Building the kernel..."
+          if [ -f "build/build.sh" ]; then
+            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh || exit 1
+          else
+            tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
+          fi
 
       - name: Prepare AnyKernel3
         run: |
