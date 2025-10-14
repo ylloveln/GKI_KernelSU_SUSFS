@@ -34,61 +34,74 @@ body:
   - type: input
     attributes:
         label: Device Model
-        description: Your device model (e.g., Pixel 7 Pro, Samsung Galaxy S23)
-        placeholder: "e.g., Pixel 7 Pro"
+        description: Your device model
+        placeholder: "e.g., Google Pixel 8"
     validations:
         required: true
 
   - type: input
     attributes:
         label: Android Version
-        description: Your Android version (e.g., Android 14, Android 15)
-        placeholder: "e.g., Android 14"
+        description: Your Android version
+        placeholder: "e.g., Android 16"
     validations:
         required: true
 
   - type: input
     attributes:
-        label: KernelSU Version
-        description: Your KernelSU version number
-        placeholder: "e.g., v0.7.6 or build number"
+        label: Stock Kernel Version
+        description: The original kernel version on your device
+        placeholder: "e.g., 6.1.134-android14"
     validations:
         required: true
 
   - type: input
     attributes:
-        label: Kernel Version
-        description: The kernel version you're using from this repository
-        placeholder: "e.g., android14-6.1.57-2024-09"
+        label: Kernel Flashed Version
+        description: The kernel version you flashed
+        placeholder: "e.g., 6.1.134-android14"
     validations:
         required: true
 
   - type: input
     attributes:
-        label: SUSFS Version
-        description: Your SUSFS version
-        placeholder: "e.g., v1.5.11"
+        label: WKSU Kernel Version
+        description: Your WKSU kernel version number
+        placeholder: "e.g., 13971"
     validations:
         required: true
 
-  - type: dropdown
+  - type: input
     attributes:
-        label: Build Variant
-        description: Which build variant are you using?
-        options:
-          - Normal
-          - Module Check Bypass
+        label: Manager
+        description: Which KernelSU manager you're using
+        placeholder: "e.g., Wild KSU"
+    validations:
+        required: true
+
+  - type: input
+    attributes:
+        label: Manager Version
+        description: Your manager version
+        placeholder: "e.g., v0.0.165(13974)"
+    validations:
+        required: true
+
+  - type: input
+    attributes:
+        label: Release Flashed
+        description: Which release version you flashed
+        placeholder: "e.g., v1.5.12-r2"
     validations:
         required: true
 
   - type: checkboxes
     attributes:
-        label: Root Method
-        description: How did you obtain root access?
+        label: Tried Both Normal and Module Bypass
+        description: Have you tested both build variants?
         options:
-          - label: KernelSU (this kernel)
-          - label: Magisk
-          - label: Other (specify in additional context)
+          - label: "Yes, I have tried both Normal and Module Check Bypass variants"
+          - label: "No, I have only tried one variant (specify which in additional context)"
     validations:
         required: true
     
