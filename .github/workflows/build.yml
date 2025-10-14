@@ -536,7 +536,7 @@ jobs:
         if: ${{ always() && env.REJ_COUNT != '0' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Patch-Rejects-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}
+          name: WKSU-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-Patch-Rejects
           path: patch-rejects
 
       - name: Upload Boot Image (Uncompressed)
