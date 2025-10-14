@@ -110,7 +110,7 @@ body:
 
   - type: textarea
     attributes:
-        label: Describe the bug
+        label: Describe the bug and attach any screenshots*
         description: A clear and concise description of what the bug is
     validations:
         required: true
