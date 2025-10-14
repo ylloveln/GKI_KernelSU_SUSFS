@@ -263,21 +263,6 @@ jobs:
               fi
               echo "$REL" >> "$REJECTS_DIR/index.txt"
             done
-            # Add to GitHub step summary
-            {
-              echo "## ⚠️ Patch Rejects Found"
-              echo "Found $REJ_COUNT patch reject(s) during build:"
-              echo ""
-              cat "$REJECTS_DIR/index.txt" | sed 's/^/- `/' | sed 's/$/`/'
-              echo ""
-              echo "Check the patch-rejects artifact for details."
-            } >> "$GITHUB_STEP_SUMMARY" || true
-          else
-            # Add success message to GitHub step summary
-            {
-              echo "## ✅ Build Status"
-              echo "All patches applied successfully - no rejects found!"
-            } >> "$GITHUB_STEP_SUMMARY" || true
           fi
 
       - name: Add BBG

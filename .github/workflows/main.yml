@@ -218,16 +218,13 @@ jobs:
         run: |
           for dir in ./downloaded-artifacts/*/; do
             if [ -d "$dir" ]; then
-              # Get the directory name without path
-              dirname=$(basename "$dir")
-              
-              # Create ZIP from AnyKernel3 directory with maximum compression
-              cd "$dir"
-              zip -9 -r "../../${dirname}.zip" ./*
-              cd - > /dev/null
-              
-              echo "Created and uploading ${dirname}.zip..."
-              gh release upload ${{ env.NEW_TAG }} "${dirname}.zip"
+              # Upload only AnyKernel3 ZIP files (created in build.yml)
+              for zipfile in "$dir"/*-AnyKernel3.zip; do
+                if [ -f "$zipfile" ]; then
+                  echo "Uploading $(basename "$zipfile")..."
+                  gh release upload ${{ env.NEW_TAG }} "$zipfile"
+                fi
+              done
             fi
           done
 
