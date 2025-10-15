@@ -86,7 +86,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_NAME: "!!TESTING!! GKI Kernels With WKSU & SUSFS v1.5.9/v1.5.12 !!!TESTING!!!"
-      RELEASE_BODY:
+      RELEASE_BODY: ""
     steps:
       # # - name: Maximize Build Space
         # uses: AdityaGarg8/remove-unwanted-software@v5
