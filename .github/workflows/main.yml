@@ -241,8 +241,12 @@ jobs:
               # Upload only AnyKernel3 ZIP files (created in build.yml)
               for zipfile in "$dir"/*-AnyKernel3.zip; do
                 if [ -f "$zipfile" ]; then
+                  echo "Re-compressing $(basename "$zipfile") with maximum compression..."
+                  unzip -q "$zipfile" -d temp_extract
+                  zip -r -9 "$(basename "$zipfile")" temp_extract/*
                   echo "Uploading $(basename "$zipfile")..."
-                  gh release upload ${{ env.NEW_TAG }} "$zipfile"
+                  gh release upload ${{ env.NEW_TAG }} "$(basename "$zipfile")"
+                  rm -rf temp_extract "$(basename "$zipfile")"
                 fi
               done
             fi

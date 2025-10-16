@@ -533,11 +533,19 @@ jobs:
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
-          
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FILE_NAME }}-Complete-Build
+          name: ${{ env.FILE_NAME }}-AnyKernel3
+          path: |
+            AnyKernel3/
+          compression-level: 9
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-Boot
           path: |
             AnyKernel3/
             *-boot.img
@@ -545,9 +553,10 @@ jobs:
             *-boot-lz4.img
           compression-level: 9
 
-      - name: Upload Build Summary & Diagnostics
+      - name: Upload Build Diagnostics
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FILE_NAME }}-Build-Summary
+          name: ${{ env.FILE_NAME }}-Rejected-Patches
           path: patch-rejects
+          compression-level: 9
