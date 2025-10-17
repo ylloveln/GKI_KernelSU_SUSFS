@@ -301,13 +301,12 @@ jobs:
           
           # Confirm baseband_guard is now present (should output the line if successful)
           echo "=== Confirmation: grep for baseband_guard ==="
-          grep "baseband_guard" common/security/Kconfig || echo "WARNING: baseband_guard not found after sed"
-          
-          # Optional: Show exit status of sed (0 = success)
-          if [ $? -eq 0 ]; then
-            echo "sed command succeeded (exit 0)."
+          if ! grep -q "baseband_guard" common/security/Kconfig; then
+            echo "ERROR: baseband_guard not found after sed - stopping workflow"
+            exit 1
           else
-            echo "sed command failed (exit $?)."
+            echo "SUCCESS: baseband_guard found in security configuration"
+            grep "baseband_guard" common/security/Kconfig
           fi
 
       - name: Apply Module Check Bypass
