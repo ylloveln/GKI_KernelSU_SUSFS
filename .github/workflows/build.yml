@@ -292,8 +292,8 @@ jobs:
           echo "=== Before sed ==="
           sed -n '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ p }' common/security/Kconfig
           
-          # Apply the sed (your original command)
-          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig
+          # Apply the sed command to add baseband_guard to default security configurations
+          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! { s/default ""/default "baseband_guard"/; s/default "\([^"]*\)"/default "baseband_guard,\1"/ } } }' common/security/Kconfig
           
           # After sed: Show the updated LSM default line
           echo "=== After sed ==="
