@@ -626,3 +626,105 @@ jobs:
           name: ${{ env.FILE_NAME }}-Rejected-Patches
           path: patch-rejects
           compression-level: 9
+
+      - name: Create Comprehensive Build Summary
+        if: ${{ always() }}
+        run: |
+          # Get actual commit hashes from the cloned repositories (not latest from remote)
+          cd "$CONFIG"
+          
+          # Get actual WKSU commit hash from the cloned Wild_KSU directory
+          if [ -d "Wild_KSU" ]; then
+            cd Wild_KSU
+            ACTUAL_WKSU_REF=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+            ACTUAL_WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$ACTUAL_WKSU_REF"
+            cd ..
+          else
+            ACTUAL_WKSU_REF="not-cloned"
+            ACTUAL_WKSU_URL="N/A"
+          fi
+          
+          # Get actual SUSFS commit hash from the applied patches
+          if [ -d "../susfs4ksu" ]; then
+            cd ../susfs4ksu
+            ACTUAL_SUSFS_REF=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+            ACTUAL_SUSFS_URL="https://gitlab.com/simonpunk/susfs4ksu/-/commit/$ACTUAL_SUSFS_REF"
+            cd "$CONFIG"
+          else
+            ACTUAL_SUSFS_REF="not-cloned"
+            ACTUAL_SUSFS_URL="N/A"
+          fi
+          
+          # Get actual BBG commit hash from the applied patches
+          if [ -d "../baseband_guard" ]; then
+            cd ../baseband_guard
+            ACTUAL_BBG_REF=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+            ACTUAL_BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$ACTUAL_BBG_REF"
+            cd "$CONFIG"
+          else
+            ACTUAL_BBG_REF="not-cloned"
+            ACTUAL_BBG_URL="N/A"
+          fi
+          
+          # Create comprehensive build summary
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Comprehensive Kernel Build Summary
+          
+          ### Build Configuration
+          - **Android Version:** ${{ inputs.android_version }}
+          - **Kernel Version:** ${{ inputs.kernel_version }}
+          - **Sub Level:** ${{ inputs.sub_level }}${ACTUAL_SUBLEVEL:+ (Actual: $ACTUAL_SUBLEVEL)}
+          - **OS Patch Level:** ${{ inputs.os_patch_level }}
+          - **KernelSU Version:** ${{ env.KSUVER }}
+          - **SUSFS Version:** ${{ inputs.susfs_version }}
+          - **Module Check:** ${{ matrix.apply_module_check_bypass == 'bypass' ? 'Bypass' : 'Normal' }}
+          
+          ### Build Timeline
+          - **Build Started:** $(date -d '@${{ github.event.head_commit.timestamp }}' +'%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || echo "Unknown")
+          - **Build Completed:** $BUILD_END_TIME
+          - **Build Status:** ${{ job.status }}
+          
+          ### Actual Commit Hashes (Used in Build)
+          > These are the actual commits that were used in this build, not the latest from remote
+          
+          → **WKSU (Wild KernelSU):** [$ACTUAL_WKSU_REF]($ACTUAL_WKSU_URL)
+          
+          → **Baseband-guard:** [$ACTUAL_BBG_REF]($ACTUAL_BBG_URL)
+          
+          → **SUSFS4KSU ($SUSFS_BRANCH):** [$ACTUAL_SUSFS_REF]($ACTUAL_SUSFS_URL)
+          
+          ### Remote Reference Commits (Latest at Build Time)
+          > These were the latest commits available when the build started
+          
+          → **WKSU Remote:** [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
+          
+          → **Baseband-guard Remote:** [${{ env.BBG_REF }}](${{ env.BBG_URL }})
+          
+          → **SUSFS4KSU Remote:** [${{ env.SUSFS_REF }}](${{ env.SUSFS_URL }})
+          
+          ### Workflow Information
+          - **Workflow:** ${{ github.workflow }}
+          - **Run ID:** ${{ github.run_id }}
+          - **Run Number:** ${{ github.run_number }}
+          
+          ### Generated Artifacts ($ARTIFACT_COUNT items)
+          $ARTIFACT_LIST
+          
+          ### Patch Rejection Details
+          EOF
+          
+          # Add patch rejection details if any exist
+          if [ "${REJ_COUNT:-0}" -gt 0 ] && [ -f "../patch-rejects/index.txt" ]; then
+            echo "**Rejected patch files:**" >> $GITHUB_STEP_SUMMARY
+            while IFS= read -r rejected_file; do
+              echo "- \`$rejected_file\`" >> $GITHUB_STEP_SUMMARY
+            done < "../patch-rejects/index.txt"
+          else
+            echo "No patch rejections detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          
+          ---
+          *Build completed with actual commit hashes and patch rejection status above.*
+          EOF
