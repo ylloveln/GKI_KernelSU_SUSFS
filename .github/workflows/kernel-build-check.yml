@@ -6,6 +6,15 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      susfs_version:
+        description: 'SUSFS Version'
+        required: false
+        type: choice
+        options:
+          - 'v1.5.9'
+          - 'v1.5.12'
+        default: 'v1.5.12'
 
 jobs:
   build-check:
@@ -93,3 +102,4 @@ jobs:
       kernel_version: ${{ matrix.kernel_config.kernel_version }}
       sub_level: ${{ matrix.kernel_config.sub_level }}
       os_patch_level: ${{ matrix.kernel_config.os_patch_level }}
+      susfs_version: ${{ inputs.susfs_version }}
