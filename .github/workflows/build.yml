@@ -435,6 +435,15 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "$defconfig"
           
+          # Sound Configuration
+          echo "CONFIG_SND=y" >> "$defconfig"
+          echo "CONFIG_SND_DRIVERS=y" >> "$defconfig"
+          echo "CONFIG_SND_PCM=y" >> "$defconfig"
+          echo "CONFIG_SND_TIMER=y" >> "$defconfig"
+          echo "CONFIG_SND_DYNAMIC_MINORS=y" >> "$defconfig"
+          echo "CONFIG_SND_PROC_FS=y" >> "$defconfig"
+          echo "CONFIG_SND_ALOOP=m" >> "$defconfig"
+          
           # Build Optimization Configuration
           echo "CONFIG_LTO_CLANG_THIN=y" >> "$defconfig"
           echo "CONFIG_LTO_CLANG=y" >> "$defconfig"
@@ -498,6 +507,73 @@ jobs:
           else
             echo "Error: Image file not found in any expected location"
             exit 1
+          fi
+
+      - name: Scan and Copy Kernel Modules
+        run: |
+          echo "Scanning for kernel modules (.ko files)..."
+          
+          # Create modules directory in AnyKernel3 if it doesn't exist
+          mkdir -p AnyKernel3/modules
+          
+          # Function to scan and copy modules
+          scan_and_copy_modules() {
+            local search_dir="$1"
+            local module_count=0
+            
+            if [ -d "$search_dir" ]; then
+              echo "Scanning directory: $search_dir"
+              
+              # Find all .ko files and copy them
+              while IFS= read -r -d '' module_file; do
+                if [ -f "$module_file" ]; then
+                  module_name=$(basename "$module_file")
+                  echo "Found module: $module_name in $(dirname "$module_file")"
+                  cp "$module_file" "AnyKernel3/modules/"
+                  ((module_count++))
+                fi
+              done < <(find "$search_dir" -name "*.ko" -type f -print0 2>/dev/null)
+            fi
+            
+            return $module_count
+          }
+          
+          # Scan common build output directories
+          total_modules=0
+          
+          # Scan bazel-bin directory
+          if scan_and_copy_modules "./$CONFIG/bazel-bin"; then
+            total_modules=$((total_modules + $?))
+          fi
+          
+          # Scan out directory
+          if scan_and_copy_modules "./$CONFIG/out"; then
+            total_modules=$((total_modules + $?))
+          fi
+          
+          # Scan dist directory specifically
+          if scan_and_copy_modules "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist"; then
+            total_modules=$((total_modules + $?))
+          fi
+          
+          # Look for snd-aloop.ko specifically
+          echo "Searching specifically for snd-aloop.ko..."
+          snd_aloop_found=$(find ./$CONFIG -name "snd-aloop.ko" -type f 2>/dev/null | head -1)
+          if [ -n "$snd_aloop_found" ]; then
+            echo "Found snd-aloop.ko at: $snd_aloop_found"
+            cp "$snd_aloop_found" "AnyKernel3/modules/"
+          else
+            echo "snd-aloop.ko not found"
+          fi
+          
+          echo "Total kernel modules found and copied: $total_modules"
+          
+          # List all modules in AnyKernel3/modules
+          if [ -d "AnyKernel3/modules" ] && [ "$(ls -A AnyKernel3/modules)" ]; then
+            echo "Modules copied to AnyKernel3/modules:"
+            ls -la AnyKernel3/modules/
+          else
+            echo "No modules were copied to AnyKernel3/modules"
           fi
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
