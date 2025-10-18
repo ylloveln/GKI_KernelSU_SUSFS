@@ -435,15 +435,6 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> "$defconfig"
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "$defconfig"
           
-          # Sound Configuration
-          echo "CONFIG_SND=y" >> "$defconfig"
-          echo "CONFIG_SND_DRIVERS=y" >> "$defconfig"
-          echo "CONFIG_SND_PCM=y" >> "$defconfig"
-          echo "CONFIG_SND_TIMER=y" >> "$defconfig"
-          echo "CONFIG_SND_DYNAMIC_MINORS=y" >> "$defconfig"
-          echo "CONFIG_SND_PROC_FS=y" >> "$defconfig"
-          echo "CONFIG_SND_ALOOP=y" >> "$defconfig"
-          
           # Build Optimization Configuration
           echo "CONFIG_LTO_CLANG_THIN=y" >> "$defconfig"
           echo "CONFIG_LTO_CLANG=y" >> "$defconfig"
