@@ -177,7 +177,16 @@ jobs:
               
               cd ../..
               if [ -d "$OLD_CONFIG" ]; then
+                echo "Renaming directory from $OLD_CONFIG to $NEW_CONFIG"
                 mv "$OLD_CONFIG" "$NEW_CONFIG"
+                if [ ! -d "$NEW_CONFIG" ]; then
+                  echo "Error: Directory rename failed, $NEW_CONFIG does not exist"
+                  exit 1
+                fi
+                echo "Directory successfully renamed to $NEW_CONFIG"
+              else
+                echo "Error: Source directory $OLD_CONFIG does not exist"
+                exit 1
               fi
             fi
           fi
@@ -436,13 +445,13 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "$defconfig"
           
           # Sound Configuration
-          echo "CONFIG_SND=y" >> "$defconfig"
-          echo "CONFIG_SND_DRIVERS=y" >> "$defconfig"
-          echo "CONFIG_SND_PCM=y" >> "$defconfig"
-          echo "CONFIG_SND_TIMER=y" >> "$defconfig"
-          echo "CONFIG_SND_DYNAMIC_MINORS=y" >> "$defconfig"
-          echo "CONFIG_SND_PROC_FS=y" >> "$defconfig"
-          echo "CONFIG_SND_ALOOP=m" >> "$defconfig"
+          #echo "CONFIG_SND=y" >> "$defconfig"
+          #echo "CONFIG_SND_DRIVERS=y" >> "$defconfig"
+          #echo "CONFIG_SND_PCM=y" >> "$defconfig"
+          #echo "CONFIG_SND_TIMER=y" >> "$defconfig"
+          #echo "CONFIG_SND_DYNAMIC_MINORS=y" >> "$defconfig"
+          #echo "CONFIG_SND_PROC_FS=y" >> "$defconfig"
+          #echo "CONFIG_SND_ALOOP=m" >> "$defconfig"
           
           # Build Optimization Configuration
           echo "CONFIG_LTO_CLANG_THIN=y" >> "$defconfig"
