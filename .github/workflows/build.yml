@@ -509,27 +509,23 @@ jobs:
             exit 1
           fi
 
-      - name: Scan and Copy Kernel Modules
+      - name: Search for Kernel Modules
         run: |
-          echo "Scanning for kernel modules (.ko files)..."
+          echo "Searching for kernel modules (.ko files)..."
           
-          # Create modules directory in AnyKernel3 if it doesn't exist
-          mkdir -p AnyKernel3/modules
-          
-          # Function to scan and copy modules
-          scan_and_copy_modules() {
+          # Function to scan for modules (search only)
+          scan_modules() {
             local search_dir="$1"
             local module_count=0
             
             if [ -d "$search_dir" ]; then
               echo "Scanning directory: $search_dir"
               
-              # Find all .ko files and copy them
+              # Find all .ko files and report their locations
               while IFS= read -r -d '' module_file; do
                 if [ -f "$module_file" ]; then
                   module_name=$(basename "$module_file")
                   echo "Found module: $module_name in $(dirname "$module_file")"
-                  cp "$module_file" "AnyKernel3/modules/"
                   ((module_count++))
                 fi
               done < <(find "$search_dir" -name "*.ko" -type f -print0 2>/dev/null)
@@ -542,17 +538,17 @@ jobs:
           total_modules=0
           
           # Scan bazel-bin directory
-          if scan_and_copy_modules "./$CONFIG/bazel-bin"; then
+          if scan_modules "./$CONFIG/bazel-bin"; then
             total_modules=$((total_modules + $?))
           fi
           
           # Scan out directory
-          if scan_and_copy_modules "./$CONFIG/out"; then
+          if scan_modules "./$CONFIG/out"; then
             total_modules=$((total_modules + $?))
           fi
           
           # Scan dist directory specifically
-          if scan_and_copy_modules "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist"; then
+          if scan_modules "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist"; then
             total_modules=$((total_modules + $?))
           fi
           
@@ -561,20 +557,11 @@ jobs:
           snd_aloop_found=$(find ./$CONFIG -name "snd-aloop.ko" -type f 2>/dev/null | head -1)
           if [ -n "$snd_aloop_found" ]; then
             echo "Found snd-aloop.ko at: $snd_aloop_found"
-            cp "$snd_aloop_found" "AnyKernel3/modules/"
           else
             echo "snd-aloop.ko not found"
           fi
           
-          echo "Total kernel modules found and copied: $total_modules"
-          
-          # List all modules in AnyKernel3/modules
-          if [ -d "AnyKernel3/modules" ] && [ "$(ls -A AnyKernel3/modules)" ]; then
-            echo "Modules copied to AnyKernel3/modules:"
-            ls -la AnyKernel3/modules/
-          else
-            echo "No modules were copied to AnyKernel3/modules"
-          fi
+          echo "Total kernel modules found: $total_modules"
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
