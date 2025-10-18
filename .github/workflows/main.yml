@@ -166,10 +166,10 @@ jobs:
           echo "BBG_REF=$BBG_REF" >> $GITHUB_ENV
           echo "BBG_URL=$BBG_URL" >> $GITHUB_ENV
 
-      - name: Generate and Create New Tag
+      - name: Generate New Tag
         if: inputs.release_type != 'Actions'
         run: |
-            LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
+            LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name' 2>/dev/null || echo "")
             if [ -z "$LATEST_TAG" ]; then
               LATEST_TAG="v1.5.12-r0"
             fi
@@ -178,9 +178,6 @@ jobs:
     
             echo "New tag: $NEW_TAG"
             echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
-
-            git tag $NEW_TAG
-            git push origin $NEW_TAG
 
       - name: Set tag for Actions only
         if: inputs.release_type == 'Actions'
