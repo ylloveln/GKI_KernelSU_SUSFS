@@ -677,7 +677,7 @@ jobs:
           - **OS Patch Level:** ${{ inputs.os_patch_level }}
           - **KernelSU Version:** ${{ env.KSUVER }}
           - **SUSFS Version:** ${{ inputs.susfs_version }}
-          - **Module Check:** ${{ matrix.apply_module_check_bypass == 'bypass' ? 'Bypass' : 'Normal' }}
+          - **Module Check:** ${{ matrix.apply_module_check_bypass == 'bypass' && 'Bypass' || 'Normal' }}
           
           ### Build Timeline
           - **Build Started:** $(date -d '@${{ github.event.head_commit.timestamp }}' +'%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || echo "Unknown")
