@@ -269,7 +269,7 @@ jobs:
           done
 
       - name: Display Files Uploaded
-        if: inputs.release_type != 'Actions'
+        if: inputs.release_type != 'Actions' && inputs.release_type != 'Release (No Artifacts)'
         run: |
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
