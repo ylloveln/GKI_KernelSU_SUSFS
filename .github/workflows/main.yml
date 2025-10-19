@@ -25,6 +25,7 @@ on:
           - Actions
           - Pre-Release
           - Release
+          - Release (No Artifacts)
         default: Actions
       build_selection:
         description: "Choose which kernels to build"
@@ -251,7 +252,7 @@ jobs:
           body_path: release_body.md
 
       - name: Upload Release Assets
-        if: inputs.release_type != 'Actions'
+        if: inputs.release_type != 'Actions' && inputs.release_type != 'Release (No Artifacts)'
         run: |
           for dir in ./downloaded-artifacts/*/; do
             # Create ZIP files from AnyKernel3 directories
@@ -278,6 +279,8 @@ jobs:
           RELEASE_TYPE_TEXT=""
           if [ "${{ inputs.release_type }}" == "Pre-Release" ]; then
             RELEASE_TYPE_TEXT="🧪 *Pre-Release*"
+          elif [ "${{ inputs.release_type }}" == "Release (No Artifacts)" ]; then
+            RELEASE_TYPE_TEXT="🚀 *Release*"
           else
             RELEASE_TYPE_TEXT="🚀 *Release*"
           fi
