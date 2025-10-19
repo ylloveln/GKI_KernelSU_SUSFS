@@ -255,7 +255,18 @@ jobs:
         run: |
           for dir in ./downloaded-artifacts/*/; do
             if [ -d "$dir" ]; then
-              # Upload only AnyKernel3 ZIP files (created in build.yml)
+              # Create ZIP files from AnyKernel3 directories
+              if [ -d "$dir/AnyKernel3" ]; then
+                artifact_name=$(basename "$dir")
+                echo "Creating ZIP for $artifact_name..."
+                cd "$dir"
+                zip -r -9 "${artifact_name}-AnyKernel3.zip" AnyKernel3/
+                echo "Uploading ${artifact_name}-AnyKernel3.zip..."
+                gh release upload ${{ env.NEW_TAG }} "${artifact_name}-AnyKernel3.zip"
+                cd - > /dev/null
+              fi
+              
+              # Also upload any existing ZIP files (fallback)
               for zipfile in "$dir"/*-AnyKernel3.zip; do
                 if [ -f "$zipfile" ]; then
                   echo "Re-compressing $(basename "$zipfile") with maximum compression..."
