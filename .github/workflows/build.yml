@@ -766,16 +766,19 @@ jobs:
           path: patch-rejects
           compression-level: 9
           
-      - name: Generate Kernel Summary
+      - name: Initialize Kernel Summary
         run: |
           # Create a build variant identifier
           BUILD_VARIANT="Android ${{ inputs.android_version }} - Kernel ${{ inputs.kernel_version }}.${{ inputs.sub_level }} - BBG: ${{ matrix.apply_bbg }} - Bypass: ${{ matrix.apply_bypass }}"
+          echo "BUILD_VARIANT=$BUILD_VARIANT" >> $GITHUB_ENV
           
           echo "# Kernel Build Summary" >> $GITHUB_STEP_SUMMARY
           
           # Create a group for this specific build variant
           echo "::group::$BUILD_VARIANT" >> $GITHUB_STEP_SUMMARY
-          
+      
+      - name: Add Build Information
+        run: |
           # Add build info
           echo "## Build Information" >> $GITHUB_STEP_SUMMARY
           echo "- **Android Version**: ${{ inputs.android_version }}" >> $GITHUB_STEP_SUMMARY
@@ -783,16 +786,17 @@ jobs:
           echo "- **BBG Status**: ${{ matrix.apply_bbg }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Bypass Mode**: ${{ matrix.apply_bypass }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Add component versions
-          echo "## Component Versions" >> $GITHUB_STEP_SUMMARY
-          
+
+      - name: Add KSU Version
+        run: |
           # Get Wild_KSU commit
           cd "$CONFIG/Wild_KSU"
           WKSU_COMMIT=$(git rev-parse HEAD)
           WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_COMMIT"
           echo "- **Wild_KSU**: [$WKSU_COMMIT]($WKSU_URL)" >> $GITHUB_STEP_SUMMARY
           
+      - name: Add BBG Version
+        run: |
           # Get BBG status
           if [ "${{ matrix.apply_bbg }}" == "bbg" ]; then
             cd "$CONFIG/Baseband-guard"
@@ -803,13 +807,17 @@ jobs:
             echo "- **Baseband-guard**: Not installed" >> $GITHUB_STEP_SUMMARY
           fi
           
+      - name: Add SUSFS Version
+        run: |
           # Get SUSFS4KSU commit
           cd "$GITHUB_WORKSPACE/susfs4ksu"
           SUSFS_COMMIT=$(git rev-parse HEAD)
           SUSFS_URL="https://gitlab.com/simonpunk/susfs4ksu/-/commit/$SUSFS_COMMIT"
           echo "- **SUSFS4KSU (${{ inputs.susfs_version }})**: [$SUSFS_COMMIT]($SUSFS_URL)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+      
+      - name: Add Build Artifacts
+        run: |
           # Add links to the artifacts for this build
           echo "## Build Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- **AnyKernel3**: [${{ env.FILE_NAME }}-AnyKernel3](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
