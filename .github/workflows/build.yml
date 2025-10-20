@@ -461,6 +461,11 @@ jobs:
           echo "CONFIG_SND_ALOOP=m" >> "$defconfig"
           echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
           
+          # Add sound symbols to abi_symbollist
+          for s in snd_card_ref snd_ecards_limit snd_info_get_line snd_pcm_format_set_silence snd_pcm_stop snd_pcm_stop_xrun snd_timer_close snd_timer_instance_free snd_timer_instance_new snd_timer_open snd_timer_start snd_timer_stop; do 
+              grep -qxF "$s" build/abi/abi_symbollist || echo "$s" >> build/abi/abi_symbollist 
+          done
+          
           # Build Optimization Configuration
           echo "CONFIG_LTO_CLANG_THIN=y" >> "$defconfig"
           echo "CONFIG_LTO_CLANG=y" >> "$defconfig"
