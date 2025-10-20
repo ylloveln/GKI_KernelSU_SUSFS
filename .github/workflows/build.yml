@@ -514,7 +514,7 @@ jobs:
           if [ -f "build/build.sh" ]; then
             echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
           else
-            sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/]/ { /]/ i\    "sound/drivers/snd-aloop.ko", }' common/modules.bzl
+            sed -i '/_COMMON_GKI_MODULES_LIST = \\[/,/\\]/ s/\\]/    "sound\/drivers\/snd-aloop.ko",\\n&/' common/modules.bzl
           fi
           
           # Add symbols to abi_gki_aarch64
