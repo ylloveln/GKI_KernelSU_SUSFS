@@ -34,6 +34,10 @@ jobs:
         apply_bbg: ["bbg", "no-bbg"]
 
     steps:
+      - name: Check Initial Disk Space
+        run: |
+          echo "===== Initial Total Disk Space in GB ====="
+          df -BG
       - name: Maximize Build Space
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
@@ -46,6 +50,11 @@ jobs:
           remove-swapfile: 'true'        # Frees ~4 GB
           remove-cached-tools: 'false'   # Avoid unless confirmed safe
           verbose: 'true'                # Enable detailed logging
+          
+      - name: Check Disk Space After Cleanup
+        run: |
+          echo "===== Total Disk Space After Cleanup in GB ====="
+          df -BG
           
       - name: Set CONFIG Environment Variable
         run: |
@@ -160,6 +169,18 @@ jobs:
           fi
           
           $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+          
+      - name: Check Directory Space Usage
+        run: |
+          echo "===== Total Disk Space After Kernel Download in GB ====="
+          df -BG
+          
+          echo "===== Directory Space Usage in GB ====="
+          du -BG -d 1 | sort -nr
+          
+          echo "===== $CONFIG Directory Space Usage in GB ====="
+          cd "$CONFIG"
+          du -BG -d 2 | sort -nr
 
       - name: Extract Actual Sublevel for LTS Builds
         if: inputs.sub_level == 'X'
@@ -476,29 +497,29 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "${{ env.DEFCONFIG }}"
 
-      - name: Configure Sound
-        run: |
-          cd "$CONFIG"
-          # Sound Configuration
-          echo "# Sound Configuration" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND=y" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND_DRIVERS=y" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND_PCM=y" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND_TIMER=y" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND_DYNAMIC_MINORS=y" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND_PROC_FS=y" >> "${{ env.DEFCONFIG }}"
-          echo "CONFIG_SND_ALOOP=m" >> "${{ env.DEFCONFIG }}"
-          
-          # Add snd-aloop.ko to modules list
-          if [ -f "build/build.sh" ]; thena
-            echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
-          else
-            sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/]/ { /]/ i\    "sound/drivers/snd-aloop.ko", }' common/modules.bzl
-          fi
-          
-          # Add symbols to abi_gki_aarch64
-          SYMBOL_LIST=common/android/abi_gki_aarch64
-          cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
+#      - name: Configure Sound
+#        run: |
+#          cd "$CONFIG"
+#          # Sound Configuration
+#          echo "# Sound Configuration" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND=y" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND_DRIVERS=y" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND_PCM=y" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND_TIMER=y" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND_DYNAMIC_MINORS=y" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND_PROC_FS=y" >> "${{ env.DEFCONFIG }}"
+#          echo "CONFIG_SND_ALOOP=m" >> "${{ env.DEFCONFIG }}"
+#          
+#          # Add snd-aloop.ko to modules list
+#          if [ -f "build/build.sh" ]; thena
+#            echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
+#          else
+#            sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/]/ { /]/ i\    "sound/drivers/snd-aloop.ko", }' common/modules.bzl
+#          fi
+#          
+#          # Add symbols to abi_gki_aarch64
+#          SYMBOL_LIST=common/android/abi_gki_aarch64
+#          cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
 
       - name: Configure Build Optimization
         run: |
