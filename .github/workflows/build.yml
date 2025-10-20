@@ -412,18 +412,23 @@ jobs:
           
           # IPSet support
           echo "CONFIG_IP_SET=y" >> "$defconfig"
-          echo "CONFIG_IP_SET_MAX=256" >> "$defconfig"
+          echo "CONFIG_IP_SET_MAX=65534" >> "$defconfig"
           echo "CONFIG_IP_SET_BITMAP_IP=y" >> "$defconfig"
           echo "CONFIG_IP_SET_BITMAP_IPMAC=y" >> "$defconfig"
           echo "CONFIG_IP_SET_BITMAP_PORT=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_IP=y" >> "$defconfig"
+          echo "CONFIG_IP_SET_HASH_IPMARK=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_IPPORT=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_IPPORTIP=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_IPPORTNET=y" >> "$defconfig"
+          echo "CONFIG_IP_SET_HASH_IPMAC=y" >> "$defconfig"
+          echo "CONFIG_IP_SET_HASH_MAC=y" >> "$defconfig"
+          echo "CONFIG_IP_SET_HASH_NETPORTNET=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_NET=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_NETNET=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_NETPORT=y" >> "$defconfig"
           echo "CONFIG_IP_SET_HASH_NETIFACE=y" >> "$defconfig"
+          echo "CONFIG_IP_SET_LIST_SET=y" >> "$defconfig"
 
           # SUSFS Configuration
           echo "CONFIG_KSU_SUSFS=y" >> "$defconfig"
