@@ -795,7 +795,7 @@ jobs:
           
           # Get BBG status
           if [ "${{ matrix.apply_bbg }}" == "bbg" ]; then
-            cd "$CONFIG/baseband-guard"
+            cd "$CONFIG/Baseband-guard"
             BBG_COMMIT=$(git rev-parse HEAD)
             BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_COMMIT"
             echo "- **Baseband-guard**: [$BBG_COMMIT]($BBG_URL)" >> $GITHUB_STEP_SUMMARY
