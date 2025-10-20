@@ -15,6 +15,12 @@ on:
           - 'v1.5.9'
           - 'v1.5.12'
         default: 'v1.5.12'
+  workflow_call:
+    inputs:
+      susfs_version:
+        required: false
+        type: string
+        default: 'v1.5.12'
 
 jobs:
   build-check:
