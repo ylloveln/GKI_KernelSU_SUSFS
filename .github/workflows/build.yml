@@ -30,7 +30,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        apply_module_check_bypass: ["normal", "bypass"]
+        apply_bypass: ["normal", "bypass"]
+        apply_bbg: ["bbg", "no-bbg"]
 
     steps:
       - name: Maximize Build Space
@@ -323,6 +324,7 @@ jobs:
           fi
 
       - name: Add BBG
+        if: ${{ matrix.apply_bbg == 'bbg' }}
         run: |
           cd "$CONFIG"
           echo "Adding BBG..."
@@ -351,7 +353,7 @@ jobs:
           fi
 
       - name: Apply Module Check Bypass
-        if: ${{ matrix.apply_module_check_bypass == 'bypass' }}
+        if: ${{ matrix.apply_bypass == 'bypass' }}
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
             cd "$CONFIG/common/kernel/module"
@@ -490,7 +492,7 @@ jobs:
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
           # Set artifact name base for consistent naming
-          ARTIFACT_BASE="WKSU-${{ env.KSUVER }}-SUSFS_${{ inputs.susfs_version }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${SUBLEVEL_FOR_NAME}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass == 'bypass' && 'Module_Check_Bypass' || 'Normal' }}"
+          ARTIFACT_BASE="WKSU-${{ env.KSUVER }}-SUSFS_${{ inputs.susfs_version }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${SUBLEVEL_FOR_NAME}-${{ inputs.os_patch_level }}-${{ matrix.apply_bypass == 'bypass' && 'Bypass' || 'Normal' }}${{ matrix.apply_bbg == 'bbg' && '-BBG' || '' }}"
           echo "ARTIFACT_BASE=$ARTIFACT_BASE" >> $GITHUB_ENV
           echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
 
