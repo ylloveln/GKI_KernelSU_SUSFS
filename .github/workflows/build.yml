@@ -511,7 +511,7 @@ jobs:
 #          echo "CONFIG_SND_ALOOP=m" >> "${{ env.DEFCONFIG }}"
 #          
 #          # Add snd-aloop.ko to modules list
-#          if [ -f "build/build.sh" ]; thena
+#          if [ -f "build/build.sh" ]; then
 #            echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
 #          else
 #            sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/]/ { /]/ i\    "sound/drivers/snd-aloop.ko", }' common/modules.bzl
