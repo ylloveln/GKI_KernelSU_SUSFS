@@ -739,7 +739,7 @@ jobs:
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
 
-      - name: Upload Build Artifacts
+      - name: Upload AnyKernel3 Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}-AnyKernel3
@@ -747,15 +747,52 @@ jobs:
             AnyKernel3/
           compression-level: 9
 
-      - name: Upload Build Artifacts
+      - name: Upload Boot Image
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FILE_NAME }}-Boot
+          name: ${{ env.FILE_NAME }}-boot.img
           path: |
-            AnyKernel3/
             *-boot.img
+          compression-level: 9
+          
+      - name: Upload Boot Image (GZ)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-boot-gz.img
+          path: |
             *-boot-gz.img
+          compression-level: 9
+          
+      - name: Upload Boot Image (LZ4)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-boot-lz4.img
+          path: |
             *-boot-lz4.img
+          compression-level: 9
+          
+      - name: Upload Raw Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-Image
+          path: |
+            Image
+          compression-level: 9
+          
+      - name: Upload Raw Image (GZ)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-Image.gz
+          path: |
+            Image.gz
+          compression-level: 9
+          
+      - name: Upload Raw Image (LZ4)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-Image.lz4
+          path: |
+            Image.lz4
           compression-level: 9
 
       - name: Upload Build Diagnostics
@@ -768,14 +805,10 @@ jobs:
           
       - name: Initialize Kernel Summary
         run: |
-          # Create a build variant identifier
-          BUILD_VARIANT="Android ${{ inputs.android_version }} - Kernel ${{ inputs.kernel_version }}.${{ inputs.sub_level }} - BBG: ${{ matrix.apply_bbg }} - Bypass: ${{ matrix.apply_bypass }}"
-          echo "BUILD_VARIANT=$BUILD_VARIANT" >> $GITHUB_ENV
-          
           echo "# Kernel Build Summary" >> $GITHUB_STEP_SUMMARY
           
-          # Create a group for this specific build variant
-          echo "::group::$BUILD_VARIANT" >> $GITHUB_STEP_SUMMARY
+          # Add build variant header
+          echo "## ${{ env.FILE_NAME }}" >> $GITHUB_STEP_SUMMARY
       
       - name: Add Build Information
         run: |
@@ -821,8 +854,16 @@ jobs:
           # Add links to the artifacts for this build
           echo "## Build Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- **AnyKernel3**: [${{ env.FILE_NAME }}-AnyKernel3](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Boot Images**: [${{ env.FILE_NAME }}-Boot](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Rejected Patches**: [${{ env.FILE_NAME }}-Rejected-Patches](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
           
-          # End this build variant group
-          echo "::endgroup::" >> $GITHUB_STEP_SUMMARY
+          echo "### Boot Images" >> $GITHUB_STEP_SUMMARY
+          echo "- **Boot Image (RAW)**: [${{ env.FILE_NAME }}-boot.img](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Boot Image (GZ)**: [${{ env.FILE_NAME }}-boot-gz.img](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Boot Image (LZ4)**: [${{ env.FILE_NAME }}-boot-lz4.img](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Kernel Images" >> $GITHUB_STEP_SUMMARY
+          echo "- **Kernel Image (RAW)**: [${{ env.FILE_NAME }}-Image](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Kernel Image (GZ)**: [${{ env.FILE_NAME }}-Image.gz](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Kernel Image (LZ4)**: [${{ env.FILE_NAME }}-Image.lz4](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Diagnostics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Rejected Patches**: [${{ env.FILE_NAME }}-Rejected-Patches](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
