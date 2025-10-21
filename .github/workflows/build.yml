@@ -744,7 +744,7 @@ jobs:
         with:
           name: ${{ env.FILE_NAME }}-AnyKernel3
           path: |
-            ./AnyKernel3
+            ./AnyKernel3/**
           compression-level: 9
 
       - name: Upload Boot Image
