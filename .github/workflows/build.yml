@@ -51,9 +51,6 @@ jobs:
         run: |
           curl -L -o util_free_space.sh https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh
           chmod +x util_free_space.sh
-          
-      - name: Free Disk Space with Apache Arrow Script
-        run: |
           ./util_free_space.sh
           
       - name: Check Disk Space After Cleanup
