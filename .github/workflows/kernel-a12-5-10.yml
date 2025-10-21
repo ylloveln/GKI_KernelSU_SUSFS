@@ -6,11 +6,7 @@ permissions:
 
 on:
   workflow_call:
-    inputs:
-      susfs_version:
-        required: false
-        type: string
-        default: "v1.5.12"
+    inputs: {}
 
 jobs:
   build-kernels-a12:
@@ -100,5 +96,4 @@ jobs:
       kernel_version: "5.10"
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
-      susfs_version: ${{ inputs.susfs_version }}
 
