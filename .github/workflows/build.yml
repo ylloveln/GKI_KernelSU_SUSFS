@@ -34,18 +34,27 @@ jobs:
         run: |
           echo "===== Initial Total Disk Space in GB ====="
           df -BG
-      - name: Maximize Build Space
-        uses: AdityaGarg8/remove-unwanted-software@v5
-        with:
-          remove-dotnet: 'true'          # Frees ~2 GB
-          remove-android: 'true'         # Frees ~9 GB
-          remove-haskell: 'true'         # Frees ~5.2 GB
-          remove-codeql: 'true'          # Frees ~5.4 GB
-          remove-docker-images: 'true'   # Frees ~3.2 GB
-          remove-large-packages: 'true'  # Frees ~3.1 GB
-          remove-swapfile: 'true'        # Frees ~4 GB
-          remove-cached-tools: 'false'   # Avoid unless confirmed safe
-          verbose: 'true'                # Enable detailed logging
+      # - name: Maximize Build Space
+      #   uses: AdityaGarg8/remove-unwanted-software@v5
+      #   with:
+      #     remove-dotnet: 'true'          # Frees ~2 GB
+      #     remove-android: 'true'         # Frees ~9 GB
+      #     remove-haskell: 'true'         # Frees ~5.2 GB
+      #     remove-codeql: 'true'          # Frees ~5.4 GB
+      #     remove-docker-images: 'true'   # Frees ~3.2 GB
+      #     remove-large-packages: 'true'  # Frees ~3.1 GB
+      #     remove-swapfile: 'true'        # Frees ~4 GB
+      #     remove-cached-tools: 'false'   # Avoid unless confirmed safe
+      #     verbose: 'true'                # Enable detailed logging
+          
+      - name: Download Apache Arrow's util_free_space.sh
+        run: |
+          curl -L -o util_free_space.sh https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh
+          chmod +x util_free_space.sh
+          
+      - name: Free Disk Space with Apache Arrow Script
+        run: |
+          ./util_free_space.sh
           
       - name: Check Disk Space After Cleanup
         run: |
