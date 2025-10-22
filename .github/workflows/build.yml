@@ -340,7 +340,7 @@ jobs:
           fi
 
       - name: Fix WiFi and Bluetooth on Samsung 6.6 GKI devices
-        if: ${{ ( inputs.kernel_version == '6.6' ) }} && false
+        if: ${{ ( inputs.kernel_version == '6.6' ) }} && true
         run: |
           SYMBOL_LIST=$CONFIG/common/android/abi_gki_aarch64_galaxy
           echo "kdp_set_cred_non_rcu" >> $SYMBOL_LIST
@@ -453,7 +453,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure Sound
-        if: false
+        if: true
         run: |
           cd "$CONFIG"
           # Sound Configuration
