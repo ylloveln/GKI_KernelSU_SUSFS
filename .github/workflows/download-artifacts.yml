@@ -46,23 +46,54 @@ jobs:
           # Create directory for downloaded artifacts
           mkdir -p ./downloaded-artifacts
           
-          # Get list of all artifacts from the run
-          echo "Getting artifact list from run..."
-          gh api repos/${{ github.repository }}/actions/runs/${{ inputs.run_id }}/artifacts --jq '.artifacts[] | select(.name | endswith("-AnyKernel3")) | {name: .name, id: .id}' > artifacts.json
+          # Get list of ALL artifacts from the run (with pagination support)
+          echo "Getting complete artifact list from run..."
+          page=1
+          all_artifacts=""
+          
+          while true; do
+            echo "Fetching artifacts page $page..."
+            response=$(gh api repos/${{ github.repository }}/actions/runs/${{ inputs.run_id }}/artifacts?page=$page&per_page=100)
+            artifacts_on_page=$(echo "$response" | jq '.artifacts | length')
+            
+            if [ "$artifacts_on_page" -eq 0 ]; then
+              echo "No more artifacts found on page $page"
+              break
+            fi
+            
+            echo "Found $artifacts_on_page artifacts on page $page"
+            page_artifacts=$(echo "$response" | jq '.artifacts[]')
+            
+            if [ -z "$all_artifacts" ]; then
+              all_artifacts="$page_artifacts"
+            else
+              all_artifacts="$all_artifacts"$'\n'"$page_artifacts"
+            fi
+            
+            page=$((page + 1))
+          done
+          
+          # Filter for AnyKernel3 artifacts
+          echo "Filtering for AnyKernel3 artifacts..."
+          echo "$all_artifacts" | jq -s 'map(select(.name | endswith("-AnyKernel3") or endswith("AnyKernel3"))) | map({name: .name, id: .id})' > artifacts.json
+          
+          # Show all available artifacts for debugging
+          echo "All available artifacts in run:"
+          echo "$all_artifacts" | jq -s 'map(.name)' | jq -r '.[]'
           
           # Check if any AnyKernel3 artifacts were found
-          if [ ! -s artifacts.json ]; then
+          anykernel_count=$(cat artifacts.json | jq 'length')
+          if [ "$anykernel_count" -eq 0 ]; then
             echo "Error: No AnyKernel3 artifacts found in run ${{ inputs.run_id }}"
-            echo "Available artifacts in this run:"
-            gh api repos/${{ github.repository }}/actions/runs/${{ inputs.run_id }}/artifacts --jq '.artifacts[].name'
+            echo "Total artifacts found: $(echo "$all_artifacts" | jq -s 'length')"
             exit 1
           fi
           
-          echo "Found AnyKernel3 artifacts:"
-          cat artifacts.json
+          echo "Found $anykernel_count AnyKernel3 artifacts:"
+          cat artifacts.json | jq -r '.[].name'
           
           # Download only the AnyKernel3 artifacts
-          while IFS= read -r artifact; do
+          cat artifacts.json | jq -c '.[]' | while IFS= read -r artifact; do
             artifact_name=$(echo "$artifact" | jq -r '.name')
             artifact_id=$(echo "$artifact" | jq -r '.id')
             echo "Downloading artifact: $artifact_name (ID: $artifact_id)"
@@ -71,7 +102,8 @@ jobs:
             # Extract the artifact
             unzip -q "${artifact_name}.zip" -d "./downloaded-artifacts/${artifact_name}/"
             rm "${artifact_name}.zip"
-          done < <(jq -c '.' artifacts.json)
+            echo "✅ Downloaded and extracted: $artifact_name"
+          done
           
           echo "Downloaded AnyKernel3 artifacts:"
           ls -la ./downloaded-artifacts/
