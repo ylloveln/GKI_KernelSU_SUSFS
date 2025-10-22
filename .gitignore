@@ -1,1 +1,4 @@
 .vscode/settings.json
+
+# GPG configuration (local only)
+.gpg/
