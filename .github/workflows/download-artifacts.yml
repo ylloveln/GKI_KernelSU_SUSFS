@@ -1,0 +1,134 @@
+name: Download Artifacts from Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'GitHub Actions Run ID to download artifacts from'
+        required: true
+        type: string
+      release_tag:
+        description: 'Release tag to upload to (leave empty for latest release)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  download-and-upload:
+    runs-on: ubuntu-latest
+    
+    env:
+      GH_TOKEN: ${{ github.token }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get target release tag
+        id: get_release
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            echo "RELEASE_TAG=${{ inputs.release_tag }}" >> $GITHUB_ENV
+            echo "Using specified release tag: ${{ inputs.release_tag }}"
+          else
+            # Get the latest release tag
+            LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+            if [ -z "$LATEST_TAG" ]; then
+              echo "Error: No releases found and no release tag specified"
+              exit 1
+            fi
+            echo "RELEASE_TAG=$LATEST_TAG" >> $GITHUB_ENV
+            echo "Using latest release tag: $LATEST_TAG"
+          fi
+
+      - name: Download artifacts from specified run
+        run: |
+          echo "Downloading artifacts from run ID: ${{ inputs.run_id }}"
+          
+          # Create directory for downloaded artifacts
+          mkdir -p ./downloaded-artifacts
+          
+          # Download all artifacts from the specified run
+          gh run download ${{ inputs.run_id }} --dir ./downloaded-artifacts --repo ${{ github.repository }}
+          
+          echo "Downloaded artifacts:"
+          ls -la ./downloaded-artifacts/
+
+      - name: Filter and prepare AnyKernel3 artifacts
+        run: |
+          echo "Filtering for AnyKernel3 artifacts..."
+          
+          # Count AnyKernel3 artifacts
+          anykernel_count=0
+          for dir in ./downloaded-artifacts/*/; do
+            if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
+              anykernel_count=$((anykernel_count + 1))
+              echo "Found AnyKernel3 artifact: $(basename "$dir")"
+            fi
+          done
+          
+          if [ $anykernel_count -eq 0 ]; then
+            echo "Error: No AnyKernel3 artifacts found in run ${{ inputs.run_id }}"
+            echo "Available artifacts:"
+            ls -la ./downloaded-artifacts/
+            exit 1
+          fi
+          
+          echo "Found $anykernel_count AnyKernel3 artifacts to upload"
+
+      - name: Upload artifacts to release
+        run: |
+          echo "Uploading artifacts to release: ${{ env.RELEASE_TAG }}"
+          
+          # Check if release exists
+          if ! gh release view ${{ env.RELEASE_TAG }} >/dev/null 2>&1; then
+            echo "Error: Release ${{ env.RELEASE_TAG }} does not exist"
+            exit 1
+          fi
+          
+          uploaded_count=0
+          for dir in ./downloaded-artifacts/*/; do
+            # Check if this is an AnyKernel3 artifact directory
+            if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
+              artifact_name=$(basename "$dir")
+              echo "Processing artifact: $artifact_name"
+              
+              # Create ZIP file from the artifact directory
+              zip_name="${artifact_name}.zip"
+              echo "Creating ZIP: $zip_name"
+              zip -r -9 "$zip_name" "$dir"
+              
+              # Upload to release
+              echo "Uploading $zip_name to release ${{ env.RELEASE_TAG }}..."
+              if gh release upload ${{ env.RELEASE_TAG }} "$zip_name" --clobber; then
+                echo "✅ Successfully uploaded: $zip_name"
+                uploaded_count=$((uploaded_count + 1))
+              else
+                echo "❌ Failed to upload: $zip_name"
+              fi
+              
+              # Clean up ZIP file
+              rm -f "$zip_name"
+            fi
+          done
+          
+          echo "Upload complete: $uploaded_count artifacts uploaded to release ${{ env.RELEASE_TAG }}"
+
+      - name: Summary
+        run: |
+          echo "## Artifact Download and Upload Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source Run ID**: ${{ inputs.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Release**: ${{ env.RELEASE_TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts Processed" >> $GITHUB_STEP_SUMMARY
+          
+          for dir in ./downloaded-artifacts/*/; do
+            if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
+              artifact_name=$(basename "$dir")
+              echo "- ✅ $artifact_name" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[🔗 View Release](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }})" >> $GITHUB_STEP_SUMMARY
