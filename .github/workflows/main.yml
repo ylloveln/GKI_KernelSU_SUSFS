@@ -252,14 +252,20 @@ jobs:
         if: inputs.release_type != 'Actions' && inputs.release_type != 'Release (No Artifacts)'
         run: |
           for dir in ./downloaded-artifacts/*/; do
-            # Create ZIP files from AnyKernel3 directories
-            if [ -d "$dir/AnyKernel3" ]; then
+            # Check if this is an AnyKernel3 artifact directory
+            if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
               artifact_name=$(basename "$dir")
               echo "Creating ZIP for $artifact_name..."
               cd "$dir"
-              zip -r -9 "${artifact_name}-AnyKernel3.zip" AnyKernel3/
-              echo "Uploading ${artifact_name}.zip..."
-              gh release upload ${{ env.NEW_TAG }} "${artifact_name}-AnyKernel3.zip"
+              # The AnyKernel3 directory is directly in this folder
+              if [ -d "AnyKernel3" ]; then
+                zip -r -9 "${artifact_name}.zip" AnyKernel3/
+                echo "Uploading ${artifact_name}.zip..."
+                gh release upload ${{ env.NEW_TAG }} "${artifact_name}.zip"
+              else
+                echo "Warning: AnyKernel3 directory not found in $artifact_name"
+                ls -la
+              fi
               cd - > /dev/null
             fi
           done
