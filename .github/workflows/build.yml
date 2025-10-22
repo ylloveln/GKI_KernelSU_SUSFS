@@ -19,8 +19,6 @@ on:
         required: true
         type: string
 
-      # revision input removed; A12 boot image download uses fixed r1
-
 jobs:
   build-gki:
     runs-on: ubuntu-latest

@@ -88,7 +88,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    if: inputs.build_selection == 'All' && inputs.release_type != 'Actions' && (inputs.release_type == 'Release (No Artifacts)' || success())
+    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Build Test') && (inputs.release_type == 'Release (No Artifacts)' || inputs.release_type != 'Actions')
     needs:
       - build-a12-5-10
       - build-a13-5-10
@@ -102,63 +102,8 @@ jobs:
       RELEASE_NAME: "GKI Kernels With WKSU & SUSFS v1.5.12"
       RELEASE_BODY: ""
     steps:
-      # # - name: Maximize Build Space
-        # uses: AdityaGarg8/remove-unwanted-software@v5
-        # with:
-          # remove-dotnet: 'true'          # Frees ~2 GB
-          # remove-android: 'true'         # Frees ~9 GB
-          # remove-haskell: 'true'         # Frees ~5.2 GB
-          # remove-codeql: 'true'          # Frees ~5.4 GB
-          # remove-docker-images: 'true'   # Frees ~3.2 GB
-          # remove-large-packages: 'true'  # Frees ~3.1 GB
-          # remove-swapfile: 'true'        # Frees ~4 GB
-          # remove-cached-tools: 'false'   # Avoid unless confirmed safe
-          # verbose: 'true'                # Enable detailed logging
-
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Get commit hashes and generate commit URLs
-        run: |
-          GITLAB_OWNER="simonpunk"
-          GITLAB_REPO="susfs4ksu"
-          
-          declare -A BRANCH_MAP=(
-            ["gki_android12_5_10"]="gki-android12-5.10"
-            ["gki_android13_5_10"]="gki-android13-5.10"
-            ["gki_android13_5_15"]="gki-android13-5.15"
-            ["gki_android14_5_15"]="gki-android14-5.15"
-            ["gki_android14_6_1"]="gki-android14-6.1"
-            ["gki_android15_6_6"]="gki-android15-6.6"
-          )
-          
-          for var_name in "${!BRANCH_MAP[@]}"; do
-            branch_name="${BRANCH_MAP[$var_name]}"
-            COMMIT_HASH=$(git ls-remote https://gitlab.com/$GITLAB_OWNER/$GITLAB_REPO.git refs/heads/$branch_name | awk '{ print $1 }')
-            
-            if [[ -n "$COMMIT_HASH" ]]; then
-              COMMIT_URL="https://gitlab.com/$GITLAB_OWNER/$GITLAB_REPO/-/commit/$COMMIT_HASH"
-              echo "$branch_name Commit: $COMMIT_HASH"
-              echo "$branch_name Commit URL: $COMMIT_URL"
-              
-              echo "COMMIT_HASH_${var_name}=$COMMIT_HASH" >> "$GITHUB_ENV"
-              echo "COMMIT_URL_${var_name}=$COMMIT_URL" >> "$GITHUB_ENV"
-            fi
-          done
-
-      - name: Get KernelSU variant refs and links
-        run: |
-          # Get WKSU latest commit from wild branch
-          WKSU_REF=$(git ls-remote "https://github.com/WildKernels/Wild_KSU.git" refs/heads/wild | awk '{print $1}')
-          WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_REF"
-          echo "WKSU_REF=$WKSU_REF" >> $GITHUB_ENV
-          echo "WKSU_URL=$WKSU_URL" >> $GITHUB_ENV
-          
-          # Get Baseband-guard latest commit from main branch
-          BBG_REF=$(git ls-remote "https://github.com/vc-teahouse/Baseband-guard.git" refs/heads/main | awk '{print $1}')
-          BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_REF"
-          echo "BBG_REF=$BBG_REF" >> $GITHUB_ENV
-          echo "BBG_URL=$BBG_URL" >> $GITHUB_ENV
 
       - name: Generate New Tag
         if: inputs.release_type != 'Actions'
@@ -172,11 +117,6 @@ jobs:
     
             echo "New tag: $NEW_TAG"
             echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
-
-      - name: Set tag for Actions only
-        if: inputs.release_type == 'Actions'
-        run: |
-            echo "NEW_TAG=actions-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
 
       - name: Download Artifacts
         if: inputs.release_type != 'Release (No Artifacts)'
@@ -239,17 +179,16 @@ jobs:
           EOF
 
       - name: Create GitHub Release
-        if: inputs.release_type != 'Actions'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ inputs.release_type == 'Pre-Release' }}
+          prerelease: ${{ inputs.release_type == 'Pre-Release' || inputs.build_selection == 'Build Test' }}
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
 
       - name: Upload Release Assets
-        if: inputs.release_type != 'Actions' && inputs.release_type != 'Release (No Artifacts)'
+        if: inputs.release_type != 'Release (No Artifacts)'
         run: |
           for dir in ./downloaded-artifacts/*/; do
             # Check if this is an AnyKernel3 artifact directory
@@ -264,17 +203,19 @@ jobs:
           done
 
       - name: Display Files Uploaded
-        if: inputs.release_type != 'Actions' && inputs.release_type != 'Release (No Artifacts)'
+        if: inputs.release_type != 'Release (No Artifacts)'
         run: |
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
             
       - name: Send Telegram Notification
-        if: inputs.release_type != 'Actions'
+        if: inputs.release_type != 'Build Test'
         run: |
           RELEASE_TYPE_TEXT=""
           if [ "${{ inputs.release_type }}" == "Pre-Release" ]; then
             RELEASE_TYPE_TEXT="🧪 *Pre-Release*"
+          elif [ "${{ inputs.build_selection }}" == "Build Test" ]; then
+            RELEASE_TYPE_TEXT="🔧 *Build Test*"
           elif [ "${{ inputs.release_type }}" == "Release (No Artifacts)" ]; then
             RELEASE_TYPE_TEXT="🚀 *Release*"
           else
