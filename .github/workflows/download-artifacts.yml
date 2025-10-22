@@ -8,10 +8,9 @@ on:
         required: true
         type: string
       release_tag:
-        description: 'Release tag to upload to (leave empty for latest release)'
-        required: false
+        description: 'Release tag to upload to'
+        required: true
         type: string
-        default: ''
 
 jobs:
   download-and-upload:
@@ -24,22 +23,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get target release tag
+      - name: Set target release tag
         id: get_release
         run: |
-          if [ -n "${{ inputs.release_tag }}" ]; then
-            echo "RELEASE_TAG=${{ inputs.release_tag }}" >> $GITHUB_ENV
-            echo "Using specified release tag: ${{ inputs.release_tag }}"
-          else
-            # Get the latest release tag
-            LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
-            if [ -z "$LATEST_TAG" ]; then
-              echo "Error: No releases found and no release tag specified"
-              exit 1
-            fi
-            echo "RELEASE_TAG=$LATEST_TAG" >> $GITHUB_ENV
-            echo "Using latest release tag: $LATEST_TAG"
+          echo "tag=${{ inputs.release_tag }}" >> $GITHUB_OUTPUT
+          echo "Using release tag: ${{ inputs.release_tag }}"
+          
+          # Verify the release exists
+          if ! gh release view "${{ inputs.release_tag }}" >/dev/null 2>&1; then
+            echo "Error: Release '${{ inputs.release_tag }}' does not exist"
+            echo "Available releases:"
+            gh release list --limit 10
+            exit 1
           fi
+          
+          echo "Release '${{ inputs.release_tag }}' found and verified"
 
       - name: Download AnyKernel3 artifacts from specified run
         run: |
