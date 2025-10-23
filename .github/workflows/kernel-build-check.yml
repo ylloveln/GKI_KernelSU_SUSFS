@@ -69,6 +69,12 @@ jobs:
             kernel_version: "6.1"
             sub_level: "25"
             os_patch_level: "2023-06"
+
+          # Android 14 - Kernel 6.1.124 (Test)
+          - android_version: "android14"
+            kernel_version: "6.1"
+            sub_level: "124"
+            os_patch_level: "2025-02"
           
           # Android 14 - Kernel 6.1 LTS (Latest)
           - android_version: "android14"
