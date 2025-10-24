@@ -250,7 +250,9 @@ jobs:
             sed -i 's/i_uid_into_mnt(i_user_ns(inode), inode)/i_uid_into_mnt(inode->i_sb->s_user_ns, inode)/g' fs/susfs.c
           fi
 
-          if ${{ inputs.sub_level }} == 'X'; then
+          # Use ACTUAL_SUBLEVEL for LTS or actual kernel sublevel if available
+          SUBLEVEL_TO_CHECK="${ACTUAL_SUBLEVEL:-${{ inputs.sub_level }}}"
+          if [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && ( SUBLEVEL_TO_CHECK >= 145 ); then
             cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_base.c.patch ./
             patch -p1 < fix_base.c.patch || true
           fi
