@@ -258,11 +258,11 @@ jobs:
             patch -p1 < 1_fix_base.c.patch || true
           fi
 
-          if ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( SUBLEVEL_TO_CHECK >= 145 )); } ) \
-            || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] (( SUBLEVEL_TO_CHECK >= 98 )); } ); then
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_base.c.patch ./
-            patch -p1 < 2_fix_base.c.patch || true
-          fi
+          #if ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( SUBLEVEL_TO_CHECK >= 145 )); } ) \
+          #  || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( SUBLEVEL_TO_CHECK >= 98 )); } ); then
+          #  cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_base.c.patch ./
+          #  patch -p1 < 2_fix_base.c.patch || true
+          #fi
 
           if ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( SUBLEVEL_TO_CHECK <= 58 )); } ); then
             cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_task_mmu.c.patch ./
