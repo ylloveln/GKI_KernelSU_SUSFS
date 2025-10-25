@@ -252,10 +252,16 @@ jobs:
 
           # Use ACTUAL_SUBLEVEL for LTS or actual kernel sublevel if available
           SUBLEVEL_TO_CHECK="${ACTUAL_SUBLEVEL:-${{ inputs.sub_level }}}"
-          if ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && { [[ "$SUBLEVEL_TO_CHECK" =~ ^[0-9]+$ ]] && (( SUBLEVEL_TO_CHECK >= 145 )); } ) \
-            || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && { [[ "$SUBLEVEL_TO_CHECK" =~ ^[0-9]+$ ]] && (( SUBLEVEL_TO_CHECK >= 98 )); } ); then
+          if ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( SUBLEVEL_TO_CHECK >= 145 )); } ) \
+            || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( SUBLEVEL_TO_CHECK >= 98 )); } ); then
             cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_base.c.patch ./
-            patch -p1 < fix_base.c.patch || true
+            patch -p1 < 1_fix_base.c.patch || true
+          fi
+
+          if ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( SUBLEVEL_TO_CHECK >= 145 )); } ) \
+            || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] (( SUBLEVEL_TO_CHECK >= 98 )); } ); then
+            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_base.c.patch ./
+            patch -p1 < 2_fix_base.c.patch || true
           fi
 
           if ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( SUBLEVEL_TO_CHECK <= 58 )); } ); then
@@ -793,20 +799,52 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
       
       - name: Add Build Artifacts
+        if: ${{ always() }}
         run: |
-          # Add links to the artifacts for this build
+          # Add artifact summary with presence verification
           echo "## Build Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- **AnyKernel3**: [${{ env.FILE_NAME }}-AnyKernel3](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          
+      
+          # Verify AnyKernel3 contents
+          if [ -d "AnyKernel3" ] && [ "$(find AnyKernel3 -type f | wc -l)" -gt 0 ]; then
+            AK3_STATUS="✅"
+          else
+            AK3_STATUS="❌"
+          fi
+          echo "- **AnyKernel3**: $AK3_STATUS ${{ env.FILE_NAME }}-AnyKernel3" >> $GITHUB_STEP_SUMMARY
+      
           echo "### Boot Images" >> $GITHUB_STEP_SUMMARY
-          echo "- **Boot Image (RAW)**: [${{ env.FILE_NAME }}-boot.img](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Boot Image (GZ)**: [${{ env.FILE_NAME }}-boot-gz.img](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Boot Image (LZ4)**: [${{ env.FILE_NAME }}-boot-lz4.img](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          
+          for f in "${{ env.FILE_NAME }}-boot.img" "${{ env.FILE_NAME }}-boot-gz.img" "${{ env.FILE_NAME }}-boot-lz4.img"; do
+            if [ -f "$f" ]; then status="✅"; else status="❌"; fi
+            case "$f" in
+              *boot.img) name="Boot Image (RAW)";;
+              *boot-gz.img) name="Boot Image (GZ)";;
+              *boot-lz4.img) name="Boot Image (LZ4)";;
+            esac
+            echo "- **$name**: $status $f" >> $GITHUB_STEP_SUMMARY
+          done
+      
           echo "### Kernel Images" >> $GITHUB_STEP_SUMMARY
-          echo "- **Kernel Image (RAW)**: [${{ env.FILE_NAME }}-Image](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Kernel Image (GZ)**: [${{ env.FILE_NAME }}-Image.gz](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Kernel Image (LZ4)**: [${{ env.FILE_NAME }}-Image.lz4](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
-          
+          for f in "Image" "Image.gz" "Image.lz4"; do
+            if [ -f "$f" ]; then status="✅"; else status="❌"; fi
+            case "$f" in
+              Image) name="Kernel Image (RAW)";;
+              Image.gz) name="Kernel Image (GZ)";;
+              Image.lz4) name="Kernel Image (LZ4)";;
+            esac
+            echo "- **$name**: $status $f" >> $GITHUB_STEP_SUMMARY
+          done
+      
           echo "### Diagnostics" >> $GITHUB_STEP_SUMMARY
-          echo "- **Rejected Patches**: [${{ env.FILE_NAME }}-Rejected-Patches](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Rejected Patches**: ${{ env.FILE_NAME }}-Rejected-Patches" >> $GITHUB_STEP_SUMMARY
+          if [ -f patch-rejects/index.txt ]; then
+            if [ -s patch-rejects/index.txt ]; then
+              echo "  Rejected files:" >> $GITHUB_STEP_SUMMARY
+              while IFS= read -r line; do
+                echo "    - $line" >> $GITHUB_STEP_SUMMARY
+              done < patch-rejects/index.txt
+            else
+              echo "  Rejected file list is empty." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "  No rejected patches found." >> $GITHUB_STEP_SUMMARY
+          fi
