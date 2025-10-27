@@ -150,25 +150,10 @@ jobs:
             ACTUAL_SUBLEVEL=$(grep '^SUBLEVEL = ' Makefile | awk '{print $3}')
             
             if [ -n "$ACTUAL_SUBLEVEL" ]; then
-              OLD_CONFIG="$CONFIG"
-              NEW_CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-$ACTUAL_SUBLEVEL"
-              
-              echo "CONFIG=$NEW_CONFIG" >> $GITHUB_ENV
               echo "ACTUAL_SUBLEVEL=$ACTUAL_SUBLEVEL" >> $GITHUB_ENV
-              
-              cd ../..
-              if [ -d "$OLD_CONFIG" ]; then
-                echo "Renaming directory from $OLD_CONFIG to $NEW_CONFIG"
-                mv "$OLD_CONFIG" "$NEW_CONFIG"
-                if [ ! -d "$NEW_CONFIG" ]; then
-                  echo "Error: Directory rename failed, $NEW_CONFIG does not exist"
-                  exit 1
-                fi
-                echo "Directory successfully renamed to $NEW_CONFIG"
-              else
-                echo "Error: Source directory $OLD_CONFIG does not exist"
-                exit 1
-              fi
+              echo "Extracted ACTUAL_SUBLEVEL=$ACTUAL_SUBLEVEL; no directory changes performed."
+            else
+              echo "Warning: SUBLEVEL not found in Makefile; continuing with inputs.sub_level."
             fi
           fi
 
