@@ -226,16 +226,27 @@ jobs:
           # Apply SUSFS core patch
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
-          # Post-SUSFS sed safeguards (temporarily disabled)
-          # if [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]]; then
-          #   sed -i -e '/int ret = 0, copied = 0;/a \\tunsigned int nr_subpages \\= __PAGE_SIZE \\/ PAGE_SIZE;' -e '/int ret = 0, copied = 0;/a \\tpagemap_entry_t \\*res = NULL;' ./fs/proc/task_mmu.c
-          # fi
-          # if [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]]; then
-          #   sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
-          # fi
-          # if [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]]; then
-          #   sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
-          # fi
+          # Post-SUSFS sed safeguards for task_mmu.c 'goto show_pad' handling
+          # android12/5.10: ACTUAL_SUBLEVEL <= placeholder (env var A12_510_PLACEHOLDER, defaults to 9999)
+          if [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= ${A12_510_PLACEHOLDER:-9999} )); then
+            sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
+          fi
+          # android13/5.10: ACTUAL_SUBLEVEL <= 209
+          if [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 209 )); then
+            sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
+          fi
+          # android13/5.15: ACTUAL_SUBLEVEL <= 148
+          if [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && (( $ACTUAL_SUBLEVEL <= 148 )); then
+            sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
+          fi
+          # android14/5.15: ACTUAL_SUBLEVEL <= 148
+          if [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && (( $ACTUAL_SUBLEVEL <= 148 )); then
+            sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
+          fi
+          # android14/6.1: ACTUAL_SUBLEVEL <= 75
+          if [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( $ACTUAL_SUBLEVEL <= 75 )); then
+            sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
+          fi
 
           # Apply additional SUSFS patches for Android 13 5.15 compatibility
           if [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && (( ${{ inputs.sub_level }} <= 41 )); then
