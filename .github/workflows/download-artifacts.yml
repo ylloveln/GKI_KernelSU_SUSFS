@@ -157,6 +157,7 @@ jobs:
           done
 
       - name: Summary
+        if: ${{ always() }}
         run: |
           echo "## Artifact Download and Upload Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Source Run ID**: ${{ inputs.run_id }}" >> $GITHUB_STEP_SUMMARY
