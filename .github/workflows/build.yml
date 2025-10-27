@@ -699,6 +699,7 @@ jobs:
           compression-level: 9
 
       - name: Upload Boot Image
+        if: hashFiles('*-boot.img') != ''
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}-boot.img
@@ -707,6 +708,7 @@ jobs:
           compression-level: 9
           
       - name: Upload Boot Image (GZ)
+        if: hashFiles('*-boot-gz.img') != ''
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}-boot-gz.img
@@ -715,6 +717,7 @@ jobs:
           compression-level: 9
           
       - name: Upload Boot Image (LZ4)
+        if: hashFiles('*-boot-lz4.img') != ''
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}-boot-lz4.img
@@ -801,8 +804,8 @@ jobs:
           # Add artifact summary with presence verification
           echo "## Build Artifacts" >> $GITHUB_STEP_SUMMARY
       
-          # Verify AnyKernel3 contents
-          if [ -d "AnyKernel3" ] && [ "$(find AnyKernel3 -type f | wc -l)" -gt 0 ]; then
+          # Verify AnyKernel3 contents - check if kernel Image was actually copied (indicates successful build)
+          if [ -d "AnyKernel3" ] && [ -f "AnyKernel3/Image" ]; then
             AK3_STATUS="✅"
           else
             AK3_STATUS="❌"
