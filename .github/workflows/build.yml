@@ -142,8 +142,7 @@ jobs:
           cd "$CONFIG"
           du -BG -d 2 | sort -nr
 
-      - name: Extract Actual Sublevel for LTS Builds
-        if: inputs.sub_level == 'X'
+      - name: Extract Actual Sublevel
         run: |
           cd "$CONFIG/common"
           
