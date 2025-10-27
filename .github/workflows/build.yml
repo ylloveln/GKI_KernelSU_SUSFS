@@ -804,6 +804,7 @@ jobs:
           compression-level: 9
           
       - name: Initialize Kernel Summary
+        if: ${{ always() }}
         run: |
           echo "# Kernel Build Summary" >> $GITHUB_STEP_SUMMARY
           
@@ -811,6 +812,7 @@ jobs:
           echo "## ${{ env.FILE_NAME }}" >> $GITHUB_STEP_SUMMARY
       
       - name: Add Build Information
+        if: ${{ always() }}
         run: |
           # Add build info
           echo "## Build Information" >> $GITHUB_STEP_SUMMARY
@@ -821,27 +823,42 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Add KSU Version
+        if: ${{ always() }}
         run: |
           # Get Wild_KSU commit
-          cd "$CONFIG/Wild_KSU"
-          WKSU_COMMIT=$(git rev-parse HEAD)
-          WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_COMMIT"
-          echo "- **Wild_KSU**: [$WKSU_COMMIT]($WKSU_URL)" >> $GITHUB_STEP_SUMMARY
+          if [ -d "$CONFIG/Wild_KSU" ]; then
+            cd "$CONFIG/Wild_KSU"
+            WKSU_COMMIT=$(git rev-parse HEAD)
+            WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_COMMIT"
+            echo "- **Wild_KSU**: [$WKSU_COMMIT]($WKSU_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Wild_KSU**: not present" >> $GITHUB_STEP_SUMMARY
+          fi
           
       - name: Add BBG Version
+        if: ${{ always() }}
         run: |
-          cd "$CONFIG/Baseband-guard"
-          BBG_COMMIT=$(git rev-parse HEAD)
-          BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_COMMIT"
-          echo "- **Baseband-guard**: [$BBG_COMMIT]($BBG_URL)" >> $GITHUB_STEP_SUMMARY
+          if [ -d "$CONFIG/Baseband-guard" ]; then
+            cd "$CONFIG/Baseband-guard"
+            BBG_COMMIT=$(git rev-parse HEAD)
+            BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_COMMIT"
+            echo "- **Baseband-guard**: [$BBG_COMMIT]($BBG_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Baseband-guard**: not present" >> $GITHUB_STEP_SUMMARY
+          fi
           
       - name: Add SUSFS Version
+        if: ${{ always() }}
         run: |
           # Get SUSFS4KSU commit
-          cd "$GITHUB_WORKSPACE/susfs4ksu"
-          SUSFS_COMMIT=$(git rev-parse HEAD)
-          SUSFS_URL="https://gitlab.com/simonpunk/susfs4ksu/-/commit/$SUSFS_COMMIT"
-          echo "- **SUSFS4KSU (v1.5.12)**: [$SUSFS_COMMIT]($SUSFS_URL)" >> $GITHUB_STEP_SUMMARY
+          if [ -d "$GITHUB_WORKSPACE/susfs4ksu" ]; then
+            cd "$GITHUB_WORKSPACE/susfs4ksu"
+            SUSFS_COMMIT=$(git rev-parse HEAD)
+            SUSFS_URL="https://gitlab.com/simonpunk/susfs4ksu/-/commit/$SUSFS_COMMIT"
+            echo "- **SUSFS4KSU (v1.5.12)**: [$SUSFS_COMMIT]($SUSFS_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **SUSFS4KSU (v1.5.12)**: not present" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
       
       - name: Add Build Artifacts
