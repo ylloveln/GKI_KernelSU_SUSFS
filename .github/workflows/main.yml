@@ -180,22 +180,35 @@ jobs:
 
       - name: Upload Release Assets
         run: |
-          for dir in ./downloaded-artifacts/*/; do
-            # Check if this is an AnyKernel3 artifact directory
-            if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
-              artifact_name=$(basename "$dir")
-              echo "Creating ZIP for $artifact_name..."
-              # The entire directory IS the AnyKernel3 content, so zip it directly
-              zip -r -9 "${artifact_name}.zip" "$dir"
-              echo "Uploading ${artifact_name}.zip..."
-              gh release upload ${{ env.NEW_TAG }} "${artifact_name}.zip"
-            fi
-          done
+          shopt -s nullglob
+          anykernel_dirs=(./downloaded-artifacts/*/)
+          if [ ${#anykernel_dirs[@]} -eq 0 ]; then
+            echo "No artifact directories found under ./downloaded-artifacts; skipping upload."
+          else
+            for dir in "${anykernel_dirs[@]}"; do
+              # Check if this is an AnyKernel3 artifact directory
+              if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
+                artifact_name=$(basename "$dir")
+                echo "Creating ZIP for $artifact_name..."
+                # The entire directory IS the AnyKernel3 content, so zip it directly
+                zip -r -9 "${artifact_name}.zip" "$dir"
+                echo "Uploading ${artifact_name}.zip..."
+                gh release upload ${{ env.NEW_TAG }} "${artifact_name}.zip"
+              fi
+            done
+          fi
 
       - name: Display Files Uploaded
         run: |
           echo "GitHub release created with the following files:"
-          ls ./downloaded-artifacts/**/*
+          if [ -d ./downloaded-artifacts ]; then
+            if ls ./downloaded-artifacts/**/* >/dev/null 2>&1; then
+              ls -R ./downloaded-artifacts
+            else
+              echo "No files found under ./downloaded-artifacts."
+            fi
+          else
+            echo "No ./downloaded-artifacts directory present."
             
       - name: Send Telegram Notification
         if: inputs.release_type != 'Actions'
