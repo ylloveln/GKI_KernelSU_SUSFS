@@ -114,7 +114,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           path: ./downloaded-artifacts
-          pattern: 'WKSU-*-AnyKernel3'
+          pattern: '*-AnyKernel3'
 
       - name: Set release body
         run: |
