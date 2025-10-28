@@ -447,7 +447,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure Sound 1
-        if: true
+        if: false
         run: |
           cd "$CONFIG"
           # Sound Configuration
@@ -472,7 +472,7 @@ jobs:
           #cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
 
       - name: Configure Sound 2
-        if: true
+        if: false
         run: |
           cd "$CONFIG"
           cp ../kernel_patches/wild/bypass_patches/abi_bypass_gki.patch ./
