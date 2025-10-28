@@ -39,7 +39,6 @@ on:
           - Android14-5.15
           - Android14-6.1
           - Android15-6.6
-          - Build Test
         default: All
 
 jobs:
@@ -80,15 +79,9 @@ jobs:
     secrets: inherit
 
 
-  build-test:
-    if: inputs.build_selection == 'Build Test'
-    uses: ./.github/workflows/kernel-build-check.yml
-    secrets: inherit
-
-
   release:
     runs-on: ubuntu-latest
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Build Test') && (inputs.release_type == 'Release (No Artifacts)' || inputs.release_type != 'Actions')
+    if: (inputs.release_type == 'Release (No Artifacts)' || inputs.release_type != 'Actions')
     needs:
       - build-a12-5-10
       - build-a13-5-10
@@ -182,7 +175,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ inputs.release_type == 'Pre-Release' || inputs.build_selection == 'Build Test' }}
+          prerelease: ${{ inputs.release_type == 'Pre-Release' }}
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
@@ -209,13 +202,11 @@ jobs:
           ls ./downloaded-artifacts/**/*
             
       - name: Send Telegram Notification
-        if: inputs.release_type != 'Build Test'
+        if: inputs.release_type != 'Actions'
         run: |
           RELEASE_TYPE_TEXT=""
           if [ "${{ inputs.release_type }}" == "Pre-Release" ]; then
             RELEASE_TYPE_TEXT="🧪 *Pre-Release*"
-          elif [ "${{ inputs.build_selection }}" == "Build Test" ]; then
-            RELEASE_TYPE_TEXT="🔧 *Build Test*"
           elif [ "${{ inputs.release_type }}" == "Release (No Artifacts)" ]; then
             RELEASE_TYPE_TEXT="🚀 *Release*"
           else
