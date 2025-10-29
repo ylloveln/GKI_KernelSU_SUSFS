@@ -606,11 +606,11 @@ jobs:
           echo "Creating bootimgs folder and copying images..."
           cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./bootimgs
           cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./bootimgs
-          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./
-          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./${{ env.FILE_NAME }}-Image
+          cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./${{ env.FILE_NAME }}-Image.lz4
 
           # Create gzip of the Image file
-          gzip -n -k -f -9 ./Image > ./Image.gz
+          gzip -n -k -f -9 ./${{ env.FILE_NAME }}-Image > ./${{ env.FILE_NAME }}-Image.gz
           gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
 
       - name: Create Bootimgs Folder and Copy Images for Android 14/15
@@ -621,11 +621,11 @@ jobs:
           echo "Creating bootimgs folder and copying images..."
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./bootimgs
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./bootimgs
-          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./
-          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./${{ env.FILE_NAME }}-Image
+          cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./${{ env.FILE_NAME }}-Image.lz4
 
           # Create gzip of the Image file
-          gzip -n -k -f -9 ./Image > ./Image.gz
+          gzip -n -k -f -9 ./${{ env.FILE_NAME }}-Image > ./${{ env.FILE_NAME }}-Image.gz
           gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
 
       - name: Android 12 boot image build script
@@ -711,9 +711,9 @@ jobs:
         with:
           name: ${{ env.FILE_NAME }}-Misc
           path: |
-            Image
-            Image.gz
-            Image.lz4
+            ${{ env.FILE_NAME }}-Image
+            ${{ env.FILE_NAME }}-Image.gz
+            ${{ env.FILE_NAME }}-Image.lz4
             ${{ env.FILE_NAME }}-boot.img
             ${{ env.FILE_NAME }}-boot-gz.img
             ${{ env.FILE_NAME }}-boot-lz4.img
@@ -786,7 +786,7 @@ jobs:
 
           echo "### Misc (uploaded files)" >> build_summary.md
           FILES_PRESENT=0
-          for f in "Image" "Image.gz" "Image.lz4" "${{ env.FILE_NAME }}-boot.img" "${{ env.FILE_NAME }}-boot-gz.img" "${{ env.FILE_NAME }}-boot-lz4.img"; do
+          for f in "${{ env.FILE_NAME }}-Image" "${{ env.FILE_NAME }}-Image.gz" "${{ env.FILE_NAME }}-Image.lz4" "${{ env.FILE_NAME }}-boot.img" "${{ env.FILE_NAME }}-boot-gz.img" "${{ env.FILE_NAME }}-boot-lz4.img"; do
             if [ -f "$f" ]; then FILES_PRESENT=$((FILES_PRESENT+1)); fi
           done
           if [ "$FILES_PRESENT" -gt 0 ]; then
@@ -797,7 +797,7 @@ jobs:
           echo "- **Set**: $MISC_STATUS ${{ env.FILE_NAME }}-Misc" >> build_summary.md
           if [ "$MISC_STATUS" = "✅" ]; then
             echo "  Included:" >> build_summary.md
-            for f in "Image" "Image.gz" "Image.lz4" "${{ env.FILE_NAME }}-boot.img" "${{ env.FILE_NAME }}-boot-gz.img" "${{ env.FILE_NAME }}-boot-lz4.img"; do
+            for f in "${{ env.FILE_NAME }}-Image" "${{ env.FILE_NAME }}-Image.gz" "${{ env.FILE_NAME }}-Image.lz4" "${{ env.FILE_NAME }}-boot.img" "${{ env.FILE_NAME }}-boot-gz.img" "${{ env.FILE_NAME }}-boot-lz4.img"; do
               if [ -f "$f" ]; then
                 echo "  - $f" >> build_summary.md
               fi
