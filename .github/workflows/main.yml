@@ -197,18 +197,6 @@ jobs:
               fi
             done
           fi
-
-      - name: Display Files Uploaded
-        run: |
-          echo "GitHub release created with the following files:"
-          if [ -d ./downloaded-artifacts ]; then
-            if ls ./downloaded-artifacts/**/* >/dev/null 2>&1; then
-              ls -R ./downloaded-artifacts
-            else
-              echo "No files found under ./downloaded-artifacts."
-            fi
-          else
-            echo "No ./downloaded-artifacts directory present."
             
       - name: Send Telegram Notification
         if: inputs.release_type != 'Actions'
