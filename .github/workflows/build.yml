@@ -776,6 +776,7 @@ jobs:
             ${{ env.FILE_NAME }}-boot.img
             ${{ env.FILE_NAME }}-boot-gz.img
             ${{ env.FILE_NAME }}-boot-lz4.img
+            patch-rejects/**
           if-no-files-found: ignore
           compression-level: 9
 
@@ -788,38 +789,7 @@ jobs:
           path: patch-rejects
           compression-level: 9
 
-      - name: Add Artifact Links
-        if: ${{ always() }}
-        env:
-          FILE_NAME: ${{ env.FILE_NAME }}
-          AK3_ID: ${{ steps.upload_ak3.outputs.artifact-id }}
-          BOOT_ID: ${{ steps.upload_boot.outputs.artifact-id }}
-          BOOT_GZ_ID: ${{ steps.upload_boot_gz.outputs.artifact-id }}
-          BOOT_LZ4_ID: ${{ steps.upload_boot_lz4.outputs.artifact-id }}
-          IMG_RAW_ID: ${{ steps.upload_image_raw.outputs.artifact-id }}
-          IMG_GZ_ID: ${{ steps.upload_image_gz.outputs.artifact-id }}
-          IMG_LZ4_ID: ${{ steps.upload_image_lz4.outputs.artifact-id }}
-          REJECTS_ID: ${{ steps.upload_rejects.outputs.artifact-id }}
-        run: |
-          echo "### Artifact Links" >> $GITHUB_STEP_SUMMARY
-          BASE_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
-
-          append_link() {
-            local id="$1"
-            local label="$2"
-            if [ -n "$id" ]; then
-              echo "- [${label}](${BASE_URL}/${id})" >> $GITHUB_STEP_SUMMARY
-            fi
-          }
-
-          append_link "$AK3_ID" "${FILE_NAME}-AnyKernel3"
-          append_link "$BOOT_ID" "${FILE_NAME}-boot.img"
-          append_link "$BOOT_GZ_ID" "${FILE_NAME}-boot-gz.img"
-          append_link "$BOOT_LZ4_ID" "${FILE_NAME}-boot-lz4.img"
-          append_link "$IMG_RAW_ID" "${FILE_NAME}-Image"
-          append_link "$IMG_GZ_ID" "${FILE_NAME}-Image.gz"
-          append_link "$IMG_LZ4_ID" "${FILE_NAME}-Image.lz4"
-          append_link "$REJECTS_ID" "${FILE_NAME}-Rejected-Patches"
+      # Removed standalone Artifact Links section per request
           
       - name: Initialize Kernel Summary
         if: ${{ always() }}
@@ -889,15 +859,7 @@ jobs:
         run: |
           # Add artifact summary with presence verification
           echo "## Build Artifacts" >> $GITHUB_STEP_SUMMARY
-          BASE_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
-          link_if_available() {
-            local status="$1"; local id="$2"; local label="$3";
-            if [ "$status" = "✅" ] && [ -n "$id" ]; then
-              echo " ([Download](${BASE_URL}/${id}))"
-            else
-              echo ""
-            fi
-          }
+          # Links removed per request
 
           # Verify AnyKernel3 contents - check if kernel Image was actually copied (indicates successful build)
           if [ -d "AnyKernel3" ] && [ -f "AnyKernel3/Image" ]; then
@@ -905,8 +867,7 @@ jobs:
           else
             AK3_STATUS="❌"
           fi
-          LINK_SUFFIX=$(link_if_available "$AK3_STATUS" "$AK3_ID" "${FILE_NAME}-AnyKernel3")
-          echo "- **AnyKernel3**: $AK3_STATUS ${FILE_NAME}-AnyKernel3${LINK_SUFFIX}" >> $GITHUB_STEP_SUMMARY
+          echo "- **AnyKernel3**: $AK3_STATUS ${FILE_NAME}-AnyKernel3" >> $GITHUB_STEP_SUMMARY
 
           echo "### Images (uploaded files)" >> $GITHUB_STEP_SUMMARY
           FILES_PRESENT=0
@@ -918,8 +879,7 @@ jobs:
           else
             IMAGES_STATUS="❌"
           fi
-          LINK_SUFFIX=$(link_if_available "$IMAGES_STATUS" "$IMAGES_BUNDLE_ID" "${FILE_NAME}-Images")
-          echo "- **Set**: $IMAGES_STATUS ${FILE_NAME}-Images${LINK_SUFFIX}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Set**: $IMAGES_STATUS ${FILE_NAME}-Images" >> $GITHUB_STEP_SUMMARY
           if [ "$IMAGES_STATUS" = "✅" ]; then
             echo "  Included:" >> $GITHUB_STEP_SUMMARY
             for f in "Image" "Image.gz" "Image.lz4" "${FILE_NAME}-boot.img" "${FILE_NAME}-boot-gz.img" "${FILE_NAME}-boot-lz4.img"; do
@@ -930,12 +890,7 @@ jobs:
           fi
 
           echo "### Diagnostics" >> $GITHUB_STEP_SUMMARY
-          # Only link diagnostics if uploaded
-          if [ -n "$REJECTS_ID" ]; then
-            echo "- **Rejected Patches**: ${FILE_NAME}-Rejected-Patches ([Download](${BASE_URL}/${REJECTS_ID}))" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- **Rejected Patches**: ${FILE_NAME}-Rejected-Patches" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "- **Rejected Patches**: ${FILE_NAME}-Rejected-Patches" >> $GITHUB_STEP_SUMMARY
           if [ -f patch-rejects/index.txt ]; then
             if [ -s patch-rejects/index.txt ]; then
               echo "  Rejected files:" >> $GITHUB_STEP_SUMMARY
