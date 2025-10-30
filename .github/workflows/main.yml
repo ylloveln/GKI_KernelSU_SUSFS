@@ -45,7 +45,7 @@ jobs:
 
   build-test:
     if: inputs.build_selection == 'Test Build'
-    uses: ./.github/workflows/lts-kernels.yml
+    uses: ./.github/workflows/test-build.yml
     secrets: inherit
 
   build-a12-5-10:
