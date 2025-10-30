@@ -190,8 +190,10 @@ jobs:
               if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
                 artifact_name=$(basename "$dir")
                 echo "Creating ZIP for $artifact_name..."
-                # The entire directory IS the AnyKernel3 content, so zip it directly
-                zip -r -9 "${artifact_name}.zip" "$dir"
+                # Navigate into the directory and zip its contents directly
+                cd "$dir"
+                zip -r -9 "../../${artifact_name}.zip" ./*
+                cd - > /dev/null
                 echo "Uploading ${artifact_name}.zip..."
                 gh release upload ${{ env.NEW_TAG }} "${artifact_name}.zip"
               fi
