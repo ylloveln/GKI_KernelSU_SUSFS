@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-kernels-a14-5-15:
-    name: "5.15.${{ matrix.sub_level }}-android14-${{ matrix.os_patch_level }}"
+    name: "5.15.${{ matrix.sub_level }}-${{ matrix.os_patch_level }}"
     strategy:
       fail-fast: false
       matrix:
