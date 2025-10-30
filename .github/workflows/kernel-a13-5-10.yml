@@ -10,6 +10,7 @@ on:
 
 jobs:
   build-kernels-a13-5-10:
+    name: "5.10.${{ matrix.sub_level }}-android13-${{ matrix.os_patch_level }}"
     strategy:
       fail-fast: false
       matrix:
