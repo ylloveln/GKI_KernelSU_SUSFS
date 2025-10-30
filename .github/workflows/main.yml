@@ -32,7 +32,7 @@ on:
         type: choice
         options:
           - All
-          - LTS Only
+          - LTS
           - Android12-5.10
           - Android13-5.10
           - Android13-5.15
@@ -44,7 +44,7 @@ on:
 jobs:
 
   build-lts-only:
-    if: inputs.build_selection == 'LTS Only'
+    if: inputs.build_selection == 'LTS'
     uses: ./.github/workflows/lts-kernels.yml
     secrets: inherit
 
