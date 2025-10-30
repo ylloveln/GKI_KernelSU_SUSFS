@@ -441,8 +441,8 @@ jobs:
           #sed -i '/_COMMON_GKI_MODULES_LIST = \\[/,/\\]/ s/\\]/    "sound\/drivers\/snd-aloop.ko",\\n&/' common/modules.bzl
           
           # Add symbols to abi_gki_aarch64
-          #SYMBOL_LIST=common/android/abi_gki_aarch64
-          #cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
+          SYMBOL_LIST=common/android/abi_gki_aarch64
+          cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
 
           cp ../kernel_patches/wild/bypass_patches/abi_bypass_gki.patch ./
           patch -p1 < abi_bypass_gki.patch || true
