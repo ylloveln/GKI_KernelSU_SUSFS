@@ -1,4 +1,4 @@
-name: build-test
+name: Test Build
 
 permissions:
   contents: write  # Allow writing to repository contents
@@ -9,8 +9,8 @@ on:
     inputs: {}
 
 jobs:
-  build-lts-kernels:
-    name: "LTS ${{ matrix.kernel_version }}.${{ matrix.sub_level }}-${{ matrix.android_version }}"
+  build-test-kernels:
+    name: "Test Build ${{ matrix.kernel_version }}.${{ matrix.sub_level }}-${{ matrix.android_version }}"
     strategy:
       fail-fast: false
       matrix:
