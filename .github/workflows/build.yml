@@ -422,7 +422,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> "${{ env.DEFCONFIG }}"
 
-      - name: Configure Sound 1
+      - name: Configure SND
         if: true
         run: |
           cd "$CONFIG"
@@ -444,13 +444,9 @@ jobs:
           fi
           
           # Add symbols to abi_gki_aarch64
-          #SYMBOL_LIST=common/android/abi_gki_aarch64
-          #cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
+          SYMBOL_LIST=common/android/abi_gki_aarch64
+          cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
 
-      - name: Configure Sound 2
-        if: true
-        run: |
-          cd "$CONFIG"
           cp ../kernel_patches/wild/bypass_patches/abi_bypass_gki.patch ./
           patch -p1 < abi_bypass_gki.patch || true
 
