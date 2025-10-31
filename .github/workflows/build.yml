@@ -442,7 +442,8 @@ jobs:
             else
               # Insert before the closing bracket of _COMMON_GKI_MODULES_LIST
               echo "snd-aloop injection: adding to module list"
-              sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",}' common/modules.bzl
+              sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",
+}' common/modules.bzl
               if grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
                 echo "Injected snd-aloop into common/modules.bzl"
               else
