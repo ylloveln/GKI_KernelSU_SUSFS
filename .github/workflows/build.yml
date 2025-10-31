@@ -436,15 +436,14 @@ jobs:
           echo "CONFIG_SND_PROC_FS=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_SND_ALOOP=m" >> "${{ env.DEFCONFIG }}"
           
-          # Add snd-aloop.ko to modules list
-          echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
+          // ... existing code ...
           if [[ -f common/modules.bzl ]]; then
             if grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
               echo "snd-aloop already present in common/modules.bzl"
             else
               # Insert before the closing bracket of _COMMON_GKI_MODULES_LIST
               echo "snd-aloop injection: adding to module list"
-              sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",
+              sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",\
 }' common/modules.bzl
               if grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
                 echo "Injected snd-aloop into common/modules.bzl"
@@ -793,3 +792,4 @@ jobs:
           else
             echo "  No rejected patches found." >> build_summary.md
           fi
+
