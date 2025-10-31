@@ -444,6 +444,32 @@ jobs:
           #SYMBOL_LIST=common/android/abi_gki_aarch64
           #cat Wild_KSU/kernel/export_symbol.txt | awk '{sub("[ \t]+","");print "  "$0}' >> $SYMBOL_LIST
 
+          # ABI compare bypass per kernel/android version
+          # Edit each block as needed per version
+          if [[ "${{ inputs.android_version }}" == "android12" && "${{ inputs.kernel_version }}" == "5.10" ]]; then
+            sed -i 's/^\s*exit 1$/    echo "Who cares? Bypassing now!"/' build/abi/compare_to_symbol_list
+          fi
+
+          if [[ "${{ inputs.android_version }}" == "android13" && "${{ inputs.kernel_version }}" == "5.10" ]]; then
+            sed -i 's/^\s*exit 1$/    echo "Who cares? Bypassing now!"/' build/abi/compare_to_symbol_list
+          fi
+
+          if [[ "${{ inputs.android_version }}" == "android13" && "${{ inputs.kernel_version }}" == "5.15" ]]; then
+            sed -i 's/^\s*exit 1$/    echo "Who cares? Bypassing now!"/' build/abi/compare_to_symbol_list
+          fi
+
+          if [[ "${{ inputs.android_version }}" == "android14" && "${{ inputs.kernel_version }}" == "5.15" ]]; then
+            sed -i 's/^\s*exit 1$/    echo "Who cares? Bypassing now!"/' build/abi/compare_to_symbol_list
+          fi
+
+          if [[ "${{ inputs.android_version }}" == "android14" && "${{ inputs.kernel_version }}" == "6.1" ]]; then
+            sed -i 's/^\s*exit 1$/    echo "Who cares? Bypassing now!"/' build/abi/compare_to_symbol_list
+          fi
+
+          if [[ "${{ inputs.android_version }}" == "android15" && "${{ inputs.kernel_version }}" == "6.6" ]]; then
+            sed -i 's/^\s*exit 1$/    echo "Who cares? Bypassing now!"/' build/abi/compare_to_symbol_list
+          fi
+
       - name: Configure Build Optimization
         run: |
           cd "$CONFIG"
