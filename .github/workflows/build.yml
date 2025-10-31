@@ -436,7 +436,6 @@ jobs:
           echo "CONFIG_SND_PROC_FS=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_SND_ALOOP=m" >> "${{ env.DEFCONFIG }}"
           
-          // ... existing code ...
           if [[ -f common/modules.bzl ]]; then
             if grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
               echo "snd-aloop already present in common/modules.bzl"
