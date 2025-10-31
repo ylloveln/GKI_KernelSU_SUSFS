@@ -438,7 +438,9 @@ jobs:
           
           # Add snd-aloop.ko to modules list
           echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
-          sed -i '/_COMMON_GKI_MODULES_LIST = \\[/,/\\]/ s/\\]/    "sound\/drivers\/snd-aloop.ko",\\n&/' common/modules.bzl
+          if [[ -f common/modules.bzl ]]; then
+            sed -i '/_COMMON_GKI_MODULES_LIST = \\[/,/\\]/ s/\\]/    "sound\/drivers\/snd-aloop.ko",\\n&/' common/modules.bzl
+          fi
           
           # Add symbols to abi_gki_aarch64
           #SYMBOL_LIST=common/android/abi_gki_aarch64
