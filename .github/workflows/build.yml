@@ -449,6 +449,8 @@ jobs:
                 echo "Warning: could not inject snd-aloop into common/modules.bzl" >&2
               fi
             fi
+          else
+            echo "common/modules.bzl not found; skipping snd-aloop injection"
           fi
           
           # Add symbols to abi_gki_aarch64
