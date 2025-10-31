@@ -442,14 +442,9 @@ jobs:
             if grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
               echo "snd-aloop already present in common/modules.bzl"
             else
-              # Try robust, anchored insertion before the closing bracket of the list
-              echo "snd-aloop try 1"
-              sed -i '/^[[:space:]]*_COMMON_GKI_MODULES_LIST[[:space:]]*=[[:space:]]*\\[/,/^[[:space:]]*\\]/ s/^[[:space:]]*\\]/    "sound\/drivers\/snd-aloop.ko",\\n]/' common/modules.bzl
-              # Fallback: original, broader pattern if the anchored one didn't succeed
-              if ! grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
-                echo "snd-aloop try 2"
-                sed -i '/_COMMON_GKI_MODULES_LIST = \\[/,/\\]/ s/\\]/    "sound\/drivers\/snd-aloop.ko",\\n&/' common/modules.bzl
-              fi
+              # Insert before the closing bracket
+              echo "snd-aloop injection: adding to module list"
+              sed -i '/^[[:space:]]*]$/i\    "sound/drivers/snd-aloop.ko",' common/modules.bzl
               if grep -q 'sound\/drivers\/snd-aloop.ko' common/modules.bzl; then
                 echo "Injected snd-aloop into common/modules.bzl"
               else
