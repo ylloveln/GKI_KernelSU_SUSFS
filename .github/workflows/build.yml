@@ -444,6 +444,14 @@ jobs:
             echo "snd-aloop injection: adding to module list"
             sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",
             }' common/modules.bzl
+            
+            # Verify the injection was successful
+            if grep -q '"sound/drivers/snd-aloop.ko"' common/modules.bzl; then
+              echo "✓ snd-aloop injection: successfully added to module list"
+            else
+              echo "✗ snd-aloop injection: failed to add to module list"
+              exit 1
+            fi
           fi
           
           # Add symbols to abi_gki_aarch64
