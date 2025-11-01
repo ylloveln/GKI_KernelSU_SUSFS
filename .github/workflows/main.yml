@@ -151,7 +151,7 @@ jobs:
           -> IPSet Support for Advanced Network Filtering
           -> Wireguard Support
           -> BBR v1 Support
-          -> SND (Sound) Support with ALOOP Module for Audio Loopback
+          -> Kernel Sound System: Basic audio support with PCM, timers, procfs info, dynamic devices, and loopback module
           -> Added BBG support to prevent unauthorised writes to certain partitions: https://github.com/vc-teahouse/Baseband-guard
 
           🔹 BBG (Baseband-guard)
