@@ -525,6 +525,40 @@ jobs:
             exit 1
           fi
 
+      - name: Copy snd-aloop module for Android 12-13
+        if: inputs.android_version == 'android12' || inputs.android_version == 'android13'
+        run: |
+          echo "Copying snd-aloop.ko module for Android ${{ inputs.android_version }}..."
+          mkdir -p AnyKernel3/modules/data/ada/lkm
+          
+          # Copy from the same location where Image is found
+          if [ -f "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/sound/drivers/snd-aloop.ko" ]; then
+            cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/sound/drivers/snd-aloop.ko" AnyKernel3/modules/data/ada/lkm/
+            echo "Copied snd-aloop.ko from dist folder"
+          elif [ -f "./$CONFIG/bazel-bin/sound/drivers/snd-aloop.ko" ]; then
+            cp "./$CONFIG/bazel-bin/sound/drivers/snd-aloop.ko" AnyKernel3/modules/data/ada/lkm/
+            echo "Copied snd-aloop.ko from bazel-bin folder"
+          else
+            echo "Warning: snd-aloop.ko not found in expected locations"
+          fi
+
+      - name: Copy snd-aloop module for Android 14-15
+        if: inputs.android_version == 'android14' || inputs.android_version == 'android15'
+        run: |
+          echo "Copying snd-aloop.ko module for Android ${{ inputs.android_version }}..."
+          mkdir -p AnyKernel3/modules/data/ada/lkm
+          
+          # Copy from the same location where Image is found
+          if [ -f "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/sound/drivers/snd-aloop.ko" ]; then
+            cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/sound/drivers/snd-aloop.ko" AnyKernel3/modules/data/ada/lkm/
+            echo "Copied snd-aloop.ko from dist folder"
+          elif [ -f "./$CONFIG/bazel-bin/sound/drivers/snd-aloop.ko" ]; then
+            cp "./$CONFIG/bazel-bin/sound/drivers/snd-aloop.ko" AnyKernel3/modules/data/ada/lkm/
+            echo "Copied snd-aloop.ko from bazel-bin folder"
+          else
+            echo "Warning: snd-aloop.ko not found in expected locations"
+          fi
+
       - name: Search for Kernel Modules
         run: |
           echo "Searching for kernel modules (.ko files)..."
