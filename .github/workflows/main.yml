@@ -39,6 +39,7 @@ on:
           - Android14-5.15
           - Android14-6.1
           - Android15-6.6
+          - Custom
         default: All
 
 jobs:
@@ -52,7 +53,6 @@ jobs:
     if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android12-5.10')
     uses: ./.github/workflows/kernel-a12-5-10.yml
     secrets: inherit
-
 
   build-a13-5-10:
     if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android13-5.10')
@@ -83,6 +83,10 @@ jobs:
     uses: ./.github/workflows/kernel-a15-6-6.yml
     secrets: inherit
 
+  build-custom:
+    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Custom')
+    uses: ./.github/workflows/kernel-custom.yml
+    secrets: inherit
 
   release:
     runs-on: ubuntu-latest
@@ -94,6 +98,7 @@ jobs:
       - build-a14-5-15
       - build-a14-6-1
       - build-a15-6-6
+      - build-custom
 
     env:
       GH_TOKEN: ${{ github.token }}
