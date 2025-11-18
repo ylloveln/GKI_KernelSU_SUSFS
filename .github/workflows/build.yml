@@ -39,9 +39,7 @@ jobs:
           
       - name: Download Apache Arrow's util_free_space.sh
         run: |
-          curl -L -o util_free_space.sh https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh
-          chmod +x util_free_space.sh
-          ./util_free_space.sh
+          curl -Ls https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh | bash
           
       - name: Check Disk Space After Cleanup
         run: |
