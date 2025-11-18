@@ -591,9 +591,7 @@ jobs:
         run: |
           mkdir -p AnyKernel3/modules/data/adb/lkm
           cp "./$CONFIG/bazel-bin/common/kernel_aarch64/snd-aloop.ko" AnyKernel3/modules/data/adb/lkm/
-          cp "./$CONFIG/bazel-bin/common/kernel_aarch64/libcomposite.ko" AnyKernel3/modules/data/adb/lkm/
           cp "./$CONFIG/bazel-bin/common/kernel_aarch64/g_audio.ko" AnyKernel3/modules/data/adb/lkm/
-          cp "./$CONFIG/bazel-bin/common/kernel_aarch64/configfs.ko" AnyKernel3/modules/data/adb/lkm/
 
       - name: Search for Kernel Modules
         run: |
