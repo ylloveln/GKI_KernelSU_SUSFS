@@ -452,26 +452,55 @@ jobs:
           echo "CONFIG_SND_PROC_FS=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_SND_ALOOP=m" >> "${{ env.DEFCONFIG }}"
           
+          echo "CONFIG_USB_GADGET=y" >> "${{ env.DEFCONFIG }}"
+          echo "CONFIG_CONFIGFS_FS=y" >> "${{ env.DEFCONFIG }}"
+          echo "CONFIG_USB_CONFIGFS=y" >> "${{ env.DEFCONFIG }}"
+
+          # The modules they want to load on-demand (=m)
+          echo "CONFIG_USB_LIBCOMPOSITE=m" >> "${{ env.DEFCONFIG }}"
+          echo "CONFIG_USB_AUDIO=m" >> "${{ env.DEFCONFIG }}"
+
+          # Function support - can be =y (only active when configured)
+          echo "CONFIG_USB_CONFIGFS_F_UAC1=y" >> "${{ env.DEFCONFIG }}"
+          echo "CONFIG_USB_CONFIGFS_F_UAC2=y" >> "${{ env.DEFCONFIG }}"
+
            # Add snd-aloop.ko to modules list
           echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
+          echo "drivers/usb/gadget/libcomposite.ko" >> common/android/gki_aarch64_modules
+          echo "drivers/usb/gadget/legacy/g_audio.ko" >> common/android/gki_aarch64_modules
 
           if [[ -f common/modules.bzl ]]; then
             # Insert before the closing bracket of COMMON_GKI_MODULES_LIST or _COMMON_GKI_MODULES_LIST
-            echo "snd-aloop injection: adding to module list"
+            echo "Audio modules injection: adding to module list"
             if ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && (( $ACTUAL_SUBLEVEL <= 110 )) && [[ "${{ inputs.os_patch_level }}" != "2023-09" ]] ) \
             || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( $ACTUAL_SUBLEVEL <= 25 )) && [[ "${{ inputs.os_patch_level }}" != "2023-09" ]] ); then
+              # snd-aloop
               sed -i '/COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",
               }' common/modules.bzl
+              # USB Gadget Audio modules
+              sed -i '/COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "drivers/usb/gadget/libcomposite.ko",
+              }' common/modules.bzl
+              sed -i '/COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "drivers/usb/gadget/legacy/g_audio.ko",
+              }' common/modules.bzl
             else
+              # snd-aloop
               sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "sound/drivers/snd-aloop.ko",
+              }' common/modules.bzl
+              # USB Gadget Audio modules
+              sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "drivers/usb/gadget/libcomposite.ko",
+              }' common/modules.bzl
+              sed -i '/_COMMON_GKI_MODULES_LIST = \[/,/^[[:space:]]*\]/{/^[[:space:]]*\]$/i\    "drivers/usb/gadget/legacy/g_audio.ko",
               }' common/modules.bzl
             fi
             
             # Verify the injection was successful
-            if grep -q '"sound/drivers/snd-aloop.ko"' common/modules.bzl; then
-              echo "✓ snd-aloop injection: successfully added to module list"
+            if grep -q '"sound/drivers/snd-aloop.ko"' common/modules.bzl && \
+              grep -q '"drivers/usb/gadget/libcomposite.ko"' common/modules.bzl && \
+              grep -q '"drivers/usb/gadget/legacy/g_audio.ko"' common/modules.bzl && \
+              grep -q '"drivers/usb/gadget/configfs.ko"' common/modules.bzl; then
+              echo "✓ Audio modules injection: successfully added all modules to list"
             else
-              echo "✗ snd-aloop injection: failed to add to module list"
+              echo "✗ Audio modules injection: failed to add one or more modules"
               exit 1
             fi
           fi
@@ -543,19 +572,28 @@ jobs:
             echo "Error: Image file not found in any expected location"
             exit 1
           fi
-          sed -i 's|^do\.modules=.*|do.modules=1|' ./AnyKernel3/anykernel.sh
+
+          if [ "${{ inputs.variant }}" = "vTomsonek" ]; then
+           sed -i 's|^do\.modules=.*|do.modules=1|' ./AnyKernel3/anykernel.sh
+          fi
 
       - name: Copy snd-aloop module for Android 12-13
         if: ${{ (inputs.android_version == 'android12' || inputs.android_version == 'android13') && inputs.variant == 'vTomsonek' }}
         run: |
           mkdir -p AnyKernel3/modules/data/adb/lkm
           cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/snd-aloop.ko" AnyKernel3/modules/data/adb/lkm/
+          cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/libcomposite.ko" AnyKernel3/modules/data/adb/lkm/
+          cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/g_audio.ko" AnyKernel3/modules/data/adb/lkm/
+          cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/configfs.ko" AnyKernel3/modules/data/adb/lkm/
 
       - name: Copy snd-aloop module for Android 14-15
         if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && inputs.variant == 'vTomsonek' }}
         run: |
           mkdir -p AnyKernel3/modules/data/adb/lkm
           cp "./$CONFIG/bazel-bin/common/kernel_aarch64/snd-aloop.ko" AnyKernel3/modules/data/adb/lkm/
+          cp "./$CONFIG/bazel-bin/common/kernel_aarch64/libcomposite.ko" AnyKernel3/modules/data/adb/lkm/
+          cp "./$CONFIG/bazel-bin/common/kernel_aarch64/g_audio.ko" AnyKernel3/modules/data/adb/lkm/
+          cp "./$CONFIG/bazel-bin/common/kernel_aarch64/configfs.ko" AnyKernel3/modules/data/adb/lkm/
 
       - name: Search for Kernel Modules
         run: |

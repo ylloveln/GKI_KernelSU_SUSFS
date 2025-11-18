@@ -162,7 +162,6 @@ jobs:
           -> IPSet Support for Advanced Network Filtering
           -> Wireguard Support
           -> BBR v1 Support
-          -> Kernel Sound System: Basic audio support with PCM, timers, procfs info, dynamic devices, and loopback module (module found at /data/adb/lkm after install)
           -> Added BBG support to prevent unauthorised writes to certain partitions: https://github.com/vc-teahouse/Baseband-guard
 
           🔹 BBG (Baseband-guard)
