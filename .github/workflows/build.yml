@@ -465,9 +465,9 @@ jobs:
           echo "CONFIG_USB_CONFIGFS_F_UAC2=y" >> "${{ env.DEFCONFIG }}"
 
            # Add snd-aloop.ko to modules list
-          #echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
+          echo "drivers/usb/gadget/legacy/g_audio.ko" >> common/android/gki_aarch64_modules
+          echo "sound/drivers/snd-aloop.ko" >> common/android/gki_aarch64_modules
           #echo "drivers/usb/gadget/libcomposite.ko" >> common/android/gki_aarch64_modules
-          #echo "drivers/usb/gadget/legacy/g_audio.ko" >> common/android/gki_aarch64_modules
 
           if [[ -f common/modules.bzl ]]; then
             # Insert before the closing bracket of COMMON_GKI_MODULES_LIST or _COMMON_GKI_MODULES_LIST
