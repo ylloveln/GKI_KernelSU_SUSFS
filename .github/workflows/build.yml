@@ -582,9 +582,7 @@ jobs:
         run: |
           mkdir -p AnyKernel3/modules/data/adb/lkm
           cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/snd-aloop.ko" AnyKernel3/modules/data/adb/lkm/
-          cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/libcomposite.ko" AnyKernel3/modules/data/adb/lkm/
           cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/g_audio.ko" AnyKernel3/modules/data/adb/lkm/
-          cp "./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/configfs.ko" AnyKernel3/modules/data/adb/lkm/
 
       - name: Copy snd-aloop module for Android 14-15
         if: ${{ (inputs.android_version == 'android14' || inputs.android_version == 'android15') && inputs.variant == 'vTomsonek' }}
