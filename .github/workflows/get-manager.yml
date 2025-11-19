@@ -110,19 +110,23 @@ jobs:
           if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
             echo "KernelSU Next..."
             REPO="KernelSU-Next/KernelSU-Next"
+            KSUM="Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "SukiSU..."
             REPO="SukiSU-Ultra/SukiSU-Ultra"
+            KSUM="Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "MKSU..."
             REPO="5ec1cff/KernelSU"
+            KSUM="manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "KSU..."
             REPO="tiann/KernelSU"
+            KSUM="manager"
           fi
 
           FILENAME=$([[ "${{ inputs.kernelsu_variant }}" == "Next" ]] && echo "build-manager-ci.yml" || echo "build-manager.yml")
-          KSUM="Manager"
+          
           
           # 初始化
           NUMBER=0
