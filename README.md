@@ -9,9 +9,6 @@
 
 已知:KSU-NEXT 无ROOT是一个BUG（可能由在sukisu和next之间频繁切换导致），原因不明，可下载[v1.1.1管理器](https://github.com/KernelSU-Next/KernelSU-Next/releases/download/v1.1.1/KernelSU_Next_v1.1.1_12851-release.apk)解决
 
-停更？
-> susfs仓库自10/23左右停更至今，已无法适配KSU/MKSU的新版，故无法编译；而SUKISU则是自适配susfs不受影响
-
 ### 无限重启？
 1. 一加/真我/op：进入系统rec清除Data数据后重启
 2. 小米：少数机型因为启动引导因avb验证导致无法启动分区，需要关闭[avb验证](https://magiskcn.com/disable-avb)
