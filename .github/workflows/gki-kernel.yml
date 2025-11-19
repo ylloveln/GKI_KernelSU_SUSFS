@@ -295,8 +295,8 @@ jobs:
           if [ ! -z "${{ vars.MANAGER_STR }}" ]; then
             cd "$CONFIG"
             cd ./KernelSU
-            sed -i 's|\$(shell cd \$(srctree)/\$(src); \$(GIT_BIN) rev-parse --short=8 HEAD)|${{ vars.MANAGER_STR }}|g' ./kernel/Makefile 
-            sed -n '50,60p' ./kernel/Makefile
+            sed -i 's/\(v\$1-\).*\(@\$\)/\1${{ vars.MANAGER_STR }}\2/' ./kernel/Makefile 
+            sed -n '50,70p' ./kernel/Makefile
           fi
 
       - name: 为 KernelSU 变体安装 SUSFS 补丁
