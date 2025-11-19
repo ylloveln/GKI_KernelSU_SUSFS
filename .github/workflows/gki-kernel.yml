@@ -362,10 +362,10 @@ jobs:
 
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
-          if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            cp ../../zzh_patch/rm_devpt.patch ./
-            patch -p1 < rm_devpt.patch
-          fi
+          # if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
+          #   cp ../../zzh_patch/rm_devpt.patch ./
+          #   patch -p1 < rm_devpt.patch
+          # fi
 
           FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}"
           if grep -q deprecated <<< "$REMOTE_BRANCH" && \
