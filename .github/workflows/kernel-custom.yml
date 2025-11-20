@@ -6,7 +6,13 @@ permissions:
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      ksu_variant:
+        required: true
+        type: string
+      ksu_commit:
+        required: false
+        type: string
 
 jobs:
   build-kernel-custom:
@@ -18,3 +24,5 @@ jobs:
       sub_level: "226"
       os_patch_level: "2024-11"
       variant: "vTomsonek"
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}

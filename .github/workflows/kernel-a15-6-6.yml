@@ -6,7 +6,13 @@ permissions:
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      ksu_variant:
+        required: true
+        type: string
+      ksu_commit:
+        required: false
+        type: string
 
 jobs:
   build-kernels-a15:
@@ -56,3 +62,5 @@ jobs:
       kernel_version: "6.6"
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}

@@ -21,15 +21,21 @@ on:
       variant:
         required: false
         type: string
+      ksu_variant:
+        required: true
+        type: string
+      ksu_commit:
+        required: false
+        type: string
 
 jobs:
   build-gki:
-    name: "${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.android_version }}-${{ inputs.os_patch_level }} (${{ matrix.apply_bypass }})"
+    name: "${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.android_version }}-${{ inputs.os_patch_level }} (${{ matrix.build_type }})"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        apply_bypass: ${{ fromJSON(inputs.variant == 'vTomsonek' && '["vTomsonek"]' || '["normal","bypass"]') }}
+        build_type: ${{ fromJSON(inputs.variant == 'vTomsonek' && '["vTomsonek"]' || '["normal","bypass"]') }}
 
     steps:
       - name: Check Initial Disk Space
@@ -89,19 +95,26 @@ jobs:
           git clone https://github.com/WildKernels/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://github.com/WildKernels/kernel_patches.git
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
-
+          
           cd susfs4ksu
           TARGET="${{ inputs.android_version }}-${{ inputs.kernel_version }}"
           COMMIT=""
-          case "$TARGET" in
-            android12-5.10) COMMIT="8a76ba240d1f7315352b49d97d854a4b166e5b47" ;;
-            android13-5.10) COMMIT="e5c9eabfc6dcfc677d11f46ce1d5ff786de60a92" ;;
-            android13-5.15) COMMIT="babf6be195576f09aae79650d47abf6a76e8a21b" ;;
-            android14-5.15) COMMIT="19f339e804ba9aebd9c6d735b965e2b9396c73ae" ;;
-            android14-6.1) COMMIT="a162e2469d0b472545e5e46457eee171c0975fb0" ;;
-            android15-6.6) COMMIT="f450ec00bf592d080f59b01ff6f9242456c9a427" ;;
+          case "${{ inputs.ksu_variant }}" in
+            WKSU)
+              case "$TARGET" in
+                android12-5.10) COMMIT="8a76ba240d1f7315352b49d97d854a4b166e5b47" ;;
+                android13-5.10) COMMIT="e5c9eabfc6dcfc677d11f46ce1d5ff786de60a92" ;;
+                android13-5.15) COMMIT="babf6be195576f09aae79650d47abf6a76e8a21b" ;;
+                android14-5.15) COMMIT="19f339e804ba9aebd9c6d735b965e2b9396c73ae" ;;
+                android14-6.1) COMMIT="a162e2469d0b472545e5e46457eee171c0975fb0" ;;
+                android15-6.6) COMMIT="f450ec00bf592d080f59b01ff6f9242456c9a427" ;;
+              esac
+              git checkout "$COMMIT"
+              ;;
+            KSU)
+              echo "Not Needed"
+              ;;
           esac
-          git checkout "$COMMIT"
 
       - name: Initialize and Sync Kernel Source
         run: |
@@ -187,14 +200,41 @@ jobs:
       - name: Add KernelSU
         run: |
           cd "$CONFIG"
-          curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/wild/kernel/setup.sh" | bash -s wild
+          case "${{ inputs.ksu_variant }}" in
+            WKSU)
+              if [ -n "${{ inputs.ksu_commit }}" ]; then
+                curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/wild/kernel/setup.sh" | bash -s "${{ inputs.ksu_commit }}"
+              else
+                curl -LSs "https://raw.githubusercontent.com/WildKernels/Wild_KSU/wild/kernel/setup.sh" | bash -s wild
+              fi
+              ;;
+            KSU)
+              if [ -n "${{ inputs.ksu_commit }}" ]; then
+                curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${{ inputs.ksu_commit }}"
+              else
+                curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+              fi
+              ;;
+          esac
 
       - name: Getting KernelSU Version
         run: |
-          cd "$CONFIG/Wild_KSU/kernel"
-          BASE_VERSION=10200
-          COMMIT_COUNT=$(/usr/bin/git rev-list --count HEAD)
-          KSU_VERSION=$(expr $COMMIT_COUNT "+" $BASE_VERSION)
+          cd "$CONFIG"
+
+          case "${{ inputs.ksu_variant }}" in
+            WKSU)
+              # OLD scheme
+              BASE_VERSION=10200
+              COMMIT_COUNT=$(git rev-list --count HEAD)
+              KSU_VERSION=$(expr $BASE_VERSION + $COMMIT_COUNT)
+              ;;
+            KSU)
+              # NEW scheme
+              BASE_VERSION=20000
+              COMMIT_COUNT=$(git rev-list --count HEAD)
+              KSU_VERSION=$(expr $BASE_VERSION + $COMMIT_COUNT)
+              ;;
+          esac
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
 
       - name: Apply SUSFS Patches for KernelSU Variants
@@ -217,91 +257,86 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
           # Post-SUSFS sed safeguards for task_mmu.c 'goto show_pad' handling
-          if ( ( [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 209 )) ) \
-               || ( [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 209 )) ) \
-               || ( [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 148 )) ) \
-               || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 148 )) ) \
-               || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 75 )) ) ); then
-            sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
-          fi
+          case "${{ inputs.ksu_variant }}" in
+            WKSU)
+              if ( ( [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 209 )) ) \
+                  || ( [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 209 )) ) \
+                  || ( [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 148 )) ) \
+                  || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 148 )) ) \
+                  || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && [[ "${{ inputs.os_patch_level }}" != "2024-05" ]] && (( $ACTUAL_SUBLEVEL <= 75 )) ) ); then
+                sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
+              fi
 
-          # Apply additional SUSFS patches for Android 13 5.15 compatibility
-          if [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && (( ${{ inputs.sub_level }} <= 41 )); then
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_fdinfo.c.patch ./
-            patch -p1 < fix_fdinfo.c.patch || true
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_namespace.c.patch ./
-            patch -p1 < fix_namespace.c.patch || true
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_open.c.patch ./
-            patch -p1 < fix_open.c.patch || true
-            sed -i 's/i_uid_into_mnt(i_user_ns(inode), inode)/i_uid_into_mnt(inode->i_sb->s_user_ns, inode)/g' fs/susfs.c
-          fi
+              # Apply additional SUSFS patches for Android 13 5.15 compatibility
+              if [[ "${{ inputs.android_version }}" == "android13" ]] && [[ "${{ inputs.kernel_version }}" == "5.15" ]] && (( ${{ inputs.sub_level }} <= 41 )); then
+                cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_fdinfo.c.patch ./
+                patch -p1 < fix_fdinfo.c.patch || true
+                cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_namespace.c.patch ./
+                patch -p1 < fix_namespace.c.patch || true
+                cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_open.c.patch ./
+                patch -p1 < fix_open.c.patch || true
+                sed -i 's/i_uid_into_mnt(i_user_ns(inode), inode)/i_uid_into_mnt(inode->i_sb->s_user_ns, inode)/g' fs/susfs.c
+              fi
 
-          # Use ACTUAL_SUBLEVEL for LTS or actual kernel sublevel if available
-          if ( [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 43 )) ) \
-            || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( $ACTUAL_SUBLEVEL >= 145 )) ) \
-            || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( $ACTUAL_SUBLEVEL >= 98 )) ); then
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/1_fix_base.c.patch ./
-            patch -p1 < 1_fix_base.c.patch || true
-          fi
+              # Use ACTUAL_SUBLEVEL for LTS or actual kernel sublevel if available
+              if ( [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 43 )) ) \
+                || ( [[ "${{ inputs.android_version }}" == "android14" ]] && [[ "${{ inputs.kernel_version }}" == "6.1" ]] && (( $ACTUAL_SUBLEVEL >= 145 )) ) \
+                || ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( $ACTUAL_SUBLEVEL >= 98 )) ); then
+                cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/1_fix_base.c.patch ./
+                patch -p1 < 1_fix_base.c.patch || true
+              fi
 
-          if [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 43 )); then
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/2_fix_base.c.patch ./
-            patch -p1 < 2_fix_base.c.patch || true
-          fi
+              if [[ "${{ inputs.android_version }}" == "android12" ]] && [[ "${{ inputs.kernel_version }}" == "5.10" ]] && (( $ACTUAL_SUBLEVEL <= 43 )); then
+                cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/2_fix_base.c.patch ./
+                patch -p1 < 2_fix_base.c.patch || true
+              fi
 
-          if ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( $ACTUAL_SUBLEVEL <= 58 )) ); then
-            cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_task_mmu.c.patch ./
-            patch -p1 < fix_task_mmu.c.patch || true
-          fi
+              if ( [[ "${{ inputs.android_version }}" == "android15" ]] && [[ "${{ inputs.kernel_version }}" == "6.6" ]] && (( $ACTUAL_SUBLEVEL <= 58 )) ); then
+                cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_task_mmu.c.patch ./
+                patch -p1 < fix_task_mmu.c.patch || true
+              fi
 
-          # Apply KSU integration patches
-          cd ../Wild_KSU
-          cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch .
-          patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          
-          cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_core_hook.c.patch ./
-          patch -p1 < fix_core_hook.c.patch
-
-          cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_sucompat.c.patch ./
-          patch -p1 < fix_sucompat.c.patch
-
-          cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_kernel_compat.c.patch ./
-          patch -p1 < fix_kernel_compat.c.patch
+              cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch .
+              patch -p1 < 10_enable_susfs_for_ksu.patch || true
+                  
+              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_core_hook.c.patch ./
+              patch -p1 < fix_core_hook.c.patch
+                  
+              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_sucompat.c.patch ./
+              patch -p1 < fix_sucompat.c.patch
+                  
+              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_kernel_compat.c.patch ./
+              patch -p1 < fix_kernel_compat.c.patch
+              ;;
+            KSU)
+              # Your KSU-specific code goes here
+              ;;
+          esac
 
       - name: Apply Hooks Patches
+        if: ${{ inputs.ksu_variant == 'WKSU' }}
         run: |
           cd "$CONFIG/common"
           cp ../../kernel_patches/wild/hooks/scope_min_manual_hooks_v1.4.patch ./
           patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch
 
-      - name: Scan and collect patch rejects
-        if: ${{ always() }}
+      - name: Apply Performance Patches
         run: |
-          set -e
-          CONFIG_DIR="$CONFIG"
-          REJECTS_DIR="$GITHUB_WORKSPACE/patch-rejects"
-          mkdir -p "$REJECTS_DIR"
-          # Find all .rej files under the configuration directory
-          mapfile -t REJS < <(find "$CONFIG_DIR" -type f -name '*.rej')
-          REJ_COUNT=${#REJS[@]}
-          echo "Found $REJ_COUNT .rej files under $CONFIG_DIR"
-          echo "REJ_COUNT=$REJ_COUNT" >> $GITHUB_ENV
-          if [ "$REJ_COUNT" -gt 0 ]; then
-            for REJ in "${REJS[@]}"; do
-              # Relative path from $CONFIG
-              REL="${REJ#"$CONFIG_DIR"/}"
-              DEST="$REJECTS_DIR/$REL"
-              mkdir -p "$(dirname "$DEST")"
-              cp "$REJ" "$DEST"
-              # Copy the associated original file alongside the .rej
-              ORIG="${REJ%.rej}"
-              if [ -f "$ORIG" ]; then
-                ORIG_DEST="$REJECTS_DIR/${REL%.rej}"
-                mkdir -p "$(dirname "$ORIG_DEST")"
-                cp "$ORIG" "$ORIG_DEST"
-              fi
-              echo "$REL" >> "$REJECTS_DIR/index.txt"
-            done
+          cd "$CONFIG/common"
+          MIN_VERSION="5.16"
+          cp ../../kernel_patches/common/optimized_mem_operations.patch ./
+          patch -p1 --forward < optimized_mem_operations.patch
+          cp ../../kernel_patches/common/file_struct_8bytes_align.patch ./
+          patch -p1 --forward < file_struct_8bytes_align.patch
+          cp ../../kernel_patches/common/reduce_cache_pressure.patch ./
+          patch -p1 --forward < reduce_cache_pressure.patch
+          if [ "$(printf '%s\n' "${{ inputs.kernel_version }}" "$MIN_VERSION" | sort -V | head -n1)" = "${{ inputs.kernel_version }}" ]; then
+            cp ../../kernel_patches/common/clear_page_16bytes_align.patch ./
+            patch -p1 --forward < clear_page_16bytes_align.patch
+          else
+            cp ../../kernel_patches/common/clear_page_16bytes_align.patch ./
+            sed -e 's/SYM_FUNC_START_PI(clear_page)/SYM_FUNC_START_PI(__pi_clear_page)/' clear_page_16bytes_align.patch > clear_page_16bytes_align__pi.patch
+            patch -p1 -F3 --forward < clear_page_16bytes_align__pi.patch
           fi
 
       - name: Add BBG
@@ -313,7 +348,7 @@ jobs:
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' common/security/Kconfig
 
       - name: Apply Module Check Bypass
-        if: ${{ matrix.apply_bypass == 'bypass' }}
+        if: ${{ matrix.build_type == 'bypass' }}
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" ]]; then
             cd "$CONFIG/common/kernel/module"
@@ -526,10 +561,11 @@ jobs:
       - name: Change Kernel Name
         run: |
           cd "$CONFIG"
-          #Add Wild to Kernel Version
+          #Wild to Kernel Version
           sed -i '$s|echo "\$res"|echo "\$res-Wild"|' ./common/scripts/setlocalversion
           #Set Kernel Timestamp
-          perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT \$(date -u +%a\ %b\ %d\ %H:%M:%S\ UTC\ %Y)"}' ./common/scripts/mkcompile_h
+          UTS_VERSION="#1 SMP PREEMPT $(date -u +%a\ %b\ %d\ %H:%M:%S\ UTC\ %Y)"
+          perl -pi -e "s|UTS_VERSION=\".*\"|UTS_VERSION=\"${UTS_VERSION}\"|" ./common/scripts/mkcompile_h
           if [ -f "build/build.sh" ]; then
             #Remove Dirty Flag
             sed -i 's/-dirty//' ./common/scripts/setlocalversion
@@ -543,7 +579,7 @@ jobs:
 
       - name: Set file name
         run: |
-          ARTIFACT_BASE="${{ inputs.kernel_version }}.$ACTUAL_SUBLEVEL-${{ inputs.android_version }}-${{ inputs.os_patch_level }}-${{ matrix.apply_bypass == 'bypass' && 'Bypass' || (inputs.variant == 'vTomsonek' && 'vTomsonek' || 'Normal') }}"
+          ARTIFACT_BASE="${{ inputs.kernel_version }}.$ACTUAL_SUBLEVEL-${{ inputs.android_version }}-${{ inputs.os_patch_level }}-${{ matrix.build_type == 'bypass' && 'Bypass' || (inputs.variant == 'vTomsonek' && 'vTomsonek' || 'Normal') }}"
           echo "ARTIFACT_BASE=$ARTIFACT_BASE" >> $GITHUB_ENV
           echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
 
@@ -733,6 +769,36 @@ jobs:
             ./AnyKernel3/**
           compression-level: 9
 
+      - name: Scan and collect patch rejects
+        if: ${{ always() }}
+        run: |
+          set -e
+          CONFIG_DIR="$CONFIG"
+          REJECTS_DIR="$GITHUB_WORKSPACE/patch-rejects"
+          mkdir -p "$REJECTS_DIR"
+          # Find all .rej files under the configuration directory
+          mapfile -t REJS < <(find "$CONFIG_DIR" -type f -name '*.rej')
+          REJ_COUNT=${#REJS[@]}
+          echo "Found $REJ_COUNT .rej files under $CONFIG_DIR"
+          echo "REJ_COUNT=$REJ_COUNT" >> $GITHUB_ENV
+          if [ "$REJ_COUNT" -gt 0 ]; then
+            for REJ in "${REJS[@]}"; do
+              # Relative path from $CONFIG
+              REL="${REJ#"$CONFIG_DIR"/}"
+              DEST="$REJECTS_DIR/$REL"
+              mkdir -p "$(dirname "$DEST")"
+              cp "$REJ" "$DEST"
+              # Copy the associated original file alongside the .rej
+              ORIG="${REJ%.rej}"
+              if [ -f "$ORIG" ]; then
+                ORIG_DEST="$REJECTS_DIR/${REL%.rej}"
+                mkdir -p "$(dirname "$ORIG_DEST")"
+                cp "$ORIG" "$ORIG_DEST"
+              fi
+              echo "$REL" >> "$REJECTS_DIR/index.txt"
+            done
+          fi
+
       - name: Extra Artifacts
         if: ${{ always() }}
         id: upload_misc
@@ -765,7 +831,7 @@ jobs:
           echo "- **Android Version**: ${{ inputs.android_version }}" >> build_summary.md
           echo "- **Kernel Version**: ${{ inputs.kernel_version }}.${{ inputs.sub_level }}" >> build_summary.md
           echo "- **BBG**: Installed" >> build_summary.md
-          echo "- **Bypass Mode**: ${{ matrix.apply_bypass }}" >> build_summary.md
+          echo "- **Build Type**: ${{ matrix.build_type }}" >> build_summary.md
           echo "" >> build_summary.md
 
           # Get Wild_KSU commit
