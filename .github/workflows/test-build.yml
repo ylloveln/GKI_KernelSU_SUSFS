@@ -6,7 +6,13 @@ permissions:
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      ksu_variant:
+        required: true
+        type: string
+      ksu_commit:
+        required: false
+        type: string
 
 jobs:
   build-test-kernels:
@@ -100,3 +106,5 @@ jobs:
       kernel_version: ${{ matrix.kernel_version }}
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
