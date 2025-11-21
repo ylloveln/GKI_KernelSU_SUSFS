@@ -60,6 +60,9 @@ jobs:
     if: inputs.build_selection == 'Test Build'
     uses: ./.github/workflows/test-build.yml
     secrets: inherit
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a12-5-10:
     if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android12-5.10')
