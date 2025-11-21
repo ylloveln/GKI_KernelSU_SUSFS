@@ -32,7 +32,6 @@ on:
         type: choice
         options:
           - All
-          - Test Build
           - Android12-5.10
           - Android13-5.10
           - Android13-5.15
@@ -55,14 +54,6 @@ on:
         type: string
 
 jobs:
-
-  build-test:
-    if: inputs.build_selection == 'Test Build'
-    uses: ./.github/workflows/test-build.yml
-    secrets: inherit
-    with:
-      ksu_variant: ${{ inputs.ksu_variant }}
-      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a12-5-10:
     if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android12-5.10')
@@ -142,6 +133,7 @@ jobs:
       RELEASE_BODY: ""
     steps:
       - name: Download Apache Arrow's util_free_space.sh
+        if: false
         run: |
           curl -L -o util_free_space.sh https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh
           chmod +x util_free_space.sh
@@ -154,10 +146,6 @@ jobs:
         if: inputs.release_type != 'Actions'
         run: |
             LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name' 2>/dev/null || echo "")
-            if [ -z "$LATEST_TAG" ]; then
-              LATEST_TAG="v1.5.12-r0"
-            fi
-            
             NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
     
             echo "New tag: $NEW_TAG"
