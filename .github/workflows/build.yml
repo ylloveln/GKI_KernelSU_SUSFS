@@ -223,12 +223,14 @@ jobs:
 
           case "${{ inputs.ksu_variant }}" in
             WKSU)
+              cd Wild_KSU
               # OLD scheme
               BASE_VERSION=10200
               COMMIT_COUNT=$(git rev-list --count HEAD)
               KSU_VERSION=$(expr $BASE_VERSION + $COMMIT_COUNT)
               ;;
             KSU)
+              cd KernelSU
               # NEW scheme
               BASE_VERSION=20000
               COMMIT_COUNT=$(git rev-list --count HEAD)
