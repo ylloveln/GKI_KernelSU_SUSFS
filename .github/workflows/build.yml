@@ -235,18 +235,18 @@ jobs:
 
       - name: Getting KernelSU Version
         run: |
-          cd "$CONFIG"
+          cd "$KERNEL_ROOT"
 
           case "${{ inputs.ksu_variant }}" in
             WKSU)
-              cd Wild_KSU
+              cd "$KERNEL_ROOT/Wild_KSU"
               # OLD scheme
               BASE_VERSION=10200
               COMMIT_COUNT=$(git rev-list --count HEAD)
               KSU_VERSION=$(expr $BASE_VERSION + $COMMIT_COUNT)
               ;;
             KSU)
-              cd KernelSU
+              cd "$KERNEL_ROOT/KernelSU"
               # NEW scheme
               BASE_VERSION=20000
               COMMIT_COUNT=$(git rev-list --count HEAD)
@@ -502,7 +502,7 @@ jobs:
       - name: Configure SND
         if: ${{ inputs.variant == 'vTomsonek' && inputs.android_version == 'android12' && inputs.kernel_version == '5.10' && inputs.sub_level == '226' && inputs.os_patch_level == '2024-11' }}
         run: |
-          cd "$CONFIG"
+          cd "$KERNEL_ROOT"
           # Sound Configuration
           echo "# Sound Configuration" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_SND=y" >> "${{ env.DEFCONFIG }}"
