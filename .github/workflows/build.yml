@@ -251,14 +251,35 @@ jobs:
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
 
           # Apply core SUSFS patches
-          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch ./common/
           cd common
-
-          # Pre-SUSFS sed safeguards removed; moved below core patch
-
-          # Apply SUSFS core patch
+          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch ./
           patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
+          cd ..
 
+          if [ "${{ inputs.ksu_variant }}" == "WKSU" ]; then
+            cd Wild_KSU
+          elif [ "${{ inputs.ksu_variant }}" == "KSU" ]; then
+            cd KernelSU
+          cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch .
+          patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          
+          case "${{ inputs.ksu_variant }}" in
+            WKSU)
+              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_core_hook.c.patch ./
+              patch -p1 < fix_core_hook.c.patch
+                  
+              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_sucompat.c.patch ./
+              patch -p1 < fix_sucompat.c.patch
+                  
+              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_kernel_compat.c.patch ./
+              patch -p1 < fix_kernel_compat.c.patch
+            KSU)
+              # Your KSU-specific code goes here
+              ;;
+          esac
+          cd ..
+          
+          cd common
           # Post-SUSFS sed safeguards for task_mmu.c 'goto show_pad' handling
           case "${{ inputs.ksu_variant }}" in
             WKSU)
@@ -298,18 +319,6 @@ jobs:
                 cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_task_mmu.c.patch ./
                 patch -p1 < fix_task_mmu.c.patch || true
               fi
-
-              cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch .
-              patch -p1 < 10_enable_susfs_for_ksu.patch || true
-                  
-              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_core_hook.c.patch ./
-              patch -p1 < fix_core_hook.c.patch
-                  
-              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_sucompat.c.patch ./
-              patch -p1 < fix_sucompat.c.patch
-                  
-              cp ../../kernel_patches/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_kernel_compat.c.patch ./
-              patch -p1 < fix_kernel_compat.c.patch
               ;;
             KSU)
               # Your KSU-specific code goes here
