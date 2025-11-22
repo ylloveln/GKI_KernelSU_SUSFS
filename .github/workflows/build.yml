@@ -288,6 +288,7 @@ jobs:
               
               cp "$KERNEL_PATCHES/wild/susfs_fix_patches/v${SUSFS_VERSION}/fix_kernel_compat.c.patch" ./
               patch -p1 < fix_kernel_compat.c.patch
+              ;;
             KSU)
               # Your KSU-specific code goes here
               ;;
