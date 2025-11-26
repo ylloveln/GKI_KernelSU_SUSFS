@@ -38,6 +38,7 @@ on:
           - Android14-5.15
           - Android14-6.1
           - Android15-6.6
+          - Android16-6.12
           - Custom
         default: All
       ksu_variant:
@@ -98,7 +99,6 @@ jobs:
       ksu_variant: ${{ inputs.ksu_variant }}
       ksu_commit: ${{ inputs.ksu_commit }}
 
-
   build-a15-6-6:
     if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android15-6.6')
     uses: ./.github/workflows/kernel-a15-6-6.yml
@@ -106,6 +106,15 @@ jobs:
     with:
       ksu_variant: ${{ inputs.ksu_variant }}
       ksu_commit: ${{ inputs.ksu_commit }}
+
+  build-a16-6-12:
+    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android16-6.12')
+    uses: ./.github/workflows/kernel-a16-612.yml
+    secrets: inherit
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
+
 
   build-custom:
     if: (inputs.build_selection == 'All' || inputs.build_selection == 'Custom')

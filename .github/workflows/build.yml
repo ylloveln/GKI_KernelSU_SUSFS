@@ -409,7 +409,11 @@ jobs:
           echo "DEFCONFIG=$KERNEL_ROOT/common/arch/arm64/configs/gki_defconfig" >> $GITHUB_ENV
           
           # Remove check_defconfig
-          sed -i 's/check_defconfig//' ./common/build.config.gki
+          if [[ "${{ inputs.android_version }}" == "android16" && "${{ inputs.kernel_version }}" == "6.12" ]]; then
+            sed -i 's/check_defconfig_minimized = True/check_defconfig_minimized = False/' ./common/BAZEL.build
+          else
+            sed -i 's/check_defconfig//' ./common/build.config.gki
+          fi
 
       - name: Configure KernelSU Core
         run: |
