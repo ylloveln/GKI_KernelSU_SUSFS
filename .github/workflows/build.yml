@@ -224,10 +224,10 @@ jobs:
               ;;
             KSU)
               if [ -n "${{ inputs.ksu_commit }}" ]; then
-                curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${{ inputs.ksu_commit }}"
+                curl -LSs "https://raw.githubusercontent.com/WildKernels/KernelSU/main/kernel/setup.sh" | bash -s "${{ inputs.ksu_commit }}"
               else
-                curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
-              fi
+                curl -LSs "https://raw.githubusercontent.com/WildKernels/KernelSU/main/kernel/setup.sh" | bash -s main
+              fia
               ;;
           esac
 
