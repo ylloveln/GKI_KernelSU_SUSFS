@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: ${{ fromJSON(inputs.variant == 'vTomsonek' && '["vTomsonek"]' || '["normal","bypass"]') }}
+        build_type: ${{ fromJSON( (inputs.variant == 'vTomsonek' && 'vTomsonek') || (inputs.variant == 'TheWildJames' && 'TheWildJames') || 'normal","bypass' ) }}
 
     steps:
       - name: Check Initial Disk Space
