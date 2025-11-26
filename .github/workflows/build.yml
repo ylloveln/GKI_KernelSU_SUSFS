@@ -410,7 +410,8 @@ jobs:
           
           # Remove check_defconfig
           if [[ "${{ inputs.android_version }}" == "android16" && "${{ inputs.kernel_version }}" == "6.12" ]]; then
-            sed -i 's/check_defconfig_minimized = True/check_defconfig_minimized = False/' ./common/BUILD.bazel
+            sed -i '/name = "kernel_aarch64"/,/^)$/s/^\)$/    check_defconfig = "disabled",\n&/' common/BUILD.bazel
+            awk '/name = "kernel_aarch64"/,/^\)/ {if(/check_defconfig = "disabled"/) found=1} END{if(found) print "SUCCESS: check_defconfig = \"disabled\" is in the kernel_aarch64 block"; else print "FAILED: NOT in the kernel_aarch64 block"}' common/BUILD.bazel
           else
             sed -i 's/check_defconfig//' ./common/build.config.gki
           fi
