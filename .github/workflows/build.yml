@@ -410,7 +410,7 @@ jobs:
           
           # Remove check_defconfig
           if [[ "${{ inputs.android_version }}" == "android16" && "${{ inputs.kernel_version }}" == "6.12" ]]; then
-            sed -i 's/check_defconfig_minimized = True/check_defconfig_minimized = False/' ./common/BAZEL.build
+            sed -i 's/check_defconfig_minimized = True/check_defconfig_minimized = False/' ./common/BUILD.bazel
           else
             sed -i 's/check_defconfig//' ./common/build.config.gki
           fi
