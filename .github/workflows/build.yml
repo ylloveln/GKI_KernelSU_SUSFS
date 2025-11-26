@@ -590,7 +590,7 @@ jobs:
           #Wild to Kernel Version
           case ${{ matrix.build_type }} in
             TheWildJames)
-              sed -i '$s|echo "\$res"|echo "\$res-🟢-Wild-✅-Exclusive"|' ./common/scripts/setlocalversion
+              sed -i '$s|echo "\$res"|echo "\$res-🟢-Wild-Exclusive"|' ./common/scripts/setlocalversion
               ;;
             *)
               sed -i '$s|echo "\$res"|echo "\$res-Wild"|' ./common/scripts/setlocalversion
