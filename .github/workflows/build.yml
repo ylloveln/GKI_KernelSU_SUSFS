@@ -624,7 +624,8 @@ jobs:
             fi
           fi
           
-          sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile\n          cat common/drivers/android/Makefile
+          sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
+          cat common/drivers/android/Makefile
 
       - name: Change Kernel Name
         run: |
