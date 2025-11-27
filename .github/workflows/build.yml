@@ -614,8 +614,10 @@ jobs:
 
           if [[ "${{ inputs.os_patch_level }}" == "lts" ]]; then
             sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/binder/Makefile
+            cat common/drivers/android/binder/Makefile
           else
             sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
+            cat common/drivers/android/Makefile
           fi
 
       - name: Change Kernel Name
