@@ -74,6 +74,7 @@ jobs:
           echo "KERNEL_PATCHES=$KERNEL_PATCHES" >> $GITHUB_ENV
           echo "ANYKERNEL3=$ANYKERNEL3" >> $GITHUB_ENV
 
+          mkdir -p "$KERNEL_ROOT"
 
       - name: Setup Build Environment
         run: |
@@ -132,10 +133,8 @@ jobs:
           esac
 
       - name: Initialize and Sync Kernel Source
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          mkdir -p "$KERNEL_ROOT"
-          cd "$KERNEL_ROOT"
-          
           FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
           
           $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} --repo-rev=v2.16
@@ -157,8 +156,7 @@ jobs:
           du -BG -d 1 | sort -nr
           
           echo "===== $KERNEL_ROOT Directory Space Usage in GB ====="
-          cd "$KERNEL_ROOT"
-          du -BG -d 2 | sort -nr
+          du -BG -d 2 "$KERNEL_ROOT" | sort -nr
 
       - name: Extract Actual Sublevel
         working-directory: ${{ env.KERNEL_ROOT }}/common
@@ -378,30 +376,27 @@ jobs:
         if: ${{ matrix.build_type == 'bypass' }}
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" || "${{ inputs.kernel_version }}" == "6.12" ]]; then
-            cd "$KERNEL_ROOT/common/kernel/module"
-            sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' version.c
+            sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' "$KERNEL_ROOT/common/kernel/module/version.c"
           else
-            cd "$KERNEL_ROOT/common/kernel"
-            sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' module.c
+            sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' "$KERNEL_ROOT/common/kernel/module.c"
           fi
 
       - name: Fix WiFi and Bluetooth on Samsung 6.6 GKI devices
         if: ${{ ( inputs.kernel_version == '6.6' ) }}
+        working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
-          SYMBOL_LIST=$KERNEL_ROOT/common/android/abi_gki_aarch64_galaxy
+          SYMBOL_LIST=android/abi_gki_aarch64_galaxy
           echo "kdp_set_cred_non_rcu" >> $SYMBOL_LIST
           echo "kdp_usecount_dec_and_test" >> $SYMBOL_LIST
           echo "kdp_usecount_inc" >> $SYMBOL_LIST
           
-          cd "$KERNEL_ROOT/common"
           PATCH="$KERNEL_PATCHES/samsung/min_kdp/add-min_kdp-symbols.patch"
           if patch -p1 --dry-run < "$PATCH"; then
             patch -p1 --no-backup-if-mismatch < $PATCH
           fi
           
-          cd drivers
-          cp "$KERNEL_PATCHES/samsung/min_kdp/min_kdp.c" min_kdp.c
-          echo "obj-y += min_kdp.o" >> Makefile
+          cp "$KERNEL_PATCHES/samsung/min_kdp/min_kdp.c" drivers/min_kdp.c
+          echo "obj-y += min_kdp.o" >> drivers/Makefile
 
       - name: Set Kernel Configuration Variables
         working-directory: ${{ env.KERNEL_ROOT }}
@@ -799,15 +794,15 @@ jobs:
           
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../${{ env.FILE_NAME }}-boot.img
+          cp ./boot.img "$GITHUB_WORKSPACE/${{ env.FILE_NAME }}-boot.img"
           
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../${{ env.FILE_NAME }}-boot-gz.img
+          cp ./boot-gz.img "$GITHUB_WORKSPACE/${{ env.FILE_NAME }}-boot-gz.img"
           
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
+          cp ./boot-lz4.img "$GITHUB_WORKSPACE/${{ env.FILE_NAME }}-boot-lz4.img"
 
       - name: Android 13/14/15 boot image build script
         if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
@@ -817,17 +812,17 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../${{ env.FILE_NAME }}-boot.img
+          cp ./boot.img "$GITHUB_WORKSPACE/${{ env.FILE_NAME }}-boot.img"
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../${{ env.FILE_NAME }}-boot-gz.img
+          cp ./boot-gz.img "$GITHUB_WORKSPACE/${{ env.FILE_NAME }}-boot-gz.img"
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
+          cp ./boot-lz4.img "$GITHUB_WORKSPACE/${{ env.FILE_NAME }}-boot-lz4.img"
           
       - name: Scan and collect patch rejects
         if: ${{ always() }}
@@ -878,33 +873,27 @@ jobs:
 
           # Get Wild_KSU commit
           if [ -d "$KERNEL_ROOT/Wild_KSU" ]; then
-            cd "$KERNEL_ROOT/Wild_KSU"
-            WKSU_COMMIT=$(git rev-parse HEAD)
+            WKSU_COMMIT=$(git -C "$KERNEL_ROOT/Wild_KSU" rev-parse HEAD)
             WKSU_URL="https://github.com/WildKernels/Wild_KSU/commit/$WKSU_COMMIT"
             echo "- **Wild_KSU**: [$WKSU_COMMIT]($WKSU_URL)" >> "$GITHUB_WORKSPACE/build_summary.md"
-            cd "$GITHUB_WORKSPACE"
           else
             echo "- **Wild_KSU**: not present" >> build_summary.md
           fi
           
           # Get Baseband-guard commit
           if [ -d "$KERNEL_ROOT/Baseband-guard" ]; then
-            cd "$KERNEL_ROOT/Baseband-guard"
-            BBG_COMMIT=$(git rev-parse HEAD)
+            BBG_COMMIT=$(git -C "$KERNEL_ROOT/Baseband-guard" rev-parse HEAD)
             BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_COMMIT"
             echo "- **Baseband-guard**: [$BBG_COMMIT]($BBG_URL)" >> "$GITHUB_WORKSPACE/build_summary.md"
-            cd "$GITHUB_WORKSPACE"
           else
             echo "- **Baseband-guard**: not present" >> build_summary.md
           fi
           
           # Get SUSFS4KSU commit
           if [ -d "$SUSFS4KSU" ]; then
-            cd "$SUSFS4KSU"
-            SUSFS_COMMIT=$(git rev-parse HEAD)
+            SUSFS_COMMIT=$(git -C "$SUSFS4KSU" rev-parse HEAD)
             SUSFS_URL="https://gitlab.com/simonpunk/susfs4ksu/-/commit/$SUSFS_COMMIT"
             echo "- **SUSFS4KSU (v1.5.12)**: [$SUSFS_COMMIT]($SUSFS_URL)" >> "$GITHUB_WORKSPACE/build_summary.md"
-            cd "$GITHUB_WORKSPACE"
           else
             echo "- **SUSFS4KSU (v1.5.12)**: not present" >> build_summary.md
           fi
