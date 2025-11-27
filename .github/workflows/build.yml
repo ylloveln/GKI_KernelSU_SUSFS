@@ -608,6 +608,24 @@ jobs:
             EOF
           fi
 
+          if [[ "${{ inputs.sub_level }}" == "X" ]]; then
+            FILE=common/drivers/android/Makefile
+            if ! grep -q 'rust_binder-objs' "$FILE"; then
+              cat >> "$FILE" <<'EOF'
+
+              obj-m	+= rust_binder.o
+              obj-$(CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY)	+= rust_binder.o
+              ifdef CONFIG_ANDROID_BINDER_IPC_RUST
+              rust_binder-objs := binder/rust_binder.o binder/rust_binderfs.o binder/rust_binder_events.o
+              rust_binder-objs += binder/rust_binder_hooks.o binder/page_range_helper.o
+              else
+              rust_binder-objs := binder/dummy.o
+              endif
+
+            EOF
+            fi
+          fi
+
           sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
 
       - name: Change Kernel Name
