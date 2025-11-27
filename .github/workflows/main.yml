@@ -241,9 +241,7 @@ jobs:
                 artifact_name=$(basename "$dir")
                 echo "Creating ZIP for $artifact_name..."
                 # Navigate into the directory and zip its contents directly
-                cd "$dir"
-                zip -r -9 "$GITHUB_WORKSPACE/${artifact_name}.zip" ./*
-                cd - > /dev/null
+                (cd "$dir" && zip -r -9 "$GITHUB_WORKSPACE/${artifact_name}.zip" ./*)
                 echo "Uploading ${artifact_name}.zip..."
                 gh release upload ${{ env.NEW_TAG }} "${artifact_name}.zip"
               fi
