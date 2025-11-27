@@ -828,16 +828,7 @@ jobs:
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../${{ env.FILE_NAME }}-boot-lz4.img
-
-      - name: Upload AnyKernel3 Artifacts
-        id: upload_ak3
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.FILE_NAME }}-AnyKernel3
-          path: |
-            ./AnyKernel3/**
-          compression-level: 9
-
+          
       - name: Scan and collect patch rejects
         if: ${{ always() }}
         run: |
@@ -867,24 +858,6 @@ jobs:
               echo "$REL" >> "$REJECTS_DIR/index.txt"
             done
           fi
-
-      - name: Extra Artifacts
-        if: ${{ always() }}
-        id: upload_misc
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.FILE_NAME }}-Misc
-          path: |
-            ${{ env.FILE_NAME }}-Image
-            ${{ env.FILE_NAME }}-Image.gz
-            ${{ env.FILE_NAME }}-Image.lz4
-            ${{ env.FILE_NAME }}-boot.img
-            ${{ env.FILE_NAME }}-boot-gz.img
-            ${{ env.FILE_NAME }}-boot-lz4.img
-            patch-rejects/**
-            build_summary.md
-          if-no-files-found: ignore
-          compression-level: 9
           
       - name: Generate Build Summary
         if: ${{ always() }}
@@ -983,3 +956,15 @@ jobs:
             echo "  No rejected patches found." >> build_summary.md
           fi
 
+      - name: Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-Misc
+          path: |
+            ./AnyKernel3/**
+            *-Image*
+            *.img
+            patch-rejects/**
+            build_summary.md
+          if-no-files-found: ignore
+          compression-level: 9
