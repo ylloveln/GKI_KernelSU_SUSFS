@@ -235,17 +235,15 @@ jobs:
 
           case "${{ inputs.ksu_variant }}" in
             WKSU)
-              cd "$KERNEL_ROOT/Wild_KSU"
               # OLD scheme
               BASE_VERSION=10200
-              COMMIT_COUNT=$(git rev-list --count HEAD)
+              COMMIT_COUNT=$(git -C "$KERNEL_ROOT/Wild_KSU" rev-list --count HEAD)
               KSU_VERSION=$(expr $BASE_VERSION + $COMMIT_COUNT)
               ;;
             KSU)
-              cd "$KERNEL_ROOT/KernelSU"
               # NEW scheme
               BASE_VERSION=20000
-              COMMIT_COUNT=$(git rev-list --count HEAD)
+              COMMIT_COUNT=$(git -C "$KERNEL_ROOT/KernelSU" rev-list --count HEAD)
               KSU_VERSION=$(expr $BASE_VERSION + $COMMIT_COUNT)
               ;;
           esac
@@ -334,7 +332,6 @@ jobs:
               ;;
             KSU)
               cd "$KERNEL_ROOT"
-              sed -i '/int ksu_handle_faccessat/i #ifndef CONFIG_KSU_SUSFS' KernelSU/kernel/sucompat.c
               ;;
           esac
 
