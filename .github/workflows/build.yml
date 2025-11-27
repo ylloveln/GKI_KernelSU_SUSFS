@@ -608,7 +608,7 @@ jobs:
           fi
 
 
-          if [[ "${{ inputs.sub_level }}" == "X" ]]; then
+          if [[ "${{ inputs.sub_level }}" == "XXXXXX" ]]; then
             FILE=common/drivers/android/Makefile
             if ! grep -q 'rust_binder-objs' "$FILE"; then
               printf '%s\n' \
@@ -622,6 +622,10 @@ jobs:
           'endif' \
               >> "$FILE"
             fi
+          fi
+          
+          if [[ "${{ inputs.sub_level }}" == "XXXXXX" ]]; then
+            sed -i 's/^obj-y += binder\//obj-m += binder\//'
           fi
           
           sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
