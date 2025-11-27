@@ -161,8 +161,8 @@ jobs:
           du -BG -d 2 | sort -nr
 
       - name: Extract Actual Sublevel
+        working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
-          cd "$KERNEL_ROOT/common"
           
           if [ -f "Makefile" ]; then
             ACTUAL_SUBLEVEL=$(grep '^SUBLEVEL = ' Makefile | awk '{print $3}')
@@ -199,21 +199,21 @@ jobs:
 
       - name: Fix Less Then 6.6.50 Builds
         if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6'
+        working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
-          cd "$KERNEL_ROOT/common"
           if ! grep -qxF '#include <trace/hooks/fs.h>' ./fs/namespace.c; then
               sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace\/hooks\/fs.h>' ./fs/namespace.c
           fi
 
       - name: Apply ptrace patch for older kernels
         if: fromJSON(inputs.kernel_version) < 5.16
+        working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
-          cd "$KERNEL_ROOT/common"
           patch -p1 -F 3 < "$KERNEL_PATCHES/gki_ptrace.patch"
 
       - name: Add KernelSU
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           case "${{ inputs.ksu_variant }}" in
             WKSU)
               if [ -n "${{ inputs.ksu_commit }}" ]; then
@@ -232,8 +232,8 @@ jobs:
           esac
 
       - name: Getting KernelSU Version
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
 
           case "${{ inputs.ksu_variant }}" in
             WKSU)
@@ -254,8 +254,8 @@ jobs:
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
 
       - name: Apply SUSFS Patches for KernelSU Variants
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           
           # Apply compatibility fixes
           SUSFS_VERSION="1.5.12"
@@ -335,20 +335,20 @@ jobs:
               fi
               ;;
             KSU)
-              :
+              sed -i '/int ksu_handle_faccessat/i #ifndef CONFIG_KSU_SUSFS' KernelSU/kernel/sucompat.c
               ;;
           esac
 
       - name: Apply Hooks Patches
         if: ${{ inputs.ksu_variant == 'WKSU' }}
+        working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
-          cd "$KERNEL_ROOT/common"
           cp "$KERNEL_PATCHES/wild/hooks/scope_min_manual_hooks_v1.4.patch" ./
           patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch
 
       - name: Apply Performance Patches
+        working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
-          cd "$KERNEL_ROOT/common"
           MIN_VERSION="5.16"
           cp "$KERNEL_PATCHES/common/optimized_mem_operations.patch" ./
           patch -p1 --forward < optimized_mem_operations.patch
@@ -366,8 +366,8 @@ jobs:
           fi
 
       - name: Add BBG
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           echo "Adding BBG..."
           wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
           echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
@@ -403,8 +403,8 @@ jobs:
           echo "obj-y += min_kdp.o" >> Makefile
 
       - name: Set Kernel Configuration Variables
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           echo "Initializing kernel configuration..."
           echo "DEFCONFIG=$KERNEL_ROOT/common/arch/arm64/configs/gki_defconfig" >> $GITHUB_ENV
           
@@ -417,24 +417,24 @@ jobs:
           fi
 
       - name: Configure KernelSU Core
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # KernelSU Configuration
           echo "# KernelSU Configuration" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_KSU=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_KSU_KPROBES_HOOK=n" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure Mountify Support
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # Mountify Support
           echo "# Mountify Support" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_TMPFS_XATTR=y" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure Networking
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # Networking Configuration
           echo "# Networking Configuration" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_IP_NF_TARGET_TTL=y" >> "${{ env.DEFCONFIG }}"
@@ -442,8 +442,8 @@ jobs:
           echo "CONFIG_IP6_NF_MATCH_HL=y" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure TCP Congestion Control
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # BBR TCP Congestion Control
           echo "# BBR TCP Congestion Control" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_TCP_CONG_ADVANCED=y" >> "${{ env.DEFCONFIG }}"
@@ -454,8 +454,8 @@ jobs:
           echo "CONFIG_TCP_CONG_HTCP=n" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure IPSet Support
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # IPSet support
           echo "# IPSet Support" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_IP_SET=y" >> "${{ env.DEFCONFIG }}"
@@ -478,8 +478,8 @@ jobs:
           echo "CONFIG_IP_SET_LIST_SET=y" >> "${{ env.DEFCONFIG }}"
 
       - name: Configure SUSFS
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # SUSFS Configuration
           echo "# SUSFS Configuration" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_KSU_SUSFS=y" >> "${{ env.DEFCONFIG }}"
@@ -504,8 +504,8 @@ jobs:
 
       - name: Configure SND
         if: ${{ inputs.variant == 'vTomsonek' && inputs.android_version == 'android12' && inputs.kernel_version == '5.10' && inputs.sub_level == '226' && inputs.os_patch_level == '2024-11' }}
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           # Sound Configuration
           echo "# Sound Configuration" >> "${{ env.DEFCONFIG }}"
           echo "CONFIG_SND=y" >> "${{ env.DEFCONFIG }}"
@@ -621,8 +621,8 @@ jobs:
           fi
 
       - name: Change Kernel Name
+        working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          cd "$KERNEL_ROOT"
           #Wild to Kernel Version
           case ${{ matrix.build_type }} in
             TheWildJames)
@@ -633,8 +633,8 @@ jobs:
               ;;
           esac
           #Set Kernel Timestamp
-          UTS_VERSION="#1 SMP PREEMPT $(date -u +%a\ %b\ %d\ %H:%M:%S\ UTC\ %Y)"
-          perl -pi -e "s|UTS_VERSION=\".*\"|UTS_VERSION=\"${UTS_VERSION}\"|" ./common/scripts/mkcompile_h
+          #UTS_VERSION="#1 SMP PREEMPT $(date -u +%a\ %b\ %d\ %H:%M:%S\ UTC\ %Y)"
+          #perl -pi -e "s|UTS_VERSION=\".*\"|UTS_VERSION=\"${UTS_VERSION}\"|" ./common/scripts/mkcompile_h
           if [ -f "build/build.sh" ]; then
             #Remove Dirty Flag
             sed -i 's/-dirty//' ./common/scripts/setlocalversion
@@ -653,15 +653,14 @@ jobs:
           echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
 
       - name: Build
+        working-directory: ${{ env.KERNEL_ROOT }}
         run : |
-          set -e
-          set -x
-          cd "$KERNEL_ROOT"
+          set -ex
           echo "Building the kernel..."
           if [ -f "build/build.sh" ]; then
             LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh || exit 1
           else
-            tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
+            tools/bazel build --config=fast --config=stamp --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
 
       - name: Prepare AnyKernel3
@@ -776,8 +775,8 @@ jobs:
 
       - name: Android 12 boot image build script
         if: ${{ inputs.android_version == 'android12' }}
+        working-directory: bootimgs
         run: |
-          cd bootimgs
           
           GKI_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-"${{ inputs.os_patch_level }}"_r1.zip
           FALLBACK_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-2023-01_r1.zip
@@ -811,8 +810,8 @@ jobs:
 
       - name: Android 13/14/15 boot image build script
         if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
+        working-directory: bootimgs
         run: |
-          cd bootimgs
           
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
