@@ -613,7 +613,7 @@ jobs:
             if ! grep -q 'rust_binder-objs' "$FILE"; then
               cat >> "$FILE" <<'EOF'
 
-              obj-m	+= rust_binder.o
+              obj-$(CONFIG_ANDROID_BINDER_IPC_RUST)	+= rust_binder.o
               obj-$(CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY)	+= rust_binder.o
               ifdef CONFIG_ANDROID_BINDER_IPC_RUST
               rust_binder-objs := binder/rust_binder.o binder/rust_binderfs.o binder/rust_binder_events.o
