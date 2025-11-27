@@ -624,10 +624,10 @@ jobs:
             fi
           fi
           
-          if [[ "${{ inputs.sub_level }}" == "XXXXXX" ]]; then
+          if [[ "${{ inputs.os_patch_level }}" == "lts" ]]; then
             sed -i 's/^obj-y += binder\//obj-m += binder\//'
           fi
-          
+
           sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
           cat common/drivers/android/Makefile
 
