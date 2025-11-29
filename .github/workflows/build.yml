@@ -607,7 +607,7 @@ jobs:
           # Rust binder module
           obj-m += rust_binder.o
           rust_binder-$(CONFIG_ANDROID_BINDER_IPC_RUST) := \
-            binder/rust_binder.o \
+            binder/rust_binder_main.o \
             binder/rust_binderfs.o \
             binder/rust_binder_events.o \
             binder/rust_binder_hooks.o \
