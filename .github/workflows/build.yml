@@ -601,9 +601,9 @@ jobs:
           fi
           
           if [ -f common/drivers/android/binder/Makefile ]; then
-            perl -i -pe 's/^obj-y\s*\+=\s*binder\/$/obj-\$(CONFIG_ANDROID_BINDER_IPC) += binder\//g' common/drivers/android/Makefile
+            perl -i -pe 's/^obj-y\s*\+=\s*binder\/$/obj-\$(CONFIG_ANDROID_BINDER_IPC_RUST) += binder\//g' common/drivers/android/Makefile
             cat common/drivers/android/Makefile
-            perl -i -pe 's/^\s*obj-\$(CONFIG_ANDROID_BINDER_IPC_RUST)\s*\+=[^ ]*rust_binder\.o$/obj-m += rust_binder.o/' common/drivers/android/binder/Makefile
+            perl -i -pe 's/obj-\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)\s*\+\=\s*rust_binder\.o/obj-m += rust_binder.o/g' common/drivers/android/binder/Makefile
             cat common/drivers/android/binder/Makefile
           else
             sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
