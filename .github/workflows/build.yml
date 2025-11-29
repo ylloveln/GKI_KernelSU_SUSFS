@@ -608,6 +608,9 @@ jobs:
         if: ${{ (inputs.android_version == 'android16' && inputs.kernel_version == '6.12' && inputs.os_patch_level == 'lts') && true}}
         working-directory: ${{ env.KERNEL_ROOT }}
         run: |
+          export RUST_LIB_SRC=$(pwd)/prebuilts/rust/linux-x86
+          export ALLOW_LOCAL_RUST_LIB=1
+          
           FILE=common/drivers/staging/android/ashmem.c
           if [[ -f "$FILE" ]] && ! grep -q 'is_ashmem_file' "$FILE"; then
           cat >>"$FILE" <<'EOF'
@@ -627,7 +630,7 @@ jobs:
           #  sed -i 's/^obj-y += binder\//obj-m += binder\//' common/drivers/android/Makefile
           #fi
           
-          sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/' common/drivers/android/binder/Makefile
+          #sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/' common/drivers/android/binder/Makefile
           cat common/drivers/android/binder/Makefile
 
       - name: Change Kernel Name

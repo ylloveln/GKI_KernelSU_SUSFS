@@ -40,7 +40,7 @@ on:
           - Android15-6.6
           - Android16-6.12
           - Custom
-        default: All
+        default: Android16-6.12
       ksu_variant:
         description: "Choose KernelSU variant"
         required: true
@@ -48,7 +48,7 @@ on:
         options:
           - KSU
           - WKSU
-        default: WKSU
+        default: KSU
       ksu_commit:
         description: "Optional KernelSU commit SHA"
         required: false
