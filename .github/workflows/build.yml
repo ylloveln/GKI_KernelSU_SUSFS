@@ -601,27 +601,13 @@ jobs:
           fi
           
           if [ -f common/drivers/android/binder/Makefile ]; then
-            perl -i -ne 'print unless /^\s*obj-y\s*\+=\s*binder\/\s*$/' common/drivers/android/Makefile
-          cat << 'EOF' >> common/drivers/android/Makefile
-
-          # Rust binder module
-          obj-m += rust_binder.o
-          rust_binder-$(CONFIG_ANDROID_BINDER_IPC_RUST) := \
-            binder/rust_binder_main.o \
-            binder/rust_binderfs.o \
-            binder/rust_binder_events.o \
-            binder/rust_binder_hooks.o \
-            binder/page_range_helper.o
-
-          # Rust binder dummy module
-          obj-$(CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY) += rust_binder.o
-          rust_binder-$(CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY) := binder/dummy.o
-          
-          EOF
+            perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/binder/Makefile
+            cat common/drivers/android/Makefile
+            cat common/drivers/android/binder/Makefile
           else
-            sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
+            perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/Makefile
+            cat common/drivers/android/Makefile
           fi
-          cat common/drivers/android/Makefile
 
       - name: Change Kernel Name
         working-directory: ${{ env.KERNEL_ROOT }}
