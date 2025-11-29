@@ -44,7 +44,6 @@ jobs:
           df -BG
           
       - name: Download Apache Arrow's util_free_space.sh
-        if: inputs.android_version != '16' && inputs.kernel_version != '6.12'
         run: |
           curl -Ls https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh | bash
           
