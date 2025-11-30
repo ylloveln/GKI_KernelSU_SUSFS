@@ -602,6 +602,7 @@ jobs:
           
           if [ -f common/drivers/android/binder/Makefile ]; then
             perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/binder/Makefile
+            perl -i -pe 's/obj-y \+= binder\//obj-m += binder\//' common/drivers/android/Makefile
             cat common/drivers/android/Makefile
             cat common/drivers/android/binder/Makefile
           else
