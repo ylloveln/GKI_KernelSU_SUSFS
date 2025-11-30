@@ -366,7 +366,7 @@ jobs:
         run: |
           echo "Adding BBG..."
           wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
-          echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BBG=y" >> common/arch/x86/configs/x86_64_defconfig
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' common/security/Kconfig
 
       - name: Apply Module Check Bypass
@@ -399,7 +399,7 @@ jobs:
         working-directory: ${{ env.KERNEL_ROOT }}
         run: |
           echo "Initializing kernel configuration..."
-          echo "DEFCONFIG=$KERNEL_ROOT/common/arch/arm64/configs/gki_defconfig" >> $GITHUB_ENV
+          echo "DEFCONFIG=$KERNEL_ROOT/common/arch/x86/configs/x86_64_defconfig" >> $GITHUB_ENV
           
           # Remove check_defconfig
           if [[ "${{ inputs.android_version }}" == "android16" && "${{ inputs.kernel_version }}" == "6.12" ]]; then
