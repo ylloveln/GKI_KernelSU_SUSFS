@@ -614,6 +614,8 @@ jobs:
             perl -i -pe 's/^rust_binder-\$\([^)]+\)\s*:=/rust_binder-y :=/' common/drivers/android/binder/Makefile
             cat common/drivers/android/Makefile
             cat common/drivers/android/binder/Makefile
+            perl -ni -e 'print unless /rust_toolchain\s*=\s*"\/\/build\/rust:linux_kernel_toolchain",/' common/BUILD.bazel
+            cat common/BUILD.bazel
           else
             perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/Makefile
             cat common/drivers/android/Makefile
