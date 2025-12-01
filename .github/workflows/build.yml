@@ -611,11 +611,11 @@ jobs:
           if [ -f common/drivers/android/binder/Makefile ]; then
             perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/binder/Makefile
             perl -i -ne 'print unless /CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY/' common/drivers/android/binder/Makefile
-            perl -i -pe 's/^rust_binder-\$\([^)]+\)\s*:=/rust_binder-y :=/' common/drivers/android/binder/Makefile
+            perl -i -pe 's/^rust_binder-\$\([^)]+\)\s*:=/rust_binder-m :=/' common/drivers/android/binder/Makefile
             cat common/drivers/android/Makefile
             cat common/drivers/android/binder/Makefile
-            perl -ni -e 'print unless /rust_toolchain\s*=\s*"\/\/build\/rust:linux_kernel_toolchain",/' common/BUILD.bazel
-            cat common/BUILD.bazel
+            #perl -ni -e 'print unless /rust_toolchain\s*=\s*"\/\/build\/rust:linux_kernel_toolchain",/' common/BUILD.bazel
+            #cat common/BUILD.bazel
           else
             perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/Makefile
             cat common/drivers/android/Makefile
