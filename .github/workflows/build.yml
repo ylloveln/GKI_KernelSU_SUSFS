@@ -103,14 +103,6 @@ jobs:
             echo "$BOOT_SIGN_KEY" > ./kernel-build-tools/linux-x86/share/avb/testkey_rsa2048.pem
           fi
 
-      - name: Set Up Rust for LTS
-        if: inputs.os_patch_level == 'lts'
-        run: |
-          rustup set profile minimal
-          rustup update nightly
-          rustup default nightly
-          rustup target add aarch64-unknown-none
-
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
           ANYKERNEL_BRANCH="gki-2.0"
@@ -634,12 +626,16 @@ jobs:
           
           if [ -f common/drivers/android/binder/Makefile ]; then
             perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/binder/Makefile
-            perl -i -ne 'print unless /CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY/' common/drivers/android/binder/Makefile
+            #perl -i -ne 'print unless /CONFIG_ANDROID_BINDER_IPC_RUST_DUMMY/' common/drivers/android/binder/Makefile
             perl -i -pe 's/^rust_binder-\$\([^)]+\)\s*:=/rust_binder-y :=/' common/drivers/android/binder/Makefile
             cat common/drivers/android/Makefile
             cat common/drivers/android/binder/Makefile
             #perl -ni -e 'print unless /rust_toolchain\s*=\s*"\/\/build\/rust:linux_kernel_toolchain",/' common/BUILD.bazel
             #cat common/BUILD.bazel
+            rustup set profile minimal
+            rustup update nightly
+            rustup default nightly
+            rustup target add aarch64-unknown-none
           else
             perl -i -0777 -pe 's/\$\(\s*CONFIG_ANDROID_BINDER_IPC_RUST\s*\)/m/' common/drivers/android/Makefile
             cat common/drivers/android/Makefile
@@ -676,18 +672,6 @@ jobs:
           ARTIFACT_BASE="${{ inputs.kernel_version }}.$ACTUAL_SUBLEVEL-${{ inputs.android_version }}-${{ inputs.os_patch_level }}-${{ matrix.build_type == 'bypass' && 'Bypass' || matrix.build_type == 'vTomsonek' && 'vTomsonek' || matrix.build_type == 'TheWildJames' && 'TheWildJames' || 'Normal' }}"
           echo "ARTIFACT_BASE=$ARTIFACT_BASE" >> $GITHUB_ENV
           echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
-
-      - name: Install Rust toolchain for kernel Rust
-        run: |
-          set -ex
-          if ! command -v rustc >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-          fi
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          rustup toolchain install stable
-          rustup target add aarch64-unknown-none --toolchain stable
-          rustc --version
-          rustup show
 
       - name: Build
         working-directory: ${{ env.KERNEL_ROOT }}
