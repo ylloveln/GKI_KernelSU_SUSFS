@@ -160,12 +160,6 @@ jobs:
             echo "New tag: $NEW_TAG"
             echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v5
-        with:
-          path: ./downloaded-artifacts
-          pattern: '*-AnyKernel3'
-
       - name: Set release body
         run: |
           cat << 'EOF' > release_body.md
@@ -227,6 +221,12 @@ jobs:
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: ./downloaded-artifacts
+          pattern: '*-AnyKernel3'
 
       - name: Upload Release Assets
         run: |
