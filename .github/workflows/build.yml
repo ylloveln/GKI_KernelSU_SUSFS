@@ -354,12 +354,12 @@ jobs:
 
               # Apply additional SUSFS patches for Android 13 5.15 compatibility
               #if [[ "${{ inputs.android_version }}" == "android13" && "${{ inputs.kernel_version }}" == "5.15" ]] && [[ ${{ inputs.sub_level }} -le 41 ]]; then
-                #cp $KERNEL_PATCHES/ksu/susfs_fix_patches/v${SUSFS_VERSION}/fix_fdinfo.c.patch ./
-                #patch -p1 < fix_fdinfo.c.patch || true
-                #cp $KERNEL_PATCHES/ksu/susfs_fix_patches/v${SUSFS_VERSION}/fix_namespace.c.patch ./
-                #patch -p1 < fix_namespace.c.patch || true
-                #cp $KERNEL_PATCHES/ksu/susfs_fix_patches/v${SUSFS_VERSION}/fix_open.c.patch ./
-                #patch -p1 < fix_open.c.patch || true
+                cp $KERNEL_PATCHES/ksu/susfs_fix_patches/v${SUSFS_VERSION}/fix_fdinfo.c.patch ./
+                patch -p1 < fix_fdinfo.c.patch || true
+                cp $KERNEL_PATCHES/ksu/susfs_fix_patches/v${SUSFS_VERSION}/fix_namespace.c.patch ./
+                patch -p1 < fix_namespace.c.patch || true
+                cp $KERNEL_PATCHES/ksu/susfs_fix_patches/v${SUSFS_VERSION}/fix_open.c.patch ./
+                patch -p1 < fix_open.c.patch || true
                 #sed -i 's/i_uid_into_mnt(i_user_ns(inode), inode)/i_uid_into_mnt(inode->i_sb->s_user_ns, inode)/g' fs/susfs.c
               #fi
               ;;
@@ -650,21 +650,21 @@ jobs:
       - name: Change Kernel Name
         working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          #Wild to Kernel Version
+          #Wild to Kernel Version (replace last instance only)
           if [[ "${{ inputs.kernel_version }}" == "5."* ]] || [[ "${{ inputs.kernel_version }}" == "6.1" ]]; then
             case ${{ matrix.build_type }} in
               TheWildJames)
-                sed -i '$s|echo "\$res"|echo "\$res-🟢-Wild-Exclusive"|' ./common/scripts/setlocalversion
+                perl -i -0777 -pe 's/(.*)echo "\$res"/$1echo "\$res-🟢-Wild-Exclusive"/s' ./common/scripts/setlocalversion
                 ;;
               MarionKernel)
-                sed -i '$s|echo "\$res"|echo "\$res-MarionKernel"|' ./common/scripts/setlocalversion
+                perl -i -0777 -pe 's/(.*)echo "\$res"/$1echo "\$res-MarionKernel"/s' ./common/scripts/setlocalversion
                 ;;
               *)
-                sed -i '$s|echo "\$res"|echo "\$res-Wild"|' ./common/scripts/setlocalversion
+                perl -i -0777 -pe 's/(.*)echo "\$res"/$1echo "\$res-Wild"/s' ./common/scripts/setlocalversion
                 ;;
             esac
           else
-            sed -i 's|echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"|echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}-Wild${scm_version}"|' ./common/scripts/setlocalversion
+            perl -i -0777 -pe 's/(.*)echo "\$\{KERNELVERSION\}\$\{file_localversion\}\$\{config_localversion\}\$\{LOCALVERSION\}\$\{scm_version\}"/$1echo "\${KERNELVERSION}\${file_localversion}\${config_localversion}\${LOCALVERSION}-Wild\${scm_version}"/s' ./common/scripts/setlocalversion
           fi
           if [ -f "build/build.sh" ]; then
             #Remove Dirty Flag
@@ -718,60 +718,6 @@ jobs:
           mkdir -p AnyKernel3/modules/data/adb/lkm
           cp "$KERNEL_ROOT/bazel-bin/common/kernel_aarch64/snd-aloop.ko" "$ANYKERNEL3/modules/data/adb/lkm/"
           cp "$KERNEL_ROOT/bazel-bin/common/kernel_aarch64/g_audio.ko" "$ANYKERNEL3/modules/data/adb/lkm/"
-
-      - name: Search for Kernel Modules
-        run: |
-          echo "Searching for kernel modules (.ko files)..."
-          
-          # Function to scan for modules (search only)
-          scan_modules() {
-            local search_dir="$1"
-            local module_count=0
-            
-            if [ -d "$search_dir" ]; then
-              echo "Scanning directory: $search_dir"
-              
-              # Find all .ko files and report their locations
-              while IFS= read -r -d '' module_file; do
-                if [ -f "$module_file" ]; then
-                  module_name=$(basename "$module_file")
-                  echo "Found module: $module_name in $(dirname "$module_file")"
-                  ((module_count++))
-                fi
-              done < <(find "$search_dir" -name "*.ko" -type f -print0 2>/dev/null)
-            fi
-            
-            return $module_count
-          }
-          
-          # Scan common build output directories
-          total_modules=0
-          
-          # Scan bazel-bin directory
-          if scan_modules "$KERNEL_ROOT/bazel-bin"; then
-            total_modules=$((total_modules + $?))
-          fi
-          
-          # Scan out directory
-          if scan_modules "$KERNEL_ROOT/out"; then
-            total_modules=$((total_modules + $?))
-          fi
-          
-          # Scan dist directory specifically
-          if scan_modules "$KERNEL_ROOT/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist"; then
-            total_modules=$((total_modules + $?))
-          fi
-          
-          # Look for snd-aloop.ko specifically
-          echo "Searching specifically for snd-aloop.ko..."
-          snd_aloop_found=$(find "$KERNEL_ROOT" -name "snd-aloop.ko" -type f 2>/dev/null | head -1)
-          if [ -n "$snd_aloop_found" ]; then
-            echo "Found snd-aloop.ko at: $snd_aloop_found"
-          else
-            echo "snd-aloop.ko not found"
-          fi
-          
-          echo "Total kernel modules found: $total_modules"
 
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
