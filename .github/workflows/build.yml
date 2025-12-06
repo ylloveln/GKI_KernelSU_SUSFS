@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: ${{ fromJSON(inputs.variant == 'vTomsonek' && '["vTomsonek"]' || inputs.variant == 'TheWildJames' && '["TheWildJames"]' || '["normal","bypass"]') }}
+        build_type: ${{ fromJSON(inputs.variant == 'vTomsonek' && '["vTomsonek"]' || inputs.variant == 'TheWildJames' && '["TheWildJames"]' || inputs.variant == 'MarionKernel' && '["MarionKernel"]' || '["Normal","Bypass"]') }}
 
     steps:
       - name: Check Initial Disk Space
@@ -175,7 +175,7 @@ jobs:
 
       - name: Set file name
         run: |
-          ARTIFACT_BASE="${{ inputs.kernel_version }}.$ACTUAL_SUBLEVEL-${{ inputs.android_version }}-${{ inputs.os_patch_level }}-${{ matrix.build_type == 'bypass' && 'Bypass' || matrix.build_type == 'vTomsonek' && 'vTomsonek' || matrix.build_type == 'TheWildJames' && 'TheWildJames' || 'Normal' }}"
+          ARTIFACT_BASE="${{ inputs.kernel_version }}.$ACTUAL_SUBLEVEL-${{ inputs.android_version }}-${{ inputs.os_patch_level }}-${{ matrix.build_type }}"
           echo "ARTIFACT_BASE=$ARTIFACT_BASE" >> $GITHUB_ENV
           echo "FILE_NAME=$ARTIFACT_BASE" >> $GITHUB_ENV
 
@@ -400,7 +400,7 @@ jobs:
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' common/security/Kconfig
 
       - name: Apply Module Check Bypass
-        if: ${{ matrix.build_type == 'bypass' }}
+        if: ${{ matrix.build_type == 'Bypass' }}
         run: |
           if [[ "${{ inputs.kernel_version }}" == "6.1" || "${{ inputs.kernel_version }}" == "6.6" || "${{ inputs.kernel_version }}" == "6.12" ]]; then
             sed -i '/bad_version:/{:a;n;/return 0;/{s/return 0;/return 1;/;b};ba}' "$KERNEL_ROOT/common/kernel/module/version.c"
@@ -651,17 +651,21 @@ jobs:
         working-directory: ${{ env.KERNEL_ROOT }}
         run: |
           #Wild to Kernel Version
-          case ${{ matrix.build_type }} in
-            TheWildJames)
-              sed -i '$s|echo "\$res"|echo "\$res-🟢-Wild-Exclusive"|' ./common/scripts/setlocalversion
-              ;;
-            *)
-              sed -i '$s|echo "\$res"|echo "\$res-Wild"|' ./common/scripts/setlocalversion
-              ;;
-          esac
-          #Set Kernel Timestamp
-          #UTS_VERSION="#1 SMP PREEMPT $(date -u +%a\ %b\ %d\ %H:%M:%S\ UTC\ %Y)"
-          #perl -pi -e "s|UTS_VERSION=\".*\"|UTS_VERSION=\"${UTS_VERSION}\"|" ./common/scripts/mkcompile_h
+          if [[ "${{ inputs.kernel_version }}" == "5."* ]] || [[ "${{ inputs.kernel_version }}" == "6.1" ]]; then
+            case ${{ matrix.build_type }} in
+              TheWildJames)
+                sed -i '$s|echo "\$res"|echo "\$res-🟢-Wild-Exclusive"|' ./common/scripts/setlocalversion
+                ;;
+              MarionKernel)
+                sed -i '$s|echo "\$res"|echo "\$res-MarionKernel"|' ./common/scripts/setlocalversion
+                ;;
+              *)
+                sed -i '$s|echo "\$res"|echo "\$res-Wild"|' ./common/scripts/setlocalversion
+                ;;
+            esac
+          else
+            sed -i 's|echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"|echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}-Wild${scm_version}"|' ./common/scripts/setlocalversion
+          fi
           if [ -f "build/build.sh" ]; then
             #Remove Dirty Flag
             sed -i 's/-dirty//' ./common/scripts/setlocalversion
@@ -678,6 +682,7 @@ jobs:
         run : |
           set -ex
           echo "Building the kernel..."
+          export KBUILD_BUILD_TIMESTAMP="$(date -u)"
           if [ -f "build/build.sh" ]; then
             LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh || exit 1
           else
@@ -970,13 +975,21 @@ jobs:
             echo "  No rejected patches found." >> build_summary.md
           fi
 
-      - name: Artifacts
+      - name: Upload AnyKernel3
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE_NAME }}-AnyKernel3
+          path: ./AnyKernel3/**
+          if-no-files-found: ignore
+          compression-level: 9
+
+      - name: Upload Misc
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}-Misc
           path: |
-            ./AnyKernel3/**
             *-Image*
             *.img
             patch-rejects/**
