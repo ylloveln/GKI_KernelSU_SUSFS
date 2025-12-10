@@ -7,57 +7,54 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      # === Release Settings ===
       release_type:
-        description: "📦 Release Type"
+        description: "Release Type"
         type: choice
         options: [Actions, Pre-Release, Release]
         default: Actions
-
-      # === KernelSU Settings ===
       ksu_variant:
-        description: "🔧 KernelSU Variant"
+        description: "KernelSU Variant"
         type: choice
         options: [KSU, WKSU]
         default: KSU
       ksu_commit:
-        description: "📝 KSU Commit (optional)"
+        description: "KSU Commit (optional)"
         type: string
         required: false
 
-      # === Build Selection (check multiple!) ===
+      # Build Selection
       build_a12_5_10:
-        description: "🤖 Android 12 - 5.10"
+        description: "Android 12 - 5.10"
         type: boolean
-        default: false
+        default: true
       build_a13_5_10:
-        description: "🤖 Android 13 - 5.10"
+        description: "Android 13 - 5.10"
         type: boolean
-        default: false
+        default: true
       build_a13_5_15:
-        description: "🤖 Android 13 - 5.15"
+        description: "Android 13 - 5.15"
         type: boolean
-        default: false
+        default: true
       build_a14_5_15:
-        description: "🤖 Android 14 - 5.15"
+        description: "Android 14 - 5.15"
         type: boolean
-        default: false
+        default: true
       build_a14_6_1:
-        description: "🤖 Android 14 - 6.1"
+        description: "Android 14 - 6.1"
         type: boolean
-        default: false
+        default: true
       build_a15_6_6:
-        description: "🤖 Android 15 - 6.6"
+        description: "Android 15 - 6.6"
         type: boolean
-        default: false
+        default: true
       build_a16_6_12:
-        description: "🤖 Android 16 - 6.12"
+        description: "Android 16 - 6.12"
         type: boolean
-        default: false
+        default: true
       build_custom:
-        description: "⚙️ Custom Builds"
+        description: "Custom Builds"
         type: boolean
-        default: false
+        default: true
 
 jobs:
   build-a12-5-10:
