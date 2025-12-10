@@ -6,10 +6,17 @@ permissions:
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      ksu_variant:
+        required: true
+        type: string
+      ksu_commit:
+        required: false
+        type: string
 
 jobs:
   build-kernels-a13-5-15:
+    name: "5.15.${{ matrix.sub_level }}-${{ matrix.os_patch_level }}"
     strategy:
       fail-fast: false
       matrix:
@@ -82,6 +89,8 @@ jobs:
             os_patch_level: "2025-07"
           - sub_level: "189"
             os_patch_level: "2025-09"
+          - sub_level: "194"
+            os_patch_level: "2025-12"
           - sub_level: "X"
             os_patch_level: "lts"
     uses: ./.github/workflows/build.yml
@@ -91,3 +100,5 @@ jobs:
       kernel_version: "5.15"
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}

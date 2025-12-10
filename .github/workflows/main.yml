@@ -5,90 +5,125 @@ permissions:
   actions: write
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - '.github/workflows/**'
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       release_type:
-        description: "Choose Release Type"
-        required: true
+        description: "Release Type"
         type: choice
-        options:
-          - Actions
-          - Pre-Release
-          - Release
-          - Release (No Artifacts)
+        options: [Actions, Pre-Release, Release]
         default: Actions
-      build_selection:
-        description: "Choose which kernels to build"
-        required: true
+      ksu_variant:
+        description: "KernelSU Variant"
         type: choice
-        options:
-          - All
-          - Android12-5.10
-          - Android13-5.10
-          - Android13-5.15
-          - Android14-5.15
-          - Android14-6.1
-          - Android15-6.6
-          - Build Test
-        default: All
+        options: [KSU, WKSU]
+        default: KSU
+      ksu_commit:
+        description: "KSU Commit (optional)"
+        type: string
+        required: false
+
+      # Build Selection
+      build_a12_5_10:
+        description: "Android 12 - 5.10"
+        type: boolean
+        default: true
+      build_a13_5_10:
+        description: "Android 13 - 5.10"
+        type: boolean
+        default: true
+      build_a13_5_15:
+        description: "Android 13 - 5.15"
+        type: boolean
+        default: true
+      build_a14_5_15:
+        description: "Android 14 - 5.15"
+        type: boolean
+        default: true
+      build_a14_6_1:
+        description: "Android 14 - 6.1"
+        type: boolean
+        default: true
+      build_a15_6_6:
+        description: "Android 15 - 6.6"
+        type: boolean
+        default: true
+      build_a16_6_12:
+        description: "Android 16 - 6.12"
+        type: boolean
+        default: true
+      build_custom:
+        description: "Custom Builds"
+        type: boolean
+        default: true
 
 jobs:
-
   build-a12-5-10:
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android12-5.10') && inputs.release_type != 'Release (No Artifacts)'
+    if: inputs.build_a12_5_10
     uses: ./.github/workflows/kernel-a12-5-10.yml
     secrets: inherit
-
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a13-5-10:
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android13-5.10') && inputs.release_type != 'Release (No Artifacts)'
+    if: inputs.build_a13_5_10
     uses: ./.github/workflows/kernel-a13-5-10.yml
     secrets: inherit
-
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a13-5-15:
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android13-5.15') && inputs.release_type != 'Release (No Artifacts)'
+    if: inputs.build_a13_5_15
     uses: ./.github/workflows/kernel-a13-5-15.yml
     secrets: inherit
-
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a14-5-15:
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android14-5.15') && inputs.release_type != 'Release (No Artifacts)'
+    if: inputs.build_a14_5_15
     uses: ./.github/workflows/kernel-a14-5-15.yml
     secrets: inherit
-
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a14-6-1:
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android14-6.1') && inputs.release_type != 'Release (No Artifacts)'
+    if: inputs.build_a14_6_1
     uses: ./.github/workflows/kernel-a14-6-1.yml
     secrets: inherit
-
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   build-a15-6-6:
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Android15-6.6') && inputs.release_type != 'Release (No Artifacts)'
+    if: inputs.build_a15_6_6
     uses: ./.github/workflows/kernel-a15-6-6.yml
     secrets: inherit
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
-
-  build-test:
-    if: inputs.build_selection == 'Build Test'
-    uses: ./.github/workflows/kernel-build-check.yml
+  build-a16-6-12:
+    if: inputs.build_a16_6_12
+    uses: ./.github/workflows/kernel-a16-612.yml
     secrets: inherit
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
+  build-custom:
+    if: inputs.build_custom
+    uses: ./.github/workflows/kernel-custom.yml
+    secrets: inherit
+    with:
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
   release:
     runs-on: ubuntu-latest
-    if: (inputs.build_selection == 'All' || inputs.build_selection == 'Build Test') && (inputs.release_type == 'Release (No Artifacts)' || inputs.release_type != 'Actions')
+    if: inputs.release_type != 'Actions'
     needs:
       - build-a12-5-10
       - build-a13-5-10
@@ -96,12 +131,21 @@ jobs:
       - build-a14-5-15
       - build-a14-6-1
       - build-a15-6-6
+      - build-a16-6-12
+      - build-custom
 
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_NAME: "GKI Kernels With WKSU & SUSFS v1.5.12"
       RELEASE_BODY: ""
     steps:
+      - name: Download Apache Arrow's util_free_space.sh
+        if: false
+        run: |
+          curl -L -o util_free_space.sh https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh
+          chmod +x util_free_space.sh
+          ./util_free_space.sh
+      
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -109,21 +153,10 @@ jobs:
         if: inputs.release_type != 'Actions'
         run: |
             LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name' 2>/dev/null || echo "")
-            if [ -z "$LATEST_TAG" ]; then
-              LATEST_TAG="v1.5.12-r0"
-            fi
-            
             NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
     
             echo "New tag: $NEW_TAG"
             echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
-
-      - name: Download Artifacts
-        if: inputs.release_type != 'Release (No Artifacts)'
-        uses: actions/download-artifact@v5
-        with:
-          path: ./downloaded-artifacts
-          pattern: 'WKSU-*-AnyKernel3'
 
       - name: Set release body
         run: |
@@ -166,9 +199,9 @@ jobs:
           Notes:
           -> SUS SU Mode 2 will show as disabled or not compatible due to non-kprobe hooks and is not needed anymore!
           -> Official Kernel Flasher is broken with latest susfs, try https://github.com/fatalcoder524/KernelFlasher/
-          -> **boot.img files**: Available as CI artifacts only (not included in releases) - download from the Actions tab 
+          -> **boot.img files**: Available as CI artifacts only - download from the Actions tab in the "Misc" Artifact
           -> **Warning**: boot.img files may not boot on some devices
-          -> **Note:** For detailed commit information and component versions, please check the [build summary](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) in the GitHub Actions workflow that generated this release.
+          -> **Note:** For detailed commit information and component versions, please check the build summary in the "Misc" Artifact
 
           Module: 
           -> https://github.com/sidex15/ksu_module_susfs
@@ -182,42 +215,50 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
-          prerelease: ${{ inputs.release_type == 'Pre-Release' || inputs.build_selection == 'Build Test' }}
+          prerelease: ${{ inputs.release_type == 'Pre-Release' }}
           files: ""
           name: ${{ env.RELEASE_NAME }}
           body_path: release_body.md
 
-      - name: Upload Release Assets
-        if: inputs.release_type != 'Release (No Artifacts)'
-        run: |
-          for dir in ./downloaded-artifacts/*/; do
-            # Check if this is an AnyKernel3 artifact directory
-            if [[ "$(basename "$dir")" == *"-AnyKernel3" ]]; then
-              artifact_name=$(basename "$dir")
-              echo "Creating ZIP for $artifact_name..."
-              # The entire directory IS the AnyKernel3 content, so zip it directly
-              zip -r -9 "${artifact_name}.zip" "$dir"
-              echo "Uploading ${artifact_name}.zip..."
-              gh release upload ${{ env.NEW_TAG }} "${artifact_name}.zip"
-            fi
-          done
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: ./downloaded-artifacts
+          pattern: '*-AnyKernel3'
 
-      - name: Display Files Uploaded
-        if: inputs.release_type != 'Release (No Artifacts)'
+      - name: Upload Release Assets
         run: |
-          echo "GitHub release created with the following files:"
-          ls ./downloaded-artifacts/**/*
+          shopt -s nullglob
+          anykernel_dirs=(./downloaded-artifacts/*-AnyKernel3/)
+          
+          if [ ${#anykernel_dirs[@]} -eq 0 ]; then
+            echo "No AnyKernel3 artifact directories found; skipping upload."
+            exit 0
+          fi
+          
+          echo "Found ${#anykernel_dirs[@]} artifacts to process"
+          
+          # Create all ZIPs in parallel
+          for dir in "${anykernel_dirs[@]}"; do
+            artifact_name=$(basename "$dir")
+            echo "Creating ZIP for $artifact_name..."
+            (cd "$dir" && zip -r -q -9 "$GITHUB_WORKSPACE/${artifact_name}.zip" ./*) &
+          done
+          wait
+          
+          # Upload all ZIPs
+          for dir in "${anykernel_dirs[@]}"; do
+            artifact_name=$(basename "$dir")
+            echo "Uploading ${artifact_name}.zip..."
+            gh release upload "${{ env.NEW_TAG }}" "${artifact_name}.zip" --clobber
+          done
             
       - name: Send Telegram Notification
-        if: inputs.release_type != 'Build Test'
+        if: inputs.release_type != 'Actions'
         run: |
           RELEASE_TYPE_TEXT=""
           if [ "${{ inputs.release_type }}" == "Pre-Release" ]; then
             RELEASE_TYPE_TEXT="🧪 *Pre-Release*"
-          elif [ "${{ inputs.build_selection }}" == "Build Test" ]; then
-            RELEASE_TYPE_TEXT="🔧 *Build Test*"
-          elif [ "${{ inputs.release_type }}" == "Release (No Artifacts)" ]; then
-            RELEASE_TYPE_TEXT="🚀 *Release*"
           else
             RELEASE_TYPE_TEXT="🚀 *Release*"
           fi

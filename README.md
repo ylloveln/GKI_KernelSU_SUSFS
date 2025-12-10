@@ -112,3 +112,16 @@ Flashing this kernel will void your warranty, and there is always a risk of bric
 | 🛡️ [vc-teahouse](https://github.com/vc-teahouse) | Created Baseband-guard (BBG)! |
 
 *If you have contributed and are not listed here, please remind me!* 🙏
+
+---
+
+## 💝 Donations
+
+Any and all donations are appreciated!
+
+- PayPal: [bauhd@outlook.com](mailto:bauhd@outlook.com)
+- Card: <https://buy.stripe.com/5kQ28sdi08Nr0Xc2fU5os00>
+- LTC: MVaN1ToSuks2cdK9mB3M8EHCfzQSyEMf6h
+- BTC: 3BBXAMS4ZuCZwfbTXxWGczxHF4isymeyxG
+- ETH: 0x2b9C846c84d58717e784458406235C09a834274e
+- Patreon: <https://patreon.com/WildKernels>

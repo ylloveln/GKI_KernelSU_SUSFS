@@ -6,10 +6,17 @@ permissions:
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      ksu_variant:
+        required: true
+        type: string
+      ksu_commit:
+        required: false
+        type: string
 
 jobs:
   build-kernels-a12:
+    name: "5.10.${{ matrix.sub_level }}-${{ matrix.os_patch_level }}"
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +93,8 @@ jobs:
           os_patch_level: "2025-06"
         - sub_level: "240"
           os_patch_level: "2025-09"
+        - sub_level: "246"
+          os_patch_level: "2025-12"
         # LTS meta
         - sub_level: "X"
           os_patch_level: "lts"
@@ -96,4 +105,6 @@ jobs:
       kernel_version: "5.10"
       sub_level: ${{ matrix.sub_level }}
       os_patch_level: ${{ matrix.os_patch_level }}
+      ksu_variant: ${{ inputs.ksu_variant }}
+      ksu_commit: ${{ inputs.ksu_commit }}
 
