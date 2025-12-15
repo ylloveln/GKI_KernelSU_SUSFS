@@ -1,0 +1,28 @@
+diff --git a/kernel/supercalls.c b/kernel/supercalls.c
+index bd0e2ed9..ef6bb241 100644
+--- a/kernel/supercalls.c
++++ b/kernel/supercalls.c
+@@ -848,17 +848,22 @@ void ksu_supercalls_init(void)
+ 	for (i = 0; ksu_ioctl_handlers[i].handler; i++) {
+ 		pr_info("  %-18s = 0x%08x\n", ksu_ioctl_handlers[i].name, ksu_ioctl_handlers[i].cmd);
+ 	}
+-
++#ifndef CONFIG_KSU_SUSFS
+ 	int rc = register_kprobe(&reboot_kp);
+ 	if (rc) {
+ 		pr_err("reboot kprobe failed: %d\n", rc);
+ 	} else {
+ 		pr_info("reboot kprobe registered successfully\n");
+ 	}
++#endif // #ifndef CONFIG_KSU_SUSFS
+ }
+ 
+ void ksu_supercalls_exit(void){
++#ifndef CONFIG_KSU_SUSFS
+ 	unregister_kprobe(&reboot_kp);
++#else
++    pr_info("susfs: do nothing\n");
++#endif // #ifndef CONFIG_KSU_SUSFS
+ }
+ 
+ // IOCTL dispatcher

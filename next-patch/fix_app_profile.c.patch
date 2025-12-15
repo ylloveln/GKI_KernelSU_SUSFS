@@ -1,0 +1,14 @@
+diff --git a/kernel/app_profile.c b/kernel/app_profile.c
+index 6c9cc76a..0a507153 100644
+--- a/kernel/app_profile.c
++++ b/kernel/app_profile.c
+@@ -139,3 +139,8 @@ void escape_with_root_profile(void)
+ 	}
+ #endif // #ifndef CONFIG_KSU_SUSFS
+ }
++
++void escape_to_root_for_init(void)
++{
++    setup_selinux(KERNEL_SU_CONTEXT);
++}
+\ No newline at end of file

@@ -1,0 +1,26 @@
+diff --git a/kernel/setuid_hook.c b/kernel/setuid_hook.c
+index fa34dfda..317b52cc 100644
+--- a/kernel/setuid_hook.c
++++ b/kernel/setuid_hook.c
+@@ -98,6 +98,12 @@ static inline bool is_allow_su()
+     return ksu_is_allow_uid_for_current(current_uid().val);
+ }
+ 
++static void ksu_install_manager_fd_tw_func(struct callback_head *cb)
++{
++    ksu_install_fd();
++    kfree(cb);
++}
++
+ #ifndef CONFIG_KSU_SUSFS
+ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+ {
+@@ -208,7 +214,7 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
+     // - Since ksu maanger app uid is excluded in allow_list_arr, so ksu_uid_should_umount(manager_uid)
+     //   will always return true, that's why we need to explicitly check if new_uid belongs to
+     //   ksu manager
+-    if (ksu_get_manager_appid() == new_uid % PER_USER_RANGE) {
++    if (ksu_get_manager_uid() == new_uid % PER_USER_RANGE) {
+         spin_lock_irq(&current->sighand->siglock);
+         ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+         spin_unlock_irq(&current->sighand->siglock);

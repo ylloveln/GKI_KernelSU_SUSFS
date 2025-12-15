@@ -328,13 +328,18 @@ jobs:
             if [ "$BRANCH" == "-s next" ]; then
               echo "当前为Dev分支的KernelSU-Next"
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
-              patch -p1 < 10_enable_susfs_for_ksu.patch || true
+              patch -f -p1 --fuzz=3 --ignore-whitespace < 10_enable_susfs_for_ksu.patch || true
               echo "应用临时修复补丁"
               cp ../../zzh_patch/next-patch/* ./
               patch -p1 < fix_apk_sign.c.patch
-              patch -p1 < fix_core_hook.c.patch
-              patch -p1 < fix_sucompat.c.patch
-              patch -p1 < fix_kernel_compat.c.patch
+              patch -p1 < fix_supercalls.c.patch
+              patch -p1 < fix_Makefile.patch
+              patch -p1 < fix_app_profile.c.patch
+              patch -p1 < fix_app_profile.h.patch
+              patch -p1 < fix_selinux.h.patch
+              patch -p1 < fix_setuid_hook.c.patch
+
+              sed -i '8d' kernel/selinux/selinux.c
             fi
             
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
@@ -408,17 +413,6 @@ jobs:
                 sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
               fi
             fi
-          fi
-  
-      - name: 应用新的HOOKS补丁
-        run: |
-          echo "更改为配置目录: $CONFIG..."
-          cd "$CONFIG/common"
-
-          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
-            echo "Applying hooks for KernelSU-Next..."
-            cp ../../kernel_patches/next/scope_min_manual_hooks_v1.4.patch ./
-            patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch
           fi
       
       - name: 升级LZ4至1.10.0
@@ -591,10 +585,7 @@ jobs:
           # Add KSU configuration settings
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
 
-          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
-            echo "CONFIG_KSU_KPROBES_HOOK=n" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
           

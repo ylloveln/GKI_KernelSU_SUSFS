@@ -1,0 +1,11 @@
+diff --git a/kernel/app_profile.h b/kernel/app_profile.h
+index 047ed9f9..1263509c 100644
+--- a/kernel/app_profile.h
++++ b/kernel/app_profile.h
+@@ -63,4 +63,6 @@ struct app_profile {
+ // Escalate current process to root with the appropriate profile
+ void escape_with_root_profile(void);
+ 
++void escape_to_root_for_init(void);
++
+ #endif
