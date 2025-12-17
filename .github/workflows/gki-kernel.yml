@@ -243,7 +243,7 @@ jobs:
             "Stable(标准)")
               case "$variant_input" in
                 "Next")
-                  echo "BRANCH=-s next" >> $GITHUB_ENV
+                  echo "BRANCH=-s stable" >> $GITHUB_ENV
                   ;;
                 "SukiSU")
                   echo "BRANCH=-s builtin" >> $GITHUB_ENV
@@ -256,7 +256,7 @@ jobs:
             "Dev(开发)")
               case "$variant_input" in
                 "Official" | "MKSU") echo "BRANCH=-s main" >> $GITHUB_ENV ;;
-                "Next")              echo "BRANCH=-s next" >> $GITHUB_ENV ;;
+                "Next")              echo "BRANCH=-s dev" >> $GITHUB_ENV ;;
                 "SukiSU")           echo "BRANCH=-s builtin" >> $GITHUB_ENV ;;
                 *) 
                   echo "错误：未定义开发分支的变体 '$variant_input'" >&2
