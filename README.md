@@ -4,18 +4,12 @@
 >
 > 第一次使用务必**详细阅读**以下内容，不要因为懒惰而占用他人时间！
 >
-> SUKISU，编译时的Dev/Stable，追求稳定选择Stable；
-> KSU的稳定版是最新TAG，也就是[v2.0.0](https://github.com/tiann/KernelSU/tree/v1.0.5)，但目前无法编译）
-
-KSU-NEXT:
- - ~~Maintenance for KSU-NEXT (KSUN) has been permanently discontinued.(KSUN永久停更)，[见/see](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases/tag/v1.5.12-r5)~~
- - I will attempt to build an experimental version of KSU-NEXT 3.0. If you encounter any issues during testing, please report them via issues.(我会尝试实验性构建3.0版本的KSU-NEXT，测试遇到问题可以issues反馈)
 
 ### 无限重启？
 1. 一加/真我/op：进入系统rec清除Data数据后重启
 2. 小米：少数机型因为启动引导因avb验证导致无法启动分区，需要关闭[avb验证](https://magiskcn.com/disable-avb)
 3. zram:一些机型或系统使用了带zram补丁的内核也可能，遇到该情况可以刷[Release](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases)中不带zram的内核，或者在编译选项中不勾选[增加更多ZRAM算法]以编译无zram的内核
-4. 其他：其他手机也可能因为相似的兼容问题，如果有可以补充。。。
+4. 其他：KSU驱动导致的bootloop，错误代码未得到修复而构建内核
 
 ### BUG反馈？
 该仓库仅提供GKI内核编译流程，也就是把KSU变体驱动合并内核二进制。关系为：对应KSU仓库或SUSFS更新了代码，该仓库编译包含最新KSU的内核，用户刷入编译成品使用。
