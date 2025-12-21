@@ -7,7 +7,7 @@
 > 尝试构建集成 [hymo挂载元模块](https://github.com/Anatdx/hymo)的GKI内核，但该项目目前仅支持6.6，因此未完整合并到本仓库主分支。链接为[hymo+gki](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases/tag/v2.0.0-r18)
 >
 > Attempted to build a GKI kernel with [hymo](https://github.com/Anatdx/hymo) integration. However, since the project currently only supports kernel 6.6, it has not been fully merged into the main branch.
-> Link: [hymo+gki](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases/tag/v2.0.0-r18)
+> Link: [hymo+gki](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases/tag/v2.0.0-r19)
 
 ### 无限重启？
 1. 一加/真我/op：进入系统rec清除Data数据后重启
