@@ -9,9 +9,7 @@
 
 ## 文档与指南
 
-详细说明已整理到 GitHub Wiki（中英双语），请优先查阅：
-- 中文主页：`wiki/Home.md`
-- English Home: `wiki/Home-EN.md`
+详细说明已整理到 [GitHub Wiki（中英双语）](https://github.com/zzh20188/GKI_KernelSU_SUSFS/wiki)，请优先查阅
 
 Wiki 包含：下载与刷写、无限重启处理、BUG 反馈指引、Tips、KSU 管理器与 SUSFS 模块、内核构建时间、紧急救援指南、内核版本兼容性说明等内容。
 
