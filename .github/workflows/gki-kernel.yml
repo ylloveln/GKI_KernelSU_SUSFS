@@ -91,7 +91,7 @@ jobs:
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
 
-          echo "CONFIG set to: $CONFIG"
+          echo "CONFIG 已设置为 $CONFIG"
 
       # Install ccache
       - name: 安装 依赖
@@ -159,13 +159,13 @@ jobs:
 
       - name: 克隆 AnyKernel3 和其他依赖项
         run: |
-          echo "Cloning AnyKernel3 and other dependencies..."
+          echo "正在克隆 AnyKernel3 及相关依赖..."
 
           ANYKERNEL_BRANCH="gki-2.0"
           SUSFS_BRANCH="gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}"
 
           # Debug print the branches
-          echo "Using branch for SUSFS: $SUSFS_BRANCH"
+          echo "SUSFS 选用分支: $SUSFS_BRANCH"
 
           # Clone repositories using the branch names
           git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
@@ -184,24 +184,24 @@ jobs:
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
 
-          echo "CONFIG set to: $CONFIG"
+          echo "CONFIG 已设置为 $CONFIG"
 
       - name: 初始化和同步内核源代码
         run: |
-          echo "Creating folder for configuration: $CONFIG..."
+          echo "正在创建配置目录 $CONFIG"
           mkdir -p "$CONFIG"
           cd "$CONFIG"
           git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-gnu-6.4.1.git gcc
           ls gcc/bin
           # Initialize and sync kernel source
-          echo "Initializing and syncing kernel source..."
+          echo "初始化并同步内核源码..."
           FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
           $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} --repo-rev=v2.16
           REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common ${FORMATTED_BRANCH})
           DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
           # Check if branch is deprecated
           if grep -q deprecated <<< $REMOTE_BRANCH; then
-            echo "Found deprecated branch: $FORMATTED_BRANCH"
+            echo "检测到已弃用分支: $FORMATTED_BRANCH"
             sed -i "s/\"${FORMATTED_BRANCH}\"/\"deprecated\/${FORMATTED_BRANCH}\"/g" $DEFAULT_MANIFEST_PATH
           fi
           # Sync repo and apply patches
@@ -213,7 +213,7 @@ jobs:
           if grep -q deprecated <<< "$REMOTE_BRANCH" && \
              { [ "$FORMATTED_BRANCH" == "android13-5.15" ] && \
                [ ${{ inputs.sub_level }} -lt 123 ]; }; then
-            echo '修复5.15仅支持旧版C库的BUG'
+            echo '修复 5.15 仅支持旧版 C 库的问题'
             cd ./common
             curl -LSsO https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/dev/5.15-patch/fix_5.15.legacy.patch
             patch -p1 < fix_5.15.legacy.patch
@@ -224,12 +224,12 @@ jobs:
         run: |
           echo '切换到驱动目录'
           cd "$CONFIG/common/drivers/"
-          echo '当前目录$(pwd),下载支持补丁'
+          echo '当前目录: $(pwd)，开始下载支持补丁'
           curl -LSs "https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/dev/hmbird_patch.c" -o hmbird_patch.c
           if [ ! -f hmbird_patch.c ]; then
-            echo "hmbird_patch.c 下载失败"
+            echo "下载 hmbird_patch.c 失败"
           fi
-          echo '补丁加入构建'
+          echo '已将补丁加入构建'
           echo "obj-y += hmbird_patch.o" >> Makefile
           tail -n 3 Makefile
       
@@ -272,20 +272,20 @@ jobs:
 
       - name: 添加 KernelSU
         run: |
-          echo "更改为配置目录: $CONFIG..."
+          echo "切换到配置目录 $CONFIG"
           cd "$CONFIG"
 
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
-            echo "Adding KernelSU Official..."
+            echo "添加 KernelSU Official 版本..."
             curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash $BRANCH
           elif [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
-            echo "Adding KernelSU Next..."
+            echo "添加 KernelSU Next 版本..."
             curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash $BRANCH
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            echo "Adding KernelSU MKSU..."
+            echo "添加 KernelSU MKSU 版本..."
             curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash $BRANCH
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            echo "Adding KernelSU SukiSU..."
+            echo "添加 KernelSU SukiSU 版本..."
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
           fi
       
@@ -301,10 +301,10 @@ jobs:
 
       - name: 为 KernelSU 变体安装 SUSFS 补丁
         run: |
-          echo "更改为配置目录: $CONFIG..."
+          echo "切换到配置目录 $CONFIG"
           cd "$CONFIG"
 
-          echo "Applying SUSFS patches..."
+          echo "开始应用 SUSFS 补丁..."
 
           # Copy SUSFS patches
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch ./common/
@@ -312,7 +312,7 @@ jobs:
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
 
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
-            echo "Applying SUSFS patches for Official KernelSU..."
+            echo "为 Official KernelSU 应用 SUSFS 补丁..."
             cd ./KernelSU
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./ 
             patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
@@ -323,13 +323,13 @@ jobs:
 
           elif [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
             # 临时恢复KSU-NEXT的dev编译
-            echo "Applying SUSFS patches for KernelSU-Next..."
+            echo "为 KernelSU-Next 应用 SUSFS 补丁..."
             cd ./KernelSU-Next
             if [ "$BRANCH" == "-s next" ]; then
-              echo "当前为Dev分支的KernelSU-Next"
+              echo "当前处于 KernelSU-Next Dev 分支"
               cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
               patch -f -p1 --fuzz=3 --ignore-whitespace < 10_enable_susfs_for_ksu.patch || true
-              echo "应用临时修复补丁"
+              echo "应用临时修复补丁..."
               cp ../../zzh_patch/next-patch/* ./
               patch -p1 < fix_apk_sign.c.patch
               patch -p1 < fix_supercalls.c.patch
@@ -343,7 +343,7 @@ jobs:
             fi
             
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            echo "Applying SUSFS patches for MKSU..."
+            echo "为 MKSU 应用 SUSFS 补丁..."
             cd ./KernelSU
 
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
@@ -354,11 +354,11 @@ jobs:
             # patch -p1 --fuzz=3 < mksu_core_hook.c.patch
 
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            echo "Applying SUSFS patches for SukiSU..."
+            echo "为 SukiSU 应用 SUSFS 补丁..."
             cd ./KernelSU
-            echo "Applying SukiSU specific SUSFS patch..."
+            echo "应用 SukiSU 专用的 SUSFS 补丁..."
           else
-            echo "Invalid KernelSU variant selected!"
+            echo "错误：未识别的 KernelSU 变体"
             exit 1
           fi
 
@@ -388,7 +388,7 @@ jobs:
           fake_patched=0
           if [ "$FORMATTED_BRANCH" = "android15-6.6" ]; then
             if ! grep -qxF $'\tunsigned int nr_subpages = __PAGE_SIZE / PAGE_SIZE;' ./fs/proc/task_mmu.c; then
-              echo "未找到 nr_subpages,正在进行补丁修复"
+              echo "未找到 nr_subpages，正在应用补丁修复"
               sed -i -e '/int ret = 0, copied = 0;/a \\tunsigned int nr_subpages \= __PAGE_SIZE \/ PAGE_SIZE;' -e '/int ret = 0, copied = 0;/a \\tpagemap_entry_t \*res = NULL;' ./fs/proc/task_mmu.c
               fake_patched=1
             fi
@@ -396,7 +396,7 @@ jobs:
           
           if [ "$FORMATTED_BRANCH" = "android12-5.10" ] || [ "$FORMATTED_BRANCH" = "android13-5.10" ] || [ "$FORMATTED_BRANCH" = "android13-5.15" ]; then
             if ! grep -qxF $'\tif (!vma_pages(vma))' ./fs/proc/task_mmu.c; then
-              echo "未找到 vma_pages,正在进行补丁修复"
+              echo "未找到 vma_pages，正在应用补丁修复"
               fake_patched=1
             fi
           fi
@@ -419,9 +419,9 @@ jobs:
         if: ${{ inputs.use_zram }}
         run: |
 
-          echo "更改为配置目录: $CONFIG..."
+          echo "切换到配置目录 $CONFIG/common"
           cd "$CONFIG/common"
-          echo 'lz升级'
+          echo '开始升级 LZ4'
           # 删除lz4库旧有文件
           files=(
               "lib/lz4/lz4_compress.c"
@@ -433,9 +433,9 @@ jobs:
           for file in "${files[@]}"; do
               if [ -e "$file" ]; then
                   rm "$file"
-                  echo "$file 已删除"
+                  echo "已删除 $file"
               else
-                  echo "$file 不存在"
+                  echo "$file 不存在，跳过"
               fi
           done
 
@@ -469,32 +469,32 @@ jobs:
           cp -r ../../SukiSU_patch/other/zram/lz4k_oplus ./lib/
 
           cp ../../SukiSU_patch/other/zram/zram_patch/${{ inputs.kernel_version }}/lz4kd.patch ./
-          echo "正在打lz4kd补丁"
+          echo "正在应用 lz4kd 补丁..."
           patch -p1 -F 3 < lz4kd.patch || true
-          echo '完成LZ4KD补丁'
+          echo 'LZ4KD 补丁应用完成'
 
           cp ../../SukiSU_patch/other/zram/zram_patch/${{ inputs.kernel_version }}/lz4k_oplus.patch ./
-          echo "正在打lz4k_oplus补丁"
+          echo "正在应用 lz4k_oplus 补丁..."
           patch -p1 -F 3 < lz4k_oplus.patch || true
-          echo '完成lz4k_oplus补丁'
+          echo 'lz4k_oplus 补丁应用完成'
 
       
       - name: 修复三星 6.6 GKI设备上的Wi-Fi和蓝牙功能
         if: ${{ ( inputs.kernel_version == '6.6' ) }}
         run: |
-          echo "[+] 将三星KDP导出的符号添加到 abi_gki_aarch64_galaxy"
+          echo "[+] 将三星 KDP 导出符号添加到 abi_gki_aarch64_galaxy"
           SYMBOL_LIST=$CONFIG/common/android/abi_gki_aarch64_galaxy
           echo "kdp_set_cred_non_rcu" >> $SYMBOL_LIST
           echo "kdp_usecount_dec_and_test" >> $SYMBOL_LIST
           echo "kdp_usecount_inc" >> $SYMBOL_LIST
-          echo "[+] 将三星KDP导出的符号定义添加到 abi_gki_aarch64.stg"
+          echo "[+] 将三星 KDP 导出符号定义添加到 abi_gki_aarch64.stg"
           cd $CONFIG/common
           PATCH="../../kernel_patches/samsung/min_kdp/add-min_kdp-symbols.patch"
           if patch -p1 --dry-run < $PATCH; then
-            echo "[+] 成功将三星KDP导出符号定义添加到 abi_gki_aarch64.stg"
+            echo "[+] 成功将三星 KDP 导出符号定义添加到 abi_gki_aarch64.stg"
             patch -p1 --no-backup-if-mismatch < $PATCH
           fi
-          echo "[+] 添加三星最小化KDP驱动程序"
+          echo "[+] 添加三星最小化 KDP 驱动程序"
           cd drivers
           cp "../../../kernel_patches/samsung/min_kdp/min_kdp.c" min_kdp.c
           echo "obj-y += min_kdp.o" >> Makefile
